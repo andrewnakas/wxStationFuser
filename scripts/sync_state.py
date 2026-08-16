@@ -60,6 +60,9 @@ def upload() -> int:
         repo_type="dataset",
         token=token,
         commit_message="update station state",
+        # Filesystem and interpreter debris would otherwise be published alongside the
+        # data and downloaded by every subsequent run.
+        ignore_patterns=[".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp"],
     )
     print(f"uploaded {STATE_DIR} to {repo}")
     return 0
