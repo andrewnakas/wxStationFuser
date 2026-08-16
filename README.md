@@ -87,37 +87,36 @@ own claim.
 
 ## Results at the first enrolled station
 
-Denver International (`IEM:DEN`), fusing GFS, ECMWF IFS, ICON, and HRRR against one year of
-paired history, evaluated walk-forward:
+Denver International (`IEM:DEN`), fusing GFS, ECMWF IFS, ICON, and HRRR against two years
+of paired history, evaluated walk-forward. These are the numbers the live page shows:
 
-| Variable | Method published | CRPS gain vs best raw model | 90% CI | Absolute-error gain | vs climatology |
-|---|---|---|---|---|---|
-| Temperature | Tier 2 | 42% | 39–45% | 21% | +34% |
-| Relative humidity | Tier 2 | 37% | 36–43% | 16% | +36% |
-| Wind speed | Tier 1 | 44% | 44–47% | 23% | +7% |
-| Wind gusts | Tier 1 | 70% | 68–73% | 58% | −4% |
-| Precipitation | Tier 3 | 46% | 39–60% | 45% | −4% |
+| Variable | Method chosen | CRPS gain vs best raw model | Absolute-error gain |
+|---|---|---|---|
+| Temperature | Tier 2 — EMOS + harmonics | 43% | 22% |
+| Relative humidity | Tier 3 — boosted quantiles | 40% | 18% |
+| Wind speed | Tier 1 — EMOS | 44% | 23% |
+| Wind gusts | Tier 3 — boosted quantiles | 69% | 57% |
+| Precipitation | Tier 3 — boosted quantiles | 46% | 44% |
 
-Every interval excludes zero, so all five are genuine gains rather than noise. The
-climatology column is the uncomfortable one and is published for that reason:
-temperature and humidity beat "just use the seasonal average for this hour" by a wide
-margin, but gusts and precipitation do not. Beating the physics model at those variables
-while barely matching a calendar lookup is worth knowing, and averaging it away would be
-the dishonest choice.
+Every confidence interval excludes zero, so all five are genuine gains rather than noise.
+The live page carries the intervals, the per-method comparison, and the skill against
+climatology — which is the uncomfortable number and is published for that reason. At this
+station temperature and humidity beat "just use the seasonal average for this hour" by a
+wide margin while gusts and precipitation barely match it. Beating the physics model at a
+variable where a calendar lookup does nearly as well is worth knowing, and averaging it
+away would be the dishonest choice.
 
-The methods differ by variable, and that is the system working rather than an
-inconsistency. Temperature and humidity are well described by a Gaussian whose mean is
-linear in the model forecasts, so EMOS with harmonics wins and gradient boosting actually
-*loses* on them — trees cannot extrapolate beyond the temperatures they were trained on.
-Precipitation is skewed with a point mass at zero, which is precisely where the
-nonparametric quantile method pulls ahead.
+The method differs by variable, and that is the system working rather than an
+inconsistency. Temperature is well described by a Gaussian whose mean is linear in the
+model forecasts, so EMOS with harmonics wins and gradient boosting actually *loses* on it
+— trees cannot extrapolate beyond the temperatures they were trained on. Gusts and
+precipitation are skewed and heteroscedastic, which is exactly where the nonparametric
+quantile method pulls ahead.
 
-Wind speed and gusts are cases where a different tier scored marginally better (Tier 2 by
-0.2%, Tier 3 by 0.9%) but did not clear the 2% promotion margin, so the incumbent stayed.
-That margin exists so the published method does not flip between near-equivalent options
-every time the job runs — a user should not see the method change without the accuracy
-changing. Each station page shows the full per-tier comparison, so the runner-up is
-visible rather than hidden.
+A challenger must beat the incumbent by 2% to take over. That margin exists so the
+published method does not flip between near-equivalent options every time the job runs — a
+user should not see the method change without the accuracy changing. Each station page
+shows the full per-tier comparison, so the runner-up is visible rather than hidden.
 
 ## Using it
 
