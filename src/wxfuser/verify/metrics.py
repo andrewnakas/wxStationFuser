@@ -32,23 +32,87 @@ def pinball_loss(y: np.ndarray, pred: np.ndarray, q: float) -> np.ndarray:
     return np.maximum(q * d, (q - 1.0) * d)
 
 
-def crps_from_quantiles(y: np.ndarray, quantile_preds: dict[str, np.ndarray]) -> np.ndarray:
-    """Approximate CRPS from a quantile grid (mean pinball loss x 2).
+# Quadrature grid for CRPS = 2 * integral of pinball loss over quantile levels.
+# The density matters more than it looks. Evaluating the integral on only the five
+# published levels misses the tail contributions entirely, and — critically — the size of
+# that error depends on how dispersed the forecast is: it is *exact* for a point forecast
+# and understates a calibrated Gaussian by 12%. Since the raw model enters the comparison
+# as a point forecast, scoring on five levels flattered every fused-vs-raw claim this
+# project makes by roughly 12 percentage points. A 99-level grid brings the error to about
+# +1% and, being an overestimate, now errs against our own claim rather than for it.
+DENSE_LEVELS = np.round(np.arange(0.01, 0.995, 0.01), 4)
 
-    For a quantile grid Q, CRPS = 2 * mean_q pinball_q. Exact in the limit of a dense
-    grid; with our five quantiles it is a consistent estimator that ranks methods
-    correctly, which is what selection needs.
-    """
-    qs = quantiles()
-    losses = []
-    for q in qs:
-        key = f"q{int(q * 100):02d}"
-        if key not in quantile_preds:
+
+def _quantile_matrix(quantile_preds: dict[str, np.ndarray]) -> tuple[np.ndarray, np.ndarray] | None:
+    """Sorted (levels, values) from a qNN-keyed prediction dict."""
+    items = []
+    for key, vals in quantile_preds.items():
+        if not (isinstance(key, str) and key.startswith("q") and key[1:].isdigit()):
             continue
-        losses.append(pinball_loss(y, quantile_preds[key], q))
-    if not losses:
+        items.append((int(key[1:]) / 100.0, np.asarray(vals, dtype=float)))
+    if len(items) < 2:
+        return None
+    items.sort(key=lambda kv: kv[0])
+    levels = np.array([lv for lv, _ in items])
+    values = np.column_stack([v for _, v in items])
+    return levels, values
+
+
+def densify_quantiles(
+    levels: np.ndarray, values: np.ndarray, dense: np.ndarray = DENSE_LEVELS
+) -> np.ndarray:
+    """Interpolate a coarse quantile function onto a dense level grid.
+
+    Between the fitted levels this is linear interpolation of the quantile function.
+    Outside them the tails are extended with the slope of the outermost fitted interval,
+    which is what stops the estimator from silently truncating the distribution — the
+    tails are exactly where the missing CRPS mass lives. A degenerate (point) forecast
+    interpolates and extends to the same constant, so its CRPS stays exactly the absolute
+    error and the raw-model baseline is unaffected.
+    """
+    n = values.shape[0]
+    out = np.empty((n, len(dense)), dtype=float)
+
+    lo_slope = (values[:, 1] - values[:, 0]) / max(levels[1] - levels[0], 1e-9)
+    hi_slope = (values[:, -1] - values[:, -2]) / max(levels[-1] - levels[-2], 1e-9)
+
+    for j, d in enumerate(dense):
+        if d <= levels[0]:
+            out[:, j] = values[:, 0] + lo_slope * (d - levels[0])
+        elif d >= levels[-1]:
+            out[:, j] = values[:, -1] + hi_slope * (d - levels[-1])
+        else:
+            i = int(np.searchsorted(levels, d, side="right")) - 1
+            w = (d - levels[i]) / (levels[i + 1] - levels[i])
+            out[:, j] = values[:, i] * (1.0 - w) + values[:, i + 1] * w
+    return out
+
+
+def crps_from_quantiles(
+    y: np.ndarray, quantile_preds: dict[str, np.ndarray], *, dense: bool = True
+) -> np.ndarray:
+    """CRPS estimated from a quantile forecast, via 2 x mean pinball loss.
+
+    ``dense=True`` first interpolates the published quantiles onto a fine grid so the
+    integral covers the tails. Every forecast in the system — fused and raw — is scored
+    through this one function, so the comparison stays fair even though the estimator is
+    not perfectly exact.
+    """
+    y = np.asarray(y, dtype=float)
+    parsed = _quantile_matrix(quantile_preds)
+    if parsed is None:
         return np.full(len(np.atleast_1d(y)), np.nan)
-    return 2.0 * np.mean(losses, axis=0)
+    levels, values = parsed
+
+    if dense:
+        grid = DENSE_LEVELS
+        mat = densify_quantiles(levels, values, grid)
+    else:
+        grid, mat = levels, values
+
+    d = y[:, None] - mat
+    losses = np.maximum(grid[None, :] * d, (grid[None, :] - 1.0) * d)
+    return 2.0 * losses.mean(axis=1)
 
 
 def crpss(crps_forecast: float, crps_reference: float) -> float:

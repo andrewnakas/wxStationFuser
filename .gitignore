@@ -10,9 +10,15 @@ venv/
 .ruff_cache/
 .DS_Store
 
-# Local state / caches — the real store is the HF dataset repo
-state/
-data/
-site/stations/
-site/index.json
-site/stations.min.json
+# Local state / caches — the real store is the HF dataset repo.
+# These MUST stay anchored with a leading slash. An unanchored `data/` matches a
+# directory of that name at any depth, which silently excluded the entire
+# src/wxfuser/data package from the repository.
+/state/
+/data/
+/site/stations/
+/site/index.json
+/site/stations.min.json
+
+# Local Claude Code session state
+/.claude/
