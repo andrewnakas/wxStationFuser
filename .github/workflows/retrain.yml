@@ -1,0 +1,64 @@
+name: Weekly retrain
+
+# Re-runs the walk-forward verification for every station and re-decides which method to
+# publish. This is the expensive job — dozens of refits per variable — which is exactly
+# why it is separate from the forecast cadence. The numbers it produces are what the site
+# quotes as its skill claim, so it must never be skipped to save time.
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      station:
+        description: 'Limit to one station id (blank = all)'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retrain
+  cancel-in-progress: false
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[train]"
+
+      - name: Restore state
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/sync_state.py download || echo "no state yet"
+
+      - name: Retrain and re-verify
+        env:
+          SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.station }}" ]; then
+            wxfuser retrain --station "${{ inputs.station }}"
+          else
+            wxfuser retrain
+          fi
+
+      - name: Save state
+        if: always()
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/sync_state.py upload
+
+      - name: Trigger a refresh so the site picks up the new methods
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run refresh.yml || true

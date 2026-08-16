@@ -1,0 +1,114 @@
+name: Enroll a weather station
+description: Add a station so it gets a continuously calibrated, verified forecast.
+title: 'Enroll: '
+labels: [enroll]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submitting this opens an automated job that pulls the station's observation
+        history, backfills matching archived model forecasts, trains the correction
+        models, and publishes a verified forecast page. It usually takes a few minutes.
+
+  - type: input
+    id: station_id
+    attributes:
+      label: Station ID
+      description: >
+        Network-prefixed identifier. Use `IEM:` for airport/ASOS stations (e.g. `IEM:DEN`),
+        `NWS:` for a National Weather Service station (`NWS:KDEN`), `MS:` for a Meteostat
+        station, `SYN:` for a Synoptic/MesoWest station, `GHCNH:` for GHCN-hourly, or a
+        bare triplet for SNOTEL (`663:CO:SNTL`).
+      placeholder: 'IEM:DEN'
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Display name
+      placeholder: Denver International Airport
+    validations:
+      required: true
+
+  - type: input
+    id: lat
+    attributes:
+      label: Latitude
+      description: >
+        Decimal degrees. This is where the weather models are sampled, so it should be the
+        station's actual position, not the nearest town.
+      placeholder: '39.8467'
+    validations:
+      required: true
+
+  - type: input
+    id: lon
+    attributes:
+      label: Longitude
+      placeholder: '-104.6564'
+    validations:
+      required: true
+
+  - type: input
+    id: elev
+    attributes:
+      label: Elevation (metres)
+      description: >
+        Optional, but useful — mismatch between model terrain and true station elevation
+        is a large part of what the correction learns.
+      placeholder: '1656'
+
+  - type: input
+    id: iem_network
+    attributes:
+      label: IEM network code
+      description: Required only for `IEM:` stations. Examples: `CO_ASOS`, `AZ_RWIS`, `DE__ASOS`.
+      placeholder: CO_ASOS
+
+  - type: input
+    id: nws_id
+    attributes:
+      label: NWS station ID
+      description: Optional. Adds fresher observations for US stations.
+      placeholder: KDEN
+
+  - type: input
+    id: ghcnh_id
+    attributes:
+      label: GHCN-hourly station ID
+      description: >
+        Optional. Adds deep observation history, which lets the higher-skill methods
+        become eligible sooner.
+      placeholder: USW00003017
+
+  - type: checkboxes
+    id: models
+    attributes:
+      label: Weather models to fuse
+      description: >
+        Leave all unchecked to use sensible regional defaults. More models generally means
+        a better forecast — their errors are only partly correlated, so disagreement
+        between them is itself a useful signal about uncertainty.
+      options:
+        - label: gfs_seamless (NOAA GFS, global)
+        - label: ecmwf_ifs025 (ECMWF IFS, global)
+        - label: ecmwf_aifs025_single (ECMWF AIFS, AI model)
+        - label: icon_seamless (DWD ICON)
+        - label: gem_seamless (Environment Canada GEM)
+        - label: meteofrance_seamless (Meteo-France)
+        - label: ukmo_seamless (UK Met Office)
+        - label: ncep_hrrr_conus (NOAA HRRR, US only, short range)
+        - label: ncep_nbm_conus (NOAA NBM, US only)
+
+  - type: checkboxes
+    id: variables
+    attributes:
+      label: Variables to publish
+      description: Leave unchecked for all of them.
+      options:
+        - label: air_temp_c (temperature)
+        - label: rh_pct (relative humidity)
+        - label: wind_speed_ms (wind speed)
+        - label: wind_gust_ms (wind gusts)
+        - label: precip_1h_mm (precipitation)

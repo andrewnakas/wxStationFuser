@@ -1,0 +1,12 @@
+# Hugging Face dataset repo holding all mutable state: paired forecast/obs archives,
+# fitted coefficients, LightGBM boosters, and verification history. The git repo holds
+# only code + the enrollment registry, so hourly refreshes never touch git history.
+#
+# Override with the WXFUSER_HF_REPO env var (useful for forks and dry runs).
+hub:
+  state_repo: nakas/wxfuser-state
+  paths:
+    pairs: pairs                 # pairs/{station}.parquet
+    models: models               # models/{station}/{variable}.json (+ .txt boosters)
+    catalogue: catalogue         # catalogue/stations.parquet, stations.min.json
+    verify: verify               # verify/{station}.json history

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wxStationFuser — station-calibrated weather forecasts</title>
+<meta name="description" content="Fuses surface weather station observations with numerical weather models to produce calibrated probabilistic forecasts, with the skill gain measured and published.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>wxStationFuser</h1>
+  <span class="tag">station observations &times; weather models &rarr; calibrated forecasts</span>
+  <span class="spacer"></span>
+  <span class="tag" id="generated"></span>
+</header>
+
+<div class="layout">
+  <aside>
+    <div id="map"></div>
+    <input class="search" id="search" placeholder="Search stations…" autocomplete="off">
+    <ul class="station-list" id="stations"></ul>
+  </aside>
+
+  <main id="main">
+    <div class="empty">Loading…</div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="instant.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

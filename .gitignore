@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+
+# Local state / caches — the real store is the HF dataset repo
+state/
+data/
+site/stations/
+site/index.json
+site/stations.min.json

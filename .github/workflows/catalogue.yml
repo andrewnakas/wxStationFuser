@@ -1,0 +1,49 @@
+name: Rebuild station catalogue
+
+# The list of stations a user can search and enroll. Rebuilt weekly because networks add
+# and retire stations continuously; the file is a static asset the site loads lazily.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: 'Comma-separated sources (nws,iem,meteostat)'
+        required: false
+        default: 'nws,iem,meteostat'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalogue
+  cancel-in-progress: false
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[train]"
+
+      - name: Build catalogue
+        run: wxfuser catalogue --sources "${{ inputs.sources || 'nws,iem,meteostat' }}"
+
+      - name: Publish to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/sync_state.py upload
+
+      - name: Trigger a refresh so the site picks up the new catalogue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run refresh.yml || true

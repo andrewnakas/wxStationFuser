@@ -1,0 +1,103 @@
+name: Enroll station
+
+# Turns an enrollment issue into a live, verified station page. The whole point of doing
+# this through an issue form is that a user needs no fork, no pull request, and no
+# credentials — they fill in a form and get a link back.
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: enroll-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  enroll:
+    if: contains(github.event.issue.labels.*.name, 'enroll')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[train]"
+
+      - name: Write issue body to a file
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: printf '%s' "$BODY" > /tmp/issue-body.md
+
+      - name: Validate and register
+        id: validate
+        run: |
+          python scripts/validate_enrollment.py \
+            --body-file /tmp/issue-body.md \
+            --output /tmp/station.json \
+            --errors-output /tmp/errors.md
+
+      - name: Report validation failure
+        if: failure() && steps.validate.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f /tmp/errors.md ]; then
+            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/errors.md
+          else
+            gh issue comment "${{ github.event.issue.number }}" \
+              --body "Enrollment failed before validation could report a reason. See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+          fi
+
+      - name: Restore state
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/sync_state.py download || echo "no state yet"
+
+      - name: Backfill history and train
+        env:
+          SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
+        run: |
+          STATION=$(python -c "import json;print(json.load(open('/tmp/station.json'))['id'])")
+          wxfuser bootstrap "$STATION" --years 2.0
+
+      - name: Save state
+        if: always()
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/sync_state.py upload || echo "state upload skipped"
+
+      - name: Commit the registry entry
+        run: |
+          STATION=$(python -c "import json;print(json.load(open('/tmp/station.json'))['id'])")
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stations.yaml
+          git diff --staged --quiet || git commit -m "Enroll $STATION (closes #${{ github.event.issue.number }})"
+          git push
+
+      - name: Report success and close
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SLUG=$(python -c "import json;print(json.load(open('/tmp/station.json'))['slug'])")
+          NAME=$(python -c "import json;print(json.load(open('/tmp/station.json'))['name'])")
+          python scripts/enrollment_summary.py --slug "$SLUG" --name "$NAME" \
+            --repo "${{ github.repository }}" > /tmp/summary.md
+          gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/summary.md
+          gh issue close "${{ github.event.issue.number }}"
+
+      - name: Publish the site
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run refresh.yml || true

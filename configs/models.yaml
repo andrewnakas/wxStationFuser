@@ -1,0 +1,106 @@
+# Open-Meteo model catalogue.
+#
+# `id` is the Open-Meteo `models=` value. `vars` lists which of our canonical variables
+# the model actually returns — verified empirically, because Open-Meteo happily returns
+# an all-null column for a variable a model does not carry (ECMWF IFS/AIFS have no wind
+# gusts, for instance). Training must not treat those nulls as missing data to impute.
+#
+# `archive_from` is the earliest date the historical-forecast API serves for the model;
+# `prev_runs_from` is the earliest for the lead-resolved previous-runs API. Bootstrap
+# clamps its requests to these so we do not burn calls on empty windows.
+
+models:
+  - id: gfs_seamless
+    label: NOAA GFS
+    center: NOAA
+    resolution_km: 25
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2021-03-23
+    prev_runs_from: 2021-03-23
+    global: true
+
+  - id: ecmwf_ifs025
+    label: ECMWF IFS 0.25°
+    center: ECMWF
+    resolution_km: 25
+    vars: [air_temp_c, rh_pct, wind_speed_ms, precip_1h_mm]  # no wind gusts
+    archive_from: 2024-02-01
+    prev_runs_from: 2024-02-01
+    global: true
+
+  - id: ecmwf_aifs025_single
+    label: ECMWF AIFS (AI model)
+    center: ECMWF
+    resolution_km: 25
+    vars: [air_temp_c, rh_pct, wind_speed_ms, precip_1h_mm]
+    archive_from: 2024-04-01
+    prev_runs_from: 2024-04-01
+    global: true
+
+  - id: icon_seamless
+    label: DWD ICON
+    center: DWD
+    resolution_km: 11
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2022-11-01
+    prev_runs_from: 2024-01-01
+    global: true
+
+  - id: gem_seamless
+    label: CMC GEM
+    center: ECCC
+    resolution_km: 10
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2022-11-01
+    prev_runs_from: 2024-01-01
+    global: true
+
+  - id: meteofrance_seamless
+    label: Météo-France ARPEGE/AROME
+    center: MeteoFrance
+    resolution_km: 10
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2022-11-01
+    prev_runs_from: 2024-01-01
+    global: true
+
+  - id: ukmo_seamless
+    label: UK Met Office
+    center: UKMO
+    resolution_km: 10
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2022-11-01
+    prev_runs_from: 2024-03-01
+    global: true
+
+  - id: ncep_hrrr_conus
+    label: NOAA HRRR (CONUS 3 km)
+    center: NOAA
+    resolution_km: 3
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2018-01-01
+    prev_runs_from: 2024-01-01
+    global: false           # CONUS only
+
+  - id: ncep_nbm_conus
+    label: NOAA NBM (calibrated benchmark)
+    center: NOAA
+    resolution_km: 3
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    archive_from: 2022-01-01
+    prev_runs_from: 2024-01-01
+    global: false
+
+# Canonical variable -> Open-Meteo hourly variable name.
+variables:
+  air_temp_c: temperature_2m
+  rh_pct: relative_humidity_2m
+  wind_speed_ms: wind_speed_10m
+  wind_gust_ms: wind_gusts_10m
+  precip_1h_mm: precipitation
+
+# Default model set when an enrollment does not name one.
+defaults:
+  models: [gfs_seamless, ecmwf_ifs025, icon_seamless]
+  models_conus: [gfs_seamless, ecmwf_ifs025, icon_seamless, ncep_hrrr_conus]
+  variables: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]

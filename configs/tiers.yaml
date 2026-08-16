@@ -1,0 +1,76 @@
+# Correction-engine constants.
+#
+# Tier gates are in *days of paired history*; the literature basis for each tier is
+# noted in the module that implements it. Values here are deliberately the only place
+# these numbers appear, so a tuning sweep touches one file.
+
+# Lead-time buckets (hours, inclusive lower / inclusive upper). Every tier fits one
+# parameter set per bucket: error structure varies far more with lead than within it.
+lead_buckets:
+  - [1, 6]
+  - [7, 12]
+  - [13, 24]
+  - [25, 48]
+  - [49, 96]
+  - [97, 168]
+
+quantiles: [0.05, 0.25, 0.5, 0.75, 0.95]
+
+tier0:
+  # Decaying-average bias, equivalent to a steady-state Kalman filter with fixed gain
+  # (Delle Monache et al. 2011). w = 0.08 -> ~12-sample e-folding.
+  decay_w: 0.08
+  min_cell_samples: 5        # below this, fall back from [lead, hour] to [lead] bias
+  min_residuals_for_bands: 15
+  residual_window: 60        # residuals retained per lead bucket for empirical quantiles
+
+tier1:
+  min_days: 15
+  # Exponential time weighting w_i = exp(-dt_days / tau). Gneiting et al. 2005 used
+  # 30-45 d rolling windows; Lang et al. 2020 found longer windows help at longer leads.
+  tau_days_short: 30         # applied when lead <= tau_switch_lead_h
+  tau_days_long: 60
+  tau_switch_lead_h: 48
+  max_train_days: 400        # hard cap on rows considered (weights are ~0 beyond this)
+  min_samples_per_bucket: 40
+  # Rows older than this many time constants carry weight exp(-n) and cannot move the
+  # fit; dropping them is what keeps a walk-forward evaluation affordable.
+  weight_cutoff_taus: 5
+  max_rows_per_bucket: 6000  # subsample beyond this; the optimiser gains nothing more
+
+tier2:
+  min_days: 90
+  harmonics_doy: 2
+  harmonics_hod: 2
+
+tier3:
+  min_days: 365
+  lgbm:
+    n_estimators: 500
+    learning_rate: 0.05
+    num_leaves: 31
+    min_data_in_leaf: 40
+    feature_fraction: 0.9
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  early_stopping_days: 60    # trailing window held out for early stopping
+
+select:
+  # Challenger must beat champion by this fraction of CRPS to be promoted. Hysteresis
+  # stops the champion flapping between near-equivalent tiers each refresh.
+  promote_margin: 0.02
+  rolling_eval_days: 30
+
+verify:
+  # Thresholds for Brier score / reliability, in each variable's native units.
+  thresholds:
+    air_temp_c: [0.0]              # freezing
+    wind_speed_ms: [5.0, 10.0]
+    wind_gust_ms: [10.0, 15.0]
+    precip_1h_mm: [0.1, 1.0]
+  pit_bins: 10
+  bootstrap:
+    n_resamples: 1000
+    block_days: 5
+    ci: 0.90
+  climatology_doy_window: 15       # +/- days used to build the hour-of-day climatology

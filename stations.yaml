@@ -1,0 +1,26 @@
+# Enrolled stations. Each entry is maintained by the scheduled workflows: paired
+# forecast/observation history, fitted correction models, and published forecasts.
+#
+# Add stations through the "Enroll a station" issue form rather than by hand — the
+# workflow validates the identifiers and backfills history before committing here.
+#
+# Fields:
+#   id           network-prefixed station id (IEM:, NWS:, GHCNH:, SYN:, MS:, or a bare
+#                SNOTEL triplet) — determines how observations are fetched
+#   lat/lon      decimal degrees; where the models are sampled
+#   models       Open-Meteo model ids to fuse (omit to use the regional defaults)
+#   variables    canonical variables to publish (omit for all five)
+#   iem_network  required for IEM: ids, e.g. CO_ASOS
+#   ghcnh_id     optional GHCN-hourly id for deep observation history
+#   nws_id       optional NWS station id for fresh observations
+
+stations:
+  - id: IEM:DEN
+    name: Denver International Airport
+    lat: 39.8467
+    lon: -104.6564
+    elev_m: 1656.0
+    iem_network: CO_ASOS
+    nws_id: KDEN
+    country: US
+    enrolled_at: 2026-08-16
