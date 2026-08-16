@@ -251,16 +251,49 @@ def predict(state: dict, fc: pd.DataFrame, models: list[str]) -> dict:
         mu[i] = par["a"] + float(F[i] @ b)
         sigma[i] = np.exp(np.clip(par["c"] + par["d"] * s[i], -8.0, 8.0))
 
-    qs = quantiles()
+    return finalise_quantiles(mu, sigma, F, variable, truncated=truncated)
+
+
+def finalise_quantiles(
+    mu: np.ndarray,
+    sigma: np.ndarray,
+    F: np.ndarray,
+    variable: str,
+    *,
+    truncated: bool,
+) -> dict:
+    """Turn fitted (mu, sigma) into published quantiles, handling rows we cannot fit.
+
+    Three cases, deliberately distinguished:
+
+      * a row with fitted parameters gets the fitted distribution;
+      * a row whose lead had no fitted bucket falls back to the raw multi-model mean,
+        widened to the broadest spread fitted anywhere — an honest "less sure here"
+        rather than a confident guess;
+      * a row where every model is missing cannot be forecast at all, and is emitted as
+        NaN. Inventing a value would put a fabricated number on the site indistinguishable
+        from a real one.
+    """
+    n = len(mu)
     ok = np.isfinite(mu) & np.isfinite(sigma)
     if not ok.any():
         return {"calibrated": False}
-    mu_f = np.where(ok, mu, np.nanmean(F, axis=1))
-    sigma_f = np.where(ok, sigma, np.nanmax(sigma[ok]) if ok.any() else 1.0)
+
+    with np.errstate(invalid="ignore"):
+        raw_mean = np.nanmean(F, axis=1) if F.size else np.full(n, np.nan)
+    fallback_sigma = float(np.nanmax(sigma[ok]))
+    mu_f = np.where(ok, mu, raw_mean)
+    sigma_f = np.where(ok, sigma, fallback_sigma)
+
+    usable = np.isfinite(mu_f) & np.isfinite(sigma_f)
+    safe_mu = np.where(usable, mu_f, 0.0)
+    safe_sigma = np.where(usable, sigma_f, 1.0)
+
     qfun = quantiles_truncated_normal if truncated else quantiles_normal
-    out = {k: v for k, v in qfun(mu_f, sigma_f, qs).items()}
+    out = {k: np.where(usable, v, np.nan) for k, v in qfun(safe_mu, safe_sigma, quantiles()).items()}
     out = clamp_quantiles(out, variable)
     out["calibrated"] = True
+    out["n_unforecastable"] = int((~usable).sum())
     return out
 
 

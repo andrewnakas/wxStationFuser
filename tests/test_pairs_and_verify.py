@@ -285,3 +285,84 @@ def test_baseline_merge_cannot_misalign_on_duplicate_keys():
     raw = rolling._raw_baselines(oos, wide, ["m1"], crps, crps)
     assert raw["m1"]["n"] == len(oos)
     assert raw["m1"]["crps_fused_here"] == pytest.approx(0.5)
+
+
+# ------------------------------------------------------------------ CRPS estimator
+
+
+def test_crps_estimator_is_accurate_for_a_dispersed_forecast():
+    """Scoring on the five published levels alone understates a spread forecast by 12%.
+
+    The error is not neutral: it is exact for a point forecast, and the raw model enters
+    the comparison as a point forecast. So a coarse estimator inflates every fused-vs-raw
+    claim on one side only. The dense estimator must land close to the closed form.
+    """
+    from wxfuser.models.distributions import crps_normal, quantiles_normal
+
+    rng = np.random.default_rng(0)
+    n = 40000
+    mu, sd = np.zeros(n), np.ones(n)
+    y = rng.normal(0.0, 1.0, n)
+    q = quantiles_normal(mu, sd, [0.05, 0.25, 0.5, 0.75, 0.95])
+
+    exact = crps_normal(y, mu, sd).mean()
+    dense = metrics.crps_from_quantiles(y, q).mean()
+    coarse = metrics.crps_from_quantiles(y, q, dense=False).mean()
+
+    assert dense / exact == pytest.approx(1.0, abs=0.03)
+    assert coarse / exact < 0.92, "the coarse estimator should be visibly biased low"
+    # Erring high means the estimator works against our own skill claim, not for it.
+    assert dense >= exact
+
+
+def test_crps_estimator_stays_exact_for_a_point_forecast():
+    """The raw-model baseline must be unaffected, or the comparison shifts under it."""
+    rng = np.random.default_rng(1)
+    y = rng.normal(0.0, 1.0, 20000)
+    x = np.zeros_like(y)
+    q = {f"q{lv:02d}": x for lv in (5, 25, 50, 75, 95)}
+    assert metrics.crps_from_quantiles(y, q).mean() == pytest.approx(np.abs(y - x).mean())
+
+
+def test_crps_estimator_remains_proper():
+    """Misstating the spread must still cost, or minimum-CRPS fitting is meaningless."""
+    from wxfuser.models.distributions import quantiles_normal
+
+    rng = np.random.default_rng(2)
+    n = 20000
+    y = rng.normal(0.0, 1.0, n)
+    honest = metrics.crps_from_quantiles(
+        y, quantiles_normal(np.zeros(n), np.ones(n), [0.05, 0.25, 0.5, 0.75, 0.95])
+    ).mean()
+    for wrong_sd in (0.3, 3.0):
+        bad = metrics.crps_from_quantiles(
+            y,
+            quantiles_normal(np.zeros(n), np.full(n, wrong_sd), [0.05, 0.25, 0.5, 0.75, 0.95]),
+        ).mean()
+        assert honest < bad
+
+
+def test_climatology_excludes_observations_near_the_target():
+    """Climatology must not contain the observation it is asked to predict."""
+    times = pd.date_range("2025-01-01", periods=24 * 200, freq="h")
+    obs = pd.DataFrame({"valid_time": times, "air_temp_c": 10.0})
+    # One target hour is a huge outlier; if climatology sees it, it predicts it.
+    spike_at = times[24 * 100]
+    obs.loc[obs["valid_time"] == spike_at, "air_temp_c"] = 500.0
+
+    clim = metrics.climatology_quantiles(obs, "air_temp_c", pd.Series([spike_at]))
+    assert clim["q50"][0] == pytest.approx(10.0), "the target's own value leaked in"
+
+
+def test_bootstrap_weights_days_by_their_row_count():
+    """The interval must be centred on the same statistic the headline reports."""
+    days = pd.date_range("2025-01-01", periods=40, freq="D")
+    # One heavily-sampled day is much better than the rest; equal weighting would
+    # understate the overall gain that a row-weighted mean reports.
+    a = pd.Series([1.0] * 39 + [0.1], index=days)
+    b = pd.Series([1.0] * 40, index=days)
+    w = pd.Series([1] * 39 + [1000], index=days)
+
+    unweighted, _, _ = metrics.block_bootstrap_ci(a, b, n_resamples=200)
+    weighted, _, _ = metrics.block_bootstrap_ci(a, b, weights=w, n_resamples=200)
+    assert weighted > unweighted + 0.5

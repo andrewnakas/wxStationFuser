@@ -82,6 +82,16 @@ def fit(pairs: pd.DataFrame, variable: str) -> dict:
         if len(sel) >= min_resid:
             resid_q[lk] = {f"{q}": float(np.quantile(sel, q)) for q in qs}
 
+    # A pooled fallback across all lead buckets. Without it, a bucket with too few
+    # residuals of its own fell back to offsets of zero, which is not a wide interval —
+    # it is a claim of certainty, published as q05 == q50 == q95. Borrowing the pooled
+    # spread is approximate (it ignores how error grows with lead) but it is honest about
+    # there being uncertainty at all.
+    pooled = resid[-max(resid_window * 3, 120):]
+    resid_q_pooled = (
+        {f"{q}": float(np.quantile(pooled, q)) for q in qs} if len(pooled) >= min_resid else {}
+    )
+
     return {
         "variable": variable,
         "n_train": int(len(df)),
@@ -92,6 +102,7 @@ def fit(pairs: pd.DataFrame, variable: str) -> dict:
         "bias_counts": {k: int(v) for k, v in count_cell.items()},
         "bias_lead": {k: float(v) for k, v in bias_lead.items()},
         "resid_q": resid_q,
+        "resid_q_pooled": resid_q_pooled,
         "train_end": str(df["valid_time"].max()),
     }
 
@@ -110,6 +121,7 @@ def predict(state: dict, fc_mean: np.ndarray, lead_h: np.ndarray, valid_time: pd
     counts = state.get("bias_counts", {})
     bias_lead = state.get("bias_lead", {})
     resid_q = state.get("resid_q", {})
+    resid_pooled = state.get("resid_q_pooled", {})
 
     buckets = [bucket_for_lead(int(h)) for h in lead_h]
     hours = pd.to_datetime(valid_time).dt.hour.to_numpy()
@@ -126,13 +138,21 @@ def predict(state: dict, fc_mean: np.ndarray, lead_h: np.ndarray, valid_time: pd
 
     qs = quantiles()
     out: dict[str, np.ndarray] = {}
-    calibrated = bool(resid_q)
+    calibrated = bool(resid_q) or bool(resid_pooled)
     floor = 0.0 if state.get("nonnegative") else None
     ceiling = state.get("ceiling")
 
     for q in qs:
         if calibrated:
-            offsets = np.array([resid_q.get(b, {}).get(f"{q}", np.nan) for b in buckets])
+            # Per-bucket residuals where we have them, else the pooled spread. Falling
+            # through to a zero offset would publish a zero-width interval — a claim of
+            # certainty — for exactly the leads we know least about.
+            offsets = np.array(
+                [
+                    resid_q.get(b, {}).get(f"{q}", resid_pooled.get(f"{q}", np.nan))
+                    for b in buckets
+                ]
+            )
             vals = median + np.nan_to_num(offsets, nan=0.0)
         else:
             vals = median.copy()

@@ -239,31 +239,53 @@ def block_bootstrap_ci(
     daily_a: pd.Series,
     daily_b: pd.Series,
     *,
+    weights: pd.Series | None = None,
     n_resamples: int | None = None,
     block_days: int | None = None,
     ci: float | None = None,
     seed: int = 12345,
 ) -> tuple[float, float, float]:
-    """Confidence interval on the *skill difference* between two forecasts.
+    """Confidence interval on the skill difference between two forecasts.
 
-    Takes per-day mean scores for both forecasts, resamples multi-day blocks to respect
-    serial correlation, and returns (mean skill score, lower, upper). We report the
-    skill score 1 - A/B so the interval is directly interpretable as "percent better".
+    Takes per-day mean scores for both forecasts, resamples contiguous multi-day blocks to
+    respect serial correlation, and returns (skill score, lower, upper), where the skill
+    score 1 - A/B reads directly as "percent better".
+
+    ``weights`` should be each day's row count. Without it every day counts equally while
+    the published point estimate averages over rows, so the interval would be centred on a
+    slightly different statistic than the number it is quoted against — enough, in
+    marginal cases, for the interval and the headline to disagree about the sign.
     """
     cfg = load_configs()["tiers"]["verify"]["bootstrap"]
     n_resamples = n_resamples or int(cfg["n_resamples"])
     block_days = block_days or int(cfg["block_days"])
     ci = ci or float(cfg["ci"])
 
-    joined = pd.concat([daily_a.rename("a"), daily_b.rename("b")], axis=1).dropna()
+    frame = {"a": daily_a, "b": daily_b}
+    if weights is not None:
+        frame["w"] = weights
+    joined = pd.concat(frame, axis=1).dropna()
     if len(joined) < 3:
         return float("nan"), float("nan"), float("nan")
 
     a = joined["a"].to_numpy(dtype=float)
     b = joined["b"].to_numpy(dtype=float)
+    w = joined["w"].to_numpy(dtype=float) if weights is not None else np.ones(len(a))
     n = len(a)
-    point = 1.0 - a.mean() / b.mean() if b.mean() > 0 else float("nan")
 
+    def skill(idx: np.ndarray) -> float:
+        wi = w[idx]
+        tot = wi.sum()
+        if tot <= 0:
+            return np.nan
+        bm = float((b[idx] * wi).sum() / tot)
+        if bm <= 0:
+            return np.nan
+        return 1.0 - float((a[idx] * wi).sum() / tot) / bm
+
+    point = skill(np.arange(n))
+
+    block_days = max(1, min(block_days, n))
     n_blocks = max(1, int(np.ceil(n / block_days)))
     starts_pool = np.arange(0, max(1, n - block_days + 1))
     rng = np.random.default_rng(seed)
@@ -271,8 +293,7 @@ def block_bootstrap_ci(
     for r in range(n_resamples):
         starts = rng.choice(starts_pool, size=n_blocks, replace=True)
         idx = np.concatenate([np.arange(s, min(s + block_days, n)) for s in starts])[:n]
-        bm = b[idx].mean()
-        stats[r] = 1.0 - a[idx].mean() / bm if bm > 0 else np.nan
+        stats[r] = skill(idx)
     stats = stats[np.isfinite(stats)]
     if len(stats) == 0:
         return point, float("nan"), float("nan")
@@ -280,15 +301,25 @@ def block_bootstrap_ci(
     return point, float(np.quantile(stats, alpha)), float(np.quantile(stats, 1 - alpha))
 
 
+# Observations this close in time to the target are excluded from its climatology.
+# Without this the "climatology" for an hour is built partly from that very hour and its
+# immediate neighbours — a hindsight forecast no real system could issue, which makes the
+# baseline unbeatable and the reported skill against it meaningless.
+CLIMATOLOGY_EXCLUSION_DAYS = 3.0
+
+
 def climatology_quantiles(
     obs: pd.DataFrame, variable_col: str, target_times: pd.Series
 ) -> dict[str, np.ndarray]:
     """Hour-of-day x day-of-year empirical climatology, the second baseline.
 
-    For each target hour we take observations from the same hour of day within a window
-    of days-of-year across all available years, and use their empirical quantiles. This
-    is the "what would you predict knowing only the calendar" forecast; a system that
-    cannot beat it is not doing anything.
+    For each target hour we take observations from the same hour of day within a window of
+    days-of-year across all available years, and use their empirical quantiles. This is
+    the "what would you predict knowing only the calendar" forecast; a system that cannot
+    beat it is not doing anything.
+
+    Observations within a few days of the target are excluded, so the baseline never
+    contains the answer it is being asked to predict.
     """
     window = int(load_configs()["tiers"]["verify"]["climatology_doy_window"])
     qs = quantiles()
@@ -297,21 +328,26 @@ def climatology_quantiles(
     if df.empty:
         return out
 
-    df["_hod"] = pd.to_datetime(df["valid_time"]).dt.hour
-    df["_doy"] = pd.to_datetime(df["valid_time"]).dt.dayofyear
+    times = pd.to_datetime(df["valid_time"])
+    df["_hod"] = times.dt.hour
+    df["_doy"] = times.dt.dayofyear
     values = df[variable_col].to_numpy(dtype=float)
     hod = df["_hod"].to_numpy()
     doy = df["_doy"].to_numpy()
+    abs_days = times.to_numpy().astype("datetime64[s]").astype("float64") / 86400.0
 
     tt = pd.to_datetime(target_times)
+    target_days = tt.to_numpy().astype("datetime64[s]").astype("float64") / 86400.0
+
     for i, ts in enumerate(tt):
         h, d = ts.hour, ts.dayofyear
         # Circular day-of-year distance so late December matches early January.
         dd = np.abs(doy - d)
         dd = np.minimum(dd, 365 - dd)
-        sel = (hod == h) & (dd <= window)
+        far_enough = np.abs(abs_days - target_days[i]) > CLIMATOLOGY_EXCLUSION_DAYS
+        sel = (hod == h) & (dd <= window) & far_enough
         if sel.sum() < 10:
-            sel = dd <= window
+            sel = (dd <= window) & far_enough
         if sel.sum() < 5:
             continue
         vals = values[sel]

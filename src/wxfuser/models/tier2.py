@@ -22,12 +22,10 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 
-from wxfuser.config import bucket_for_lead, load_configs, quantiles
+from wxfuser.config import bucket_for_lead, load_configs
 from wxfuser.models.distributions import (
     crps_normal,
     crps_truncated_normal,
-    quantiles_normal,
-    quantiles_truncated_normal,
 )
 from wxfuser.models.tier1_emos import (
     NONNEGATIVE,
@@ -36,8 +34,8 @@ from wxfuser.models.tier1_emos import (
     _nearest_bucket,
     _tau_days,
     _time_weights,
-    clamp_quantiles,
     distribution_for,
+    finalise_quantiles,
     fit_precip,
     predict_precip,
     trim_to_weight,
@@ -207,13 +205,4 @@ def predict(state: dict, fc: pd.DataFrame, models: list[str]) -> dict:
         mu[i] = par["a"] + float(F[i] @ b) + float(H[i] @ hcoef)
         sigma[i] = np.exp(np.clip(par["c"] + par["d"] * s[i], -8.0, 8.0))
 
-    ok = np.isfinite(mu) & np.isfinite(sigma)
-    if not ok.any():
-        return {"calibrated": False}
-    mu = np.where(ok, mu, np.nanmean(F, axis=1))
-    sigma = np.where(ok, sigma, np.nanmedian(sigma[ok]))
-    qfun = quantiles_truncated_normal if truncated else quantiles_normal
-    out = dict(qfun(mu, sigma, quantiles()))
-    out = clamp_quantiles(out, state.get("variable", ""))
-    out["calibrated"] = True
-    return out
+    return finalise_quantiles(mu, sigma, F, state.get("variable", ""), truncated=truncated)

@@ -76,8 +76,10 @@ def quantiles_truncated_normal(
 def crps_ensemble(y: np.ndarray, samples: np.ndarray) -> np.ndarray:
     """CRPS of an empirical distribution given by ``samples`` (n_obs, n_samples).
 
-    Fair-CRPS estimator; used to score the analog/empirical tiers and as the reference
-    implementation the closed forms are tested against.
+    This is the standard (NRG) estimator, dividing by n^2 — not the "fair" estimator,
+    which divides the spread term by n(n-1) to correct for finite ensemble size. For the
+    large sample counts used here the difference is negligible, but the distinction
+    matters if this is ever pointed at a small ensemble, where NRG rewards under-dispersion.
     """
     samples = np.sort(np.asarray(samples, dtype=float), axis=1)
     n = samples.shape[1]

@@ -73,18 +73,37 @@ Getting that wrong made a winning configuration look 15% *worse* than a model it
 beat in every lead bucket. Each model is now scored on its own coverage, with the fused
 score recomputed on the same rows, and the coverage is shown.
 
+The method is chosen on rows it is not then scored on. Picking the best of four candidates
+and quoting that candidate's score on the same data is optimistically biased — the
+selection is not itself out-of-sample — so the walk-forward output is split in time, the
+earlier part choosing the method and the later part scoring it.
+
+CRPS is integrated over a dense grid of quantile levels rather than the five published
+ones. That sounds like a detail and is not: the coarse version is *exact* for a point
+forecast and understates a dispersed one by 12%, and the raw model enters the comparison
+as a point forecast — so it inflated every gain on this page by roughly 12 points before
+it was fixed. The current estimator errs about 1% in the opposite direction, against our
+own claim.
+
 ## Results at the first enrolled station
 
 Denver International (`IEM:DEN`), fusing GFS, ECMWF IFS, ICON, and HRRR against one year of
 paired history, evaluated walk-forward:
 
-| Variable | Method published | CRPS gain vs best raw model | Absolute-error gain | Beats raw? |
-|---|---|---|---|---|
-| Temperature | Tier 2 | 52% | 25% | yes |
-| Relative humidity | Tier 2 | 49% | 22% | yes |
-| Wind speed | Tier 1 | 51% | 24% | yes |
-| Wind gusts | Tier 1 | 74% | 58% | yes |
-| Precipitation | Tier 3 | 47% | 44% | yes |
+| Variable | Method published | CRPS gain vs best raw model | 90% CI | Absolute-error gain | vs climatology |
+|---|---|---|---|---|---|
+| Temperature | Tier 2 | 42% | 39–45% | 21% | +34% |
+| Relative humidity | Tier 2 | 37% | 36–43% | 16% | +36% |
+| Wind speed | Tier 1 | 44% | 44–47% | 23% | +7% |
+| Wind gusts | Tier 1 | 70% | 68–73% | 58% | −4% |
+| Precipitation | Tier 3 | 46% | 39–60% | 45% | −4% |
+
+Every interval excludes zero, so all five are genuine gains rather than noise. The
+climatology column is the uncomfortable one and is published for that reason:
+temperature and humidity beat "just use the seasonal average for this hour" by a wide
+margin, but gusts and precipitation do not. Beating the physics model at those variables
+while barely matching a calendar lookup is worth knowing, and averaging it away would be
+the dishonest choice.
 
 The methods differ by variable, and that is the system working rather than an
 inconsistency. Temperature and humidity are well described by a Gaussian whose mean is

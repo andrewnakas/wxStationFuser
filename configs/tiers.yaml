@@ -71,6 +71,10 @@ verify:
   pit_bins: 10
   bootstrap:
     n_resamples: 1000
-    block_days: 5
+    # Blocks must be at least as long as the span over which errors stay correlated.
+    # Forecasts run to 168 h, so one weather system contributes errors at many leads
+    # across a full week; shorter blocks break that dependence and report an interval
+    # that is too narrow.
+    block_days: 8
     ci: 0.90
   climatology_doy_window: 15       # +/- days used to build the hour-of-day climatology

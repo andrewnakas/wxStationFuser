@@ -27,6 +27,58 @@ from wxfuser.verify import metrics
 
 # Variables with a point mass (dry hours) need randomised PIT to be interpretable.
 POINT_MASS_VARIABLES = {"precip_1h_mm"}
+PRECIP_VARIABLE = "precip_1h_mm"
+# The wet/dry threshold the occurrence model is fitted at, from tier1_emos.fit_precip.
+OCCURRENCE_THRESHOLD = 0.1
+
+
+def _is_occurrence_threshold(thr: float) -> bool:
+    return abs(float(thr) - OCCURRENCE_THRESHOLD) < 1e-9
+
+
+# Share of the walk-forward output used to choose the method; the remainder scores it.
+SELECTION_FRACTION = 0.6
+
+
+def _rank_tiers(frames: dict[str, pd.DataFrame]) -> tuple[dict, dict, bool]:
+    """Score each tier, preferring the rows every candidate covered.
+
+    Tiers do not all produce a forecast for every block — Tier 3 needs a couple of
+    thousand rows before it can fit at all, so it sits out the early ones. Ranking them on
+    whatever each happened to cover would compare them on different weather.
+    """
+    common = None
+    for frame in frames.values():
+        keys = set(zip(frame["valid_time"], frame["lead_h"]))
+        common = keys if common is None else (common & keys)
+
+    scores: dict[str, float] = {}
+    scores_all: dict[str, float] = {}
+    for tier, frame in frames.items():
+        if frame.empty:
+            continue
+        qc_all = {k: frame[k].to_numpy() for k in frame if k.startswith("q")}
+        y_all = frame["obs"].to_numpy(dtype=float)
+        scores_all[tier] = float(np.nanmean(metrics.crps_from_quantiles(y_all, qc_all)))
+
+        if common:
+            mask = np.array(
+                [(t, ll) in common for t, ll in zip(frame["valid_time"], frame["lead_h"])]
+            )
+            sub = frame[mask]
+            if len(sub) >= 50:
+                y = sub["obs"].to_numpy(dtype=float)
+                qc = {k: sub[k].to_numpy() for k in sub if k.startswith("q")}
+                scores[tier] = float(np.nanmean(metrics.crps_from_quantiles(y, qc)))
+
+    # Every candidate must be scored on the shared rows for the ranking to mean anything.
+    # If some tier could not be, fall back to its own coverage — but say so, because that
+    # is the very "compared on different weather" bias this exists to avoid.
+    comparable = bool(scores) and set(scores) == set(scores_all)
+    if not comparable:
+        for tier, score in scores_all.items():
+            scores.setdefault(tier, score)
+    return scores, scores_all, comparable
 
 FIT = {
     "tier0": lambda w, v, m: tier0_bias.fit(w, v),
@@ -209,7 +261,10 @@ def _randomized_pit(y: np.ndarray, pred: dict, p_occ: np.ndarray | None) -> np.n
     if p_occ is None or len(pit) != len(y):
         return pit
     p_dry = 1.0 - np.clip(p_occ, 0.0, 1.0)
-    dry = y <= 0.0
+    # "Dry" must mean the same thing here as it does to the occurrence model, whose
+    # probability is P(y > OCCURRENCE_THRESHOLD). Testing y <= 0 instead would treat a
+    # trace observation as wet while the probability it is scored against calls it dry.
+    dry = y <= OCCURRENCE_THRESHOLD
     pit = pit.copy()
     pit[dry] = rng.uniform(0.0, 1.0, size=int(dry.sum())) * p_dry[dry]
     return pit
@@ -243,36 +298,36 @@ def scorecard(
         return {"insufficient_data": True, "n_pairs": int(len(wide)),
                 "reason": "not enough history for a walk-forward evaluation"}
 
-    # Tiers do not all produce a forecast for every block — Tier 3 needs a couple of
-    # thousand rows before it can fit at all, so it sits out the early folds. Ranking
-    # them on whatever each happened to cover would compare them on different weather.
-    # The choice is made on the rows every candidate predicted.
-    common = None
-    for frame in oos_by_tier.values():
-        keys = set(zip(frame["valid_time"], frame["lead_h"]))
-        common = keys if common is None else (common & keys)
+    # Picking the best of several candidates on a set of rows and then quoting that
+    # candidate's score on the *same* rows is optimistically biased: the selection step is
+    # not itself out-of-sample, so the winner carries whatever luck won it the comparison.
+    # With near-tied tiers that alone can flip `beats_raw`. So the walk-forward output is
+    # split in time — the earlier part chooses the method, the later part scores it — and
+    # both halves remain strictly out-of-sample with respect to fitting.
+    all_times = np.sort(
+        np.unique(np.concatenate([f["valid_time"].to_numpy() for f in oos_by_tier.values()]))
+    )
+    split_at = all_times[int(len(all_times) * SELECTION_FRACTION)] if len(all_times) > 20 else None
 
-    tier_scores: dict[str, float] = {}
-    tier_scores_all: dict[str, float] = {}
-    for tier, frame in oos_by_tier.items():
-        qc_all = {k: frame[k].to_numpy() for k in frame if k.startswith("q")}
-        y_all = frame["obs"].to_numpy(dtype=float)
-        tier_scores_all[tier] = float(np.nanmean(metrics.crps_from_quantiles(y_all, qc_all)))
+    def _slice(frame: pd.DataFrame, early: bool) -> pd.DataFrame:
+        if split_at is None:
+            return frame
+        t = frame["valid_time"].to_numpy()
+        return frame[t < split_at] if early else frame[t >= split_at]
 
-        if common:
-            mask = np.array(
-                [(t, ll) in common for t, ll in zip(frame["valid_time"], frame["lead_h"])]
-            )
-            sub = frame[mask]
-            if len(sub) >= 50:
-                y = sub["obs"].to_numpy(dtype=float)
-                qc = {k: sub[k].to_numpy() for k in sub if k.startswith("q")}
-                tier_scores[tier] = float(np.nanmean(metrics.crps_from_quantiles(y, qc)))
-    if not tier_scores:
-        tier_scores = tier_scores_all
+    select_frames = {t: _slice(f, True) for t, f in oos_by_tier.items()}
+    report_frames = {t: _slice(f, False) for t, f in oos_by_tier.items()}
+    # If the split leaves either side too thin to be meaningful, score on everything and
+    # record that selection and reporting shared rows.
+    holdout = split_at is not None and all(
+        len(select_frames[t]) >= 100 and len(report_frames[t]) >= 100 for t in oos_by_tier
+    )
+    if not holdout:
+        select_frames = report_frames = oos_by_tier
 
+    tier_scores, tier_scores_all, comparable = _rank_tiers(select_frames)
     champion = min(tier_scores, key=tier_scores.get)
-    oos = oos_by_tier[champion]
+    oos = report_frames[champion]
     y = oos["obs"].to_numpy(dtype=float)
     qcols = {k: oos[k].to_numpy() for k in oos if k.startswith("q")}
     crps = metrics.crps_from_quantiles(y, qcols)
@@ -291,7 +346,9 @@ def scorecard(
         # Scored on the rows every tier covered, so the ranking is a like-for-like one.
         "tier_crps": tier_scores,
         "tier_crps_full_coverage": tier_scores_all,
-        "tier_comparison_rows": len(common) if common else None,
+        "tier_comparison_like_for_like": comparable,
+        # True when the method was chosen on rows it was not then scored on.
+        "selection_held_out": bool(holdout),
         "crps": float(np.nanmean(crps)),
         "mae_median": float(np.nanmean(np.abs(y - oos["q50"].to_numpy()))),
     }
@@ -325,17 +382,22 @@ def scorecard(
         )
 
         err = np.abs(y[rb["ok"]] - rb["values"][rb["ok"]])
-        daily_raw = (
-            pd.DataFrame({"day": day.to_numpy()[rb["ok"]], "c": err})
-            .groupby("day")["c"]
-            .mean()
+        paired = pd.DataFrame(
+            {
+                "day": day.to_numpy()[rb["ok"]],
+                "raw": err,
+                "fused": crps[rb["ok"]],
+            }
         )
-        daily_fused_here = (
-            pd.DataFrame({"day": day.to_numpy()[rb["ok"]], "c": crps[rb["ok"]]})
-            .groupby("day")["c"]
-            .mean()
+        grouped = paired.groupby("day")
+        daily_raw = grouped["raw"].mean()
+        daily_fused_here = grouped["fused"].mean()
+        # Weight each day by how many hours it contributed, matching how the point
+        # estimate averages, so the interval brackets the number it is quoted against.
+        daily_weight = grouped.size()
+        point, lo, hi = metrics.block_bootstrap_ci(
+            daily_fused_here, daily_raw, weights=daily_weight
         )
-        point, lo, hi = metrics.block_bootstrap_ci(daily_fused_here, daily_raw)
         out["crpss_vs_raw_ci90"] = [lo, hi]
         # Only a bootstrap interval entirely above zero counts as a win.
         out["beats_raw"] = bool(np.isfinite(lo) and lo > 0)
@@ -354,22 +416,35 @@ def scorecard(
         else metrics.pit_values(y, qcols)
     )
     out["pit_hist"] = metrics.pit_histogram(pit)
-    out["pit_randomized"] = variable in POINT_MASS_VARIABLES
+    # Only claim randomisation when it actually happened: it needs the occurrence
+    # probability, which a Tier-0 champion does not produce. Labelling an unrandomised
+    # precipitation histogram as randomised would present the dry-mass spike as if it
+    # were a calibration failure.
+    out["pit_randomized"] = bool(variable in POINT_MASS_VARIABLES and p_occ is not None)
     cov50, sharp50 = metrics.interval_coverage(y, oos["q25"].to_numpy(), oos["q75"].to_numpy())
     cov90, sharp90 = metrics.interval_coverage(y, oos["q05"].to_numpy(), oos["q95"].to_numpy())
     out["coverage50"], out["sharpness50"] = cov50, sharp50
     out["coverage90"], out["sharpness90"] = cov90, sharp90
 
-    # Threshold events.
+    # Threshold events. The occurrence probability from the precipitation model answers
+    # exactly one question — P(precip > its own wet threshold) — so it may only be used
+    # for that threshold. Reusing it for a heavier event (P(> 1 mm)) scores the wrong
+    # probability against the outcome and makes the forecast look wildly overconfident
+    # about heavy rain, with a plausible-looking number.
     briers = {}
     for thr in cfg["thresholds"].get(variable, []):
-        prob = p_occ if (variable == "precip_1h_mm" and p_occ is not None) else \
-            metrics.prob_exceed_from_quantiles(qcols, thr)
+        if variable == PRECIP_VARIABLE and p_occ is not None and _is_occurrence_threshold(thr):
+            prob = p_occ
+            basis = "occurrence model"
+        else:
+            prob = metrics.prob_exceed_from_quantiles(qcols, thr)
+            basis = "predictive quantiles"
         if prob is None or len(prob) != len(y):
             continue
         briers[str(thr)] = {
             "brier": metrics.brier_score(y, prob, thr),
             "reliability": metrics.reliability_bins(y, prob, thr),
+            "probability_from": basis,
         }
     if briers:
         out["brier"] = briers
