@@ -41,7 +41,7 @@ function modelsFor(st) {
   return inConus ? DEFAULT_MODELS_CONUS : DEFAULT_MODELS;
 }
 
-let map, markerLayer;
+let map, markerLayer, catalogueLayer;
 
 // ---------------------------------------------------------------- utilities
 
@@ -78,6 +78,15 @@ function initMap() {
     maxZoom: 18,
   }).addTo(map);
   markerLayer = L.layerGroup().addTo(map);
+  catalogueLayer = L.layerGroup().addTo(map);
+  // Panning or zooming changes which stations are in view, so redraw then — debounced,
+  // because Leaflet fires these continuously during a drag.
+  let pending = null;
+  const redraw = () => {
+    clearTimeout(pending);
+    pending = setTimeout(renderCatalogueMarkers, 150);
+  };
+  map.on('moveend zoomend', redraw);
 }
 
 function markerColor(st) {
@@ -87,24 +96,90 @@ function markerColor(st) {
   return '#f85149';
 }
 
-function renderMap() {
+// Above this zoom the map also draws un-enrolled catalogue stations. Below it there would
+// be thousands in view, which is both unreadable and slow to render.
+const CATALOGUE_MIN_ZOOM = 7;
+const CATALOGUE_MAX_MARKERS = 600;
+
+function canInstant(st) {
+  return Boolean(st.nws_id) || String(st.id).startsWith('NWS:') ||
+    (String(st.id).startsWith('IEM:') && st.iem_network);
+}
+
+function renderMap(fit = true) {
   markerLayer.clearLayers();
+
+  // Enrolled stations first: larger, coloured by measured skill, always drawn.
   const pts = [];
   state.stations.forEach((st) => {
     if (st.lat == null || st.lon == null) return;
     pts.push([st.lat, st.lon]);
     const m = L.circleMarker([st.lat, st.lon], {
-      radius: 6,
+      radius: 7,
       color: markerColor(st),
       weight: 2,
       fillColor: markerColor(st),
-      fillOpacity: 0.5,
+      fillOpacity: 0.6,
     });
-    m.bindTooltip(`${st.name}`, { direction: 'top' });
+    m.bindTooltip(`${st.name} — enrolled`, { direction: 'top' });
     m.on('click', () => selectStation(st.id));
     m.addTo(markerLayer);
   });
-  if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 8 });
+
+  renderCatalogueMarkers();
+  if (fit && pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 8 });
+}
+
+/* Draw catalogue stations inside the current view so any of them can simply be clicked.
+ * Rendering is bounded two ways — a zoom floor and a hard marker cap — because the
+ * catalogue holds 27k stations and Leaflet will happily try to draw all of them. */
+function renderCatalogueMarkers() {
+  if (!catalogueLayer) return;
+  catalogueLayer.clearLayers();
+  if (map.getZoom() < CATALOGUE_MIN_ZOOM) {
+    setMapHint(`Zoom in to see all ${state.catalogue ? state.catalogue.length.toLocaleString() : ''} stations`);
+    return;
+  }
+  if (!state.catalogue) {
+    ensureCatalogue();
+    setMapHint('Loading stations…');
+    return;
+  }
+
+  const bounds = map.getBounds();
+  const enrolled = new Set(state.stations.map((s) => s.id));
+  let shown = 0;
+  let inView = 0;
+
+  for (const st of state.catalogue) {
+    if (enrolled.has(st.id)) continue;
+    if (!bounds.contains([st.lat, st.lon])) continue;
+    inView++;
+    if (shown >= CATALOGUE_MAX_MARKERS) continue;
+    shown++;
+    const instant = canInstant(st);
+    const m = L.circleMarker([st.lat, st.lon], {
+      radius: 4,
+      color: instant ? '#58a6ff' : '#6e7681',
+      weight: 1,
+      fillColor: instant ? '#58a6ff' : '#6e7681',
+      fillOpacity: instant ? 0.5 : 0.25,
+    });
+    m.bindTooltip(`${st.name}${instant ? '' : ' — needs enrolling'}`, { direction: 'top' });
+    m.on('click', () => selectCatalogueStation(st));
+    m.addTo(catalogueLayer);
+  }
+
+  setMapHint(
+    inView > shown
+      ? `${shown.toLocaleString()} of ${inView.toLocaleString()} stations shown — zoom in for the rest`
+      : `${shown.toLocaleString()} station${shown === 1 ? '' : 's'} in view · click any to calibrate`
+  );
+}
+
+function setMapHint(text) {
+  const el = $('mapHint');
+  if (el) el.textContent = text || '';
 }
 
 /* The full catalogue is only needed once someone searches beyond the enrolled list,
@@ -126,6 +201,7 @@ async function ensureCatalogue() {
   } finally {
     state.catalogueLoading = false;
     renderList();
+    renderCatalogueMarkers();
   }
 }
 
@@ -210,8 +286,7 @@ function enrolledRow(st) {
 function catalogueRow(st) {
   const li = document.createElement('li');
   if (state.selected === st.id) li.className = 'active';
-  const canInstant = Boolean(st.nws_id) || st.id.startsWith('NWS:');
-  const badge = canInstant
+  const badge = canInstant(st)
     ? '<span class="pill mute">instant</span>'
     : '<span class="pill mute">enroll</span>';
   li.innerHTML = `<div class="name">${st.name} ${badge}</div>

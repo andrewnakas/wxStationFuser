@@ -174,6 +174,70 @@ async function fetchNwsObservations(stationId, days = INSTANT.OBS_DAYS) {
   return byHour;
 }
 
+/* Observations from the Iowa Environmental Mesonet's bulk ASOS archive.
+ *
+ * This is what extends instant mode past the United States. IEM covers roughly 5,000
+ * airport stations worldwide and — checked, not assumed — its request endpoint sends
+ * `Access-Control-Allow-Origin: *`, so a static page can read it directly. Without it
+ * only the ~4,300 NWS stations could be calibrated in the browser.
+ *
+ * The response is CSV in US customary units, which is why the conversions live here. */
+async function fetchIemObservations(sid, network, days = INSTANT.OBS_DAYS) {
+  const end = new Date();
+  const start = new Date(end.getTime() - days * 86400000);
+  const stamp = (d) => `${d.toISOString().slice(0, 13)}:00Z`;
+  const url =
+    'https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py' +
+    `?station=${encodeURIComponent(sid)}&network=${encodeURIComponent(network)}` +
+    '&data=tmpf,relh,sknt,gust,p01i&tz=UTC&format=onlycomma&missing=empty' +
+    `&sts=${stamp(start)}&ets=${stamp(end)}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`IEM returned ${res.status}`);
+  const text = await res.text();
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return new Map();
+
+  const head = lines[0].split(',').map((s) => s.trim());
+  const col = (name) => head.indexOf(name);
+  const iValid = col('valid');
+  const iT = col('tmpf'), iRh = col('relh'), iSk = col('sknt'), iG = col('gust'), iP = col('p01i');
+
+  const F2C = (f) => ((f - 32) * 5) / 9;
+  const KT2MS = 0.514444;
+  const IN2MM = 25.4;
+  const num = (parts, idx) => {
+    if (idx < 0) return null;
+    const raw = (parts[idx] || '').trim();
+    if (!raw) return null;
+    const v = Number(raw);
+    return Number.isFinite(v) ? v : null;
+  };
+
+  const byHour = new Map();
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',');
+    const valid = (parts[iValid] || '').trim();
+    if (!valid) continue;
+    // "2026-08-14 06:35" in UTC; snap to the top of the hour like the server pipeline.
+    const t = new Date(`${valid.replace(' ', 'T')}:00Z`);
+    if (Number.isNaN(t.getTime())) continue;
+    t.setUTCMinutes(0, 0, 0);
+    const key = t.toISOString();
+    if (byHour.has(key)) continue; // first observation in the hour wins
+
+    const tf = num(parts, iT), sk = num(parts, iSk), g = num(parts, iG), p = num(parts, iP);
+    byHour.set(key, {
+      air_temp_c: tf === null ? null : F2C(tf),
+      rh_pct: num(parts, iRh),
+      wind_speed_ms: sk === null ? null : sk * KT2MS,
+      wind_gust_ms: g === null ? null : g * KT2MS,
+      precip_1h_mm: p === null ? null : p * IN2MM,
+    });
+  }
+  return byHour;
+}
+
 async function fetchArchivedForecasts(lat, lon, models, variables, days = INSTANT.OBS_DAYS) {
   const OM_VARS = {
     air_temp_c: 'temperature_2m',
@@ -301,20 +365,33 @@ function applyBounds(values, variable) {
 
 /* Build a provisional calibrated forecast for a station the site has never trained on. */
 async function instantForecast(station, models, variables) {
-  if (!station.nws_id && !String(station.id || '').startsWith('NWS:')) {
+  // Two observation sources are reachable from a static page: the NWS API (US only) and
+  // the IEM ASOS archive (global airports). Everything else — Meteostat, Synoptic, GHCN-h
+  // — either blocks cross-origin requests or needs a key, so those stations must be
+  // enrolled and fetched server-side.
+  const nwsId = station.nws_id || (String(station.id).startsWith('NWS:')
+    ? String(station.id).slice(4) : null);
+  const iemId = String(station.id).startsWith('IEM:') ? String(station.id).slice(4) : null;
+  const iemNetwork = station.iem_network || null;
+
+  let fetchObs = null;
+  if (nwsId) fetchObs = () => fetchNwsObservations(nwsId);
+  else if (iemId && iemNetwork) fetchObs = () => fetchIemObservations(iemId, iemNetwork);
+
+  if (!fetchObs) {
     return {
       ok: false,
       reason:
-        'Instant calibration needs live observations, and the only observation source a ' +
-        'browser can reach directly is the US National Weather Service API. This station ' +
-        'is outside that network, so it needs to be enrolled for the scheduled job to ' +
-        'fetch its observations server-side.',
+        'Instant calibration needs observations a browser can fetch directly, which means ' +
+        'the US National Weather Service API or the Iowa Environmental Mesonet archive. ' +
+        'This station belongs to neither, so its observations have to be collected ' +
+        'server-side — enroll it and the scheduled job will do that, with years of history ' +
+        'rather than one week.',
     };
   }
-  const nwsId = station.nws_id || String(station.id).slice(4);
 
   const [obsByHour, archive, live] = await Promise.all([
-    fetchNwsObservations(nwsId),
+    fetchObs(),
     fetchArchivedForecasts(station.lat, station.lon, models, variables),
     fetchLiveForecast(station.lat, station.lon, models, variables),
   ]);

@@ -72,6 +72,13 @@ aside {
 
 main { overflow-y: auto; padding: 18px 22px; }
 
+.map-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: -6px 0 10px;
+  font-family: var(--mono);
+}
+
 #map {
   height: 260px;
   border-radius: 8px;
