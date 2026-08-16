@@ -29,7 +29,7 @@ import io
 import json
 import os
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -506,4 +506,4 @@ def normalize_hourly(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
