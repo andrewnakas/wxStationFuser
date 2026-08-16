@@ -177,6 +177,14 @@ function renderList() {
       others.forEach((st) => ul.appendChild(catalogueRow(st)));
     } else if (state.catalogueLoading) {
       ul.insertAdjacentHTML('beforeend', '<li class="meta">Searching all stations…</li>');
+    } else if (state.catalogue && !state.catalogue.length) {
+      // Distinguish "the catalogue has not been built yet" from "nothing matched" —
+      // they look identical to a user but mean very different things.
+      ul.insertAdjacentHTML(
+        'beforeend',
+        '<li class="meta">The full station list has not been built yet, so only enrolled ' +
+          'stations are searchable. Run the catalogue workflow to populate it.</li>'
+      );
     }
   }
 
