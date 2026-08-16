@@ -78,22 +78,27 @@ score recomputed on the same rows, and the coverage is shown.
 Denver International (`IEM:DEN`), fusing GFS, ECMWF IFS, ICON, and HRRR against one year of
 paired history, evaluated walk-forward:
 
-| Variable | Method chosen | CRPS gain vs best raw model | Absolute-error gain | Beats raw? |
+| Variable | Method published | CRPS gain vs best raw model | Absolute-error gain | Beats raw? |
 |---|---|---|---|---|
 | Temperature | Tier 2 | 52% | 25% | yes |
 | Relative humidity | Tier 2 | 49% | 22% | yes |
 | Wind speed | Tier 1 | 51% | 24% | yes |
-| Wind gusts | Tier 3 | 74% | 58% | yes |
+| Wind gusts | Tier 1 | 74% | 58% | yes |
 | Precipitation | Tier 3 | 47% | 44% | yes |
 
 The methods differ by variable, and that is the system working rather than an
 inconsistency. Temperature and humidity are well described by a Gaussian whose mean is
 linear in the model forecasts, so EMOS with harmonics wins and gradient boosting actually
-*loses* — trees cannot extrapolate to temperatures outside their training range. Gusts and
-precipitation are skewed and heteroscedastic, which is precisely where the nonparametric
-quantile method pulls ahead. Wind speed kept Tier 1 because Tier 2 led by only 0.2%, below
-the promotion margin that stops the published method flapping between near-equivalent
-options.
+*loses* on them — trees cannot extrapolate beyond the temperatures they were trained on.
+Precipitation is skewed with a point mass at zero, which is precisely where the
+nonparametric quantile method pulls ahead.
+
+Wind speed and gusts are cases where a different tier scored marginally better (Tier 2 by
+0.2%, Tier 3 by 0.9%) but did not clear the 2% promotion margin, so the incumbent stayed.
+That margin exists so the published method does not flip between near-equivalent options
+every time the job runs — a user should not see the method change without the accuracy
+changing. Each station page shows the full per-tier comparison, so the runner-up is
+visible rather than hidden.
 
 ## Using it
 
