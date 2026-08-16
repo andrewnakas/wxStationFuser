@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: catalogue
@@ -24,6 +25,9 @@ jobs:
   catalogue:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,12 +39,19 @@ jobs:
       - name: Install
         run: pip install -e ".[train]"
 
+      - name: Restore state (Actions cache)
+        uses: actions/cache@v4
+        with:
+          path: state
+          key: wxfuser-state-${{ github.run_id }}
+          restore-keys: |
+            wxfuser-state-
+
       - name: Build catalogue
         run: wxfuser catalogue --sources "${{ inputs.sources || 'nws,iem,meteostat' }}"
 
       - name: Publish to Hugging Face
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        if: env.HF_TOKEN != ''
         run: python scripts/sync_state.py upload
 
       - name: Trigger a refresh so the site picks up the new catalogue

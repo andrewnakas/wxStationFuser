@@ -11,6 +11,7 @@ on:
 permissions:
   contents: write
   issues: write
+  actions: write
 
 concurrency:
   group: enroll-${{ github.event.issue.number }}
@@ -21,6 +22,10 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'enroll')
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,8 +54,6 @@ jobs:
 
       - name: Report validation failure
         if: failure() && steps.validate.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f /tmp/errors.md ]; then
             gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/errors.md
@@ -59,22 +62,25 @@ jobs:
               --body "Enrollment failed before validation could report a reason. See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
           fi
 
-      - name: Restore state
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python scripts/sync_state.py download || echo "no state yet"
+      - name: Restore state (Actions cache)
+        uses: actions/cache@v4
+        with:
+          path: state
+          key: wxfuser-state-${{ github.run_id }}
+          restore-keys: |
+            wxfuser-state-
+
+      - name: Restore state (Hugging Face)
+        if: env.HF_TOKEN != ''
+        run: python scripts/sync_state.py download || echo "no hub state yet"
 
       - name: Backfill history and train
-        env:
-          SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
         run: |
           STATION=$(python -c "import json;print(json.load(open('/tmp/station.json'))['id'])")
           wxfuser bootstrap "$STATION" --years 2.0
 
-      - name: Save state
-        if: always()
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - name: Save state (Hugging Face)
+        if: always() && env.HF_TOKEN != ''
         run: python scripts/sync_state.py upload || echo "state upload skipped"
 
       - name: Commit the registry entry
@@ -87,8 +93,6 @@ jobs:
           git push
 
       - name: Report success and close
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SLUG=$(python -c "import json;print(json.load(open('/tmp/station.json'))['slug'])")
           NAME=$(python -c "import json;print(json.load(open('/tmp/station.json'))['name'])")
@@ -98,6 +102,4 @@ jobs:
           gh issue close "${{ github.event.issue.number }}"
 
       - name: Publish the site
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run refresh.yml || true

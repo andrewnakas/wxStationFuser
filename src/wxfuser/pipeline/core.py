@@ -355,7 +355,22 @@ def run_station(
           flush=True)
 
     stored = state_mod.load(STATE_DIR, station.slug)
-    archive = backfill_pairs(station, years=years) if bootstrap else incremental_pairs(station)
+
+    # A station with no archive has to backfill regardless of which command asked for it.
+    # The incremental path only looks back about a week, which is not enough to fit
+    # anything, so a cold start would otherwise publish "warming up" forever rather than
+    # pulling the history that is sitting there in the forecast archive.
+    cold_start = not bootstrap and not pairs_path(station).exists()
+    if cold_start:
+        print(f"[{station.id}] no paired archive yet; backfilling {years:g} y", flush=True)
+
+    archive = (
+        backfill_pairs(station, years=years)
+        if (bootstrap or cold_start)
+        else incremental_pairs(station)
+    )
+    if cold_start:
+        evaluate = True  # a freshly built archive has no stored champion to reuse
     if archive is None or archive.empty:
         print(f"[{station.id}] no paired data; skipping", flush=True)
         return {"id": station.id, "name": station.name, "lat": station.lat,

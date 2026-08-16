@@ -63,7 +63,8 @@ body:
     id: iem_network
     attributes:
       label: IEM network code
-      description: Required only for `IEM:` stations. Examples: `CO_ASOS`, `AZ_RWIS`, `DE__ASOS`.
+      description: >
+        Required only for `IEM:` stations. Examples are `CO_ASOS`, `AZ_RWIS`, `DE__ASOS`.
       placeholder: CO_ASOS
 
   - type: input

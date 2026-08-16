@@ -29,6 +29,10 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      # Promoted to a job-level variable so steps can test whether it is configured.
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -43,23 +47,29 @@ jobs:
       - name: Install
         run: pip install -e ".[train]"
 
-      - name: Restore state from Hugging Face
-        # State is the paired archives and fitted champions. Missing state is not fatal:
-        # a station simply rebuilds its history, so a first run or a hub outage degrades
-        # to a slower job rather than a failed one.
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python scripts/sync_state.py download || echo "no state yet; starting cold"
+      # State is the paired archives and fitted champions. Two stores, in order of
+      # preference: a Hugging Face dataset when HF_TOKEN is configured (durable, shared
+      # across workflows), otherwise the Actions cache, which needs no secrets at all and
+      # stays warm because this job runs every few hours. Missing state is never fatal —
+      # a station rebuilds its history from the upstream APIs, which is slower but
+      # correct. The cache is saved automatically when the job ends.
+      - name: Restore state (Actions cache)
+        uses: actions/cache@v4
+        with:
+          path: state
+          key: wxfuser-state-${{ github.run_id }}
+          restore-keys: |
+            wxfuser-state-
+
+      - name: Restore state (Hugging Face)
+        if: env.HF_TOKEN != ''
+        run: python scripts/sync_state.py download || echo "no hub state yet; using cache"
 
       - name: Refresh all stations
-        env:
-          SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
         run: wxfuser refresh
 
-      - name: Save state to Hugging Face
-        if: always()
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - name: Save state (Hugging Face)
+        if: always() && env.HF_TOKEN != ''
         run: python scripts/sync_state.py upload || echo "state upload skipped"
 
       - uses: actions/configure-pages@v5
