@@ -27,7 +27,7 @@ For each enrolled station the system builds an archive of *what the models predi
 to *what the station actually measured*, hour by hour.
 
 Observations come from whichever sources cover the station — NWS, GHCN-hourly, the Iowa
-Environmental Mesonet, Meteostat, Synoptic, SNOTEL — merged and quality-controlled
+Environmental Mesonet, Meteostat, SNOTEL, and Synoptic where licensed — merged and quality-controlled
 (range, step, and stuck-sensor screens). Forecasts come from Open-Meteo, which archives
 what each model predicted on past dates. That archive is the reason a station enrolled
 today is useful today: it starts with a year or more of paired history instead of waiting
@@ -146,7 +146,7 @@ python -m http.server -d site                   # view at localhost:8000
 | `NWS:` | US National Weather Service | `NWS:KDEN` |
 | `GHCNH:` | GHCN-hourly (deep history) | `GHCNH:USW00003017` |
 | `MS:` | Meteostat (~22k global stations) | `MS:72565` |
-| `SYN:` | Synoptic/MesoWest (needs `SYNOPTIC_API_TOKEN`) | `SYN:KDEN` |
+| `SYN:` | Synoptic/MesoWest — see note below | `SYN:KDEN` |
 | *(bare)* | SNOTEL triplet | `663:CO:SNTL` |
 
 ## Scheduled jobs
@@ -161,7 +161,14 @@ python -m http.server -d site                   # view at localhost:8000
 
 State that grows — paired archives, fitted coefficients, verification history — lives on a
 Hugging Face dataset repo rather than in git, so the repository history stays readable.
-Set `HF_TOKEN` (and `SYNOPTIC_API_TOKEN` if you use Synoptic) as repository secrets.
+Set `HF_TOKEN` as a repository secret to use it; without one the state falls back to the
+Actions cache, which works but is evicted after a week of inactivity.
+
+Synoptic is supported but effectively unavailable for this project: as of 2026 their free
+Open Access tier requires a `.edu` address from an accredited US institution and
+explicitly excludes personal and hobbyist use. `SYN:` stations therefore need a paid plan
+and `SYNOPTIC_API_TOKEN`. Nothing depends on it — Synoptic's unique contribution was some
+US mesonet coverage (RAWS, state networks), and the other five sources cover the rest.
 
 ## References
 

@@ -16,8 +16,10 @@ Sources and what each is for:
     period of record. Replaces ISD, which NOAA froze in Aug 2025.
   * **IEM** — bulk ASOS/AWOS/RAWS archive, no key, good global airport coverage.
   * **Meteostat** — ~22k global stations, bulk yearly files, lags a few days.
-  * **Synoptic** — mesonets (RAWS, state networks) that none of the above carry; needs
-    a free token.
+  * **Synoptic** — mesonets (RAWS, state networks) that none of the above carry. Needs a
+    token, and as of 2026 the free Open Access tier is restricted to accredited US
+    academic users, so for most projects this source requires a paid plan. Everything
+    else works without it.
 
 QC lives in ``qc()`` and is applied by the pipeline, never inside the fetchers, so raw
 pulls stay cacheable and auditable.
