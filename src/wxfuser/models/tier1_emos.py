@@ -20,6 +20,16 @@ Training uses exponential time weighting rather than a hard cutoff (Lang et al. 
 recent pairs dominate, older ones fade, and no forecast falls off a cliff on a Tuesday.
 The window is longer for long leads, where errors evolve more slowly and data is scarcer.
 
+Known residual: the published 90% intervals cover about 87% rather than 90%, so the
+forecast is mildly overconfident. The obvious suspect is that the lead buckets are wide —
+error at this station grows by nearly a third across the 97-168 h bucket — and one spread
+parameter per bucket cannot express that. It was tried: adding ``e * lead`` to the spread
+model moved far-lead coverage from 0.859 to 0.875 but changed CRPS by 0.05%, i.e. nothing,
+and made wind marginally worse. So the gap is not mainly within-bucket lead growth, and
+the extra parameter was not worth it. The likelier cause is that minimum-CRPS fitting
+trades a little calibration for sharpness by design. Left as-is and reported honestly on
+the site rather than papered over.
+
 Wind speed and gusts use a normal truncated at zero; precipitation is not a single
 distribution at all and is handled by ``fit_precip``/``predict_precip`` below.
 """
