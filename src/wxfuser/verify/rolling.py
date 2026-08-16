@@ -143,7 +143,20 @@ def _raw_baselines(
     short leads is visibly doing so.
     """
     key = ["valid_time", "lead_h"]
-    joined = oos[key].merge(wide, on=key, how="left")
+    # `wide` is keyed on (valid_time, lead_h, lead_source), so two archive sources could
+    # in principle contribute the same valid time at the same nominal lead. A left merge
+    # would then return more rows than `oos`, and every per-row array below — including
+    # crps_fused — would be silently misaligned against it, corrupting the published
+    # skill numbers rather than failing. Today the sources cannot collide (the seamless
+    # archive is pinned to lead 3, previous-runs uses multiples of 24), but the
+    # comparison must not depend on that holding.
+    lookup = wide.drop_duplicates(subset=key, keep="last")
+    joined = oos[key].merge(lookup, on=key, how="left")
+    if len(joined) != len(oos):  # pragma: no cover - defensive
+        raise AssertionError(
+            f"baseline merge changed row count ({len(oos)} -> {len(joined)}); "
+            "the fused and raw scores would not correspond to the same hours"
+        )
     y = joined["obs"].to_numpy(dtype=float)
     n = len(y)
     out = {}

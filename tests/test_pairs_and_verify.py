@@ -254,3 +254,34 @@ def test_tiers_are_ranked_on_rows_they_all_covered():
         zip(narrow["valid_time"], narrow["lead_h"])
     )
     assert len(common) == n // 2, "the shared rows are the easy half only"
+
+
+def test_baseline_merge_cannot_misalign_on_duplicate_keys():
+    """Two archive sources at the same valid time and lead must not duplicate rows.
+
+    `wide` is keyed on (valid_time, lead_h, lead_source). If a left merge on
+    (valid_time, lead_h) returned extra rows, every per-row array — including the fused
+    CRPS — would be silently misaligned against it and the published skill numbers would
+    be wrong rather than absent.
+    """
+    times = pd.date_range("2025-01-01", periods=50, freq="h")
+    base = pd.DataFrame(
+        {
+            "valid_time": times,
+            "lead_h": 24,
+            "obs": 10.0,
+            "fc_m1": 11.0,
+        }
+    )
+    # Same valid times and lead from a second source — a colliding key.
+    wide = pd.concat(
+        [base.assign(lead_source="hist"), base.assign(lead_source="prev_runs")],
+        ignore_index=True,
+    )
+    oos = base[["valid_time", "lead_h", "obs"]].copy()
+    oos["q50"] = 10.5
+    crps = np.full(len(oos), 0.5)
+
+    raw = rolling._raw_baselines(oos, wide, ["m1"], crps, crps)
+    assert raw["m1"]["n"] == len(oos)
+    assert raw["m1"]["crps_fused_here"] == pytest.approx(0.5)
