@@ -111,7 +111,7 @@ def cmd_catalogue(args) -> int:
     from wxfuser.data import catalogue
 
     sources = tuple(s.strip() for s in args.sources.split(",") if s.strip())
-    df = catalogue.build(sources=sources)
+    df = catalogue.build(sources=sources, reporting_only=not args.include_non_reporting)
     if df.empty:
         print("catalogue build produced no stations")
         return 1
@@ -190,6 +190,11 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("catalogue", help="rebuild the global station catalogue")
     p.add_argument("--sources", default="nws,iem,meteostat")
+    p.add_argument(
+        "--include-non-reporting",
+        action="store_true",
+        help="keep NWS river/precip gauges that do not serve hourly weather observations",
+    )
     p.set_defaults(func=cmd_catalogue)
 
     p = sub.add_parser("list", help="list enrolled stations")

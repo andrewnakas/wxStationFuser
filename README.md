@@ -78,13 +78,22 @@ score recomputed on the same rows, and the coverage is shown.
 Denver International (`IEM:DEN`), fusing GFS, ECMWF IFS, ICON, and HRRR against one year of
 paired history, evaluated walk-forward:
 
-| Variable | CRPS gain vs best raw model | Absolute-error gain | Beats raw? |
-|---|---|---|---|
-| Temperature | 47% | 16% | yes |
-| Relative humidity | 47% | 18% | yes |
-| Wind speed | 51% | 23% | yes |
-| Wind gusts | 68% | 50% | yes |
-| Precipitation | 29% | 11% | yes |
+| Variable | Method chosen | CRPS gain vs best raw model | Absolute-error gain | Beats raw? |
+|---|---|---|---|---|
+| Temperature | Tier 2 | 52% | 25% | yes |
+| Relative humidity | Tier 2 | 49% | 22% | yes |
+| Wind speed | Tier 1 | 51% | 24% | yes |
+| Wind gusts | Tier 3 | 74% | 58% | yes |
+| Precipitation | Tier 3 | 47% | 44% | yes |
+
+The methods differ by variable, and that is the system working rather than an
+inconsistency. Temperature and humidity are well described by a Gaussian whose mean is
+linear in the model forecasts, so EMOS with harmonics wins and gradient boosting actually
+*loses* — trees cannot extrapolate to temperatures outside their training range. Gusts and
+precipitation are skewed and heteroscedastic, which is precisely where the nonparametric
+quantile method pulls ahead. Wind speed kept Tier 1 because Tier 2 led by only 0.2%, below
+the promotion margin that stops the published method flapping between near-equivalent
+options.
 
 ## Using it
 

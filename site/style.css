@@ -159,7 +159,9 @@ h3 { font-size: 15px; margin: 22px 0 8px; color: var(--text); }
   overflow-x: auto;
 }
 
-canvas { display: block; max-width: 100%; }
+/* Canvases default to 300px wide. Without an explicit width they render into a narrow
+   strip of their container regardless of how much room is available. */
+canvas { display: block; width: 100%; }
 
 table {
   width: 100%;

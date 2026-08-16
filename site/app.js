@@ -129,13 +129,21 @@ async function ensureCatalogue() {
   }
 }
 
+/* Match every whitespace-separated token, so "denver intl" finds a station named
+ * "DENVER INTERNATIONAL AIRPORT" — a single substring match would not. */
+function matchesQuery(haystack, tokens) {
+  return tokens.every((t) => haystack.includes(t));
+}
+
 function searchCatalogue(q, limit = 40) {
   if (!state.catalogue || !q) return [];
+  const tokens = q.split(/\s+/).filter(Boolean);
+  if (!tokens.length) return [];
   const enrolled = new Set(state.stations.map((s) => s.id));
   const out = [];
   for (const st of state.catalogue) {
     if (enrolled.has(st.id)) continue;
-    if (st.name.toLowerCase().includes(q) || st.id.toLowerCase().includes(q)) {
+    if (matchesQuery(`${st.name} ${st.id}`.toLowerCase(), tokens)) {
       out.push(st);
       if (out.length >= limit) break;
     }
@@ -148,8 +156,9 @@ function renderList() {
   const ul = $('stations');
   ul.innerHTML = '';
 
+  const tokens = q.split(/\s+/).filter(Boolean);
   const enrolledMatches = state.stations.filter(
-    (s) => !q || s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)
+    (s) => !q || matchesQuery(`${s.name} ${s.id}`.toLowerCase(), tokens)
   );
 
   if (enrolledMatches.length) {
@@ -205,18 +214,27 @@ function catalogueRow(st) {
 
 // ---------------------------------------------------------------- charts
 
-function drawForecastChart(canvas, times, band, rawSeries, unit) {
+/* Size a canvas to its container at device resolution.
+ * The CSS width must be applied before measuring, otherwise the canvas reports its
+ * intrinsic 300px default and everything draws into a narrow strip. */
+function sizeCanvas(canvas, height) {
   const dpr = window.devicePixelRatio || 1;
-  const W = canvas.clientWidth || 900;
-  const H = 320;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  canvas.style.height = `${H}px`;
+  canvas.style.width = '100%';
+  canvas.style.height = `${height}px`;
+  const W = Math.max(Math.round(canvas.getBoundingClientRect().width) || 0, 280);
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(height * dpr);
   const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, height);
+  return { ctx, W, H: height };
+}
 
-  const padL = 48, padR = 12, padT = 12, padB = 30;
+function drawForecastChart(canvas, times, band, rawSeries, unit) {
+  const { ctx, W, H } = sizeCanvas(canvas, 320);
+
+  // Room at the top for the unit label so it cannot collide with the highest axis tick.
+  const padL = 52, padR = 14, padT = 26, padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
@@ -319,16 +337,11 @@ function drawForecastChart(canvas, times, band, rawSeries, unit) {
 
   ctx.fillStyle = '#8b949e';
   ctx.font = '11px sans-serif';
-  ctx.fillText(unit, 6, 12);
+  ctx.fillText(unit, 6, 14);
 }
 
 function drawPIT(canvas, hist) {
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.clientWidth || 380, H = 170;
-  canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.height = `${H}px`;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
+  const { ctx, W, H } = sizeCanvas(canvas, 170);
   if (!hist || !hist.length) return;
 
   const padL = 34, padB = 22, padT = 10, padR = 8;
@@ -363,13 +376,7 @@ function drawPIT(canvas, hist) {
 }
 
 function drawLeadBars(canvas, byLead) {
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.clientWidth || 380, H = 170;
-  canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.height = `${H}px`;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
-
+  const { ctx, W, H } = sizeCanvas(canvas, 170);
   const entries = Object.entries(byLead || {}).filter(([, v]) => v.crpss_vs_raw != null);
   if (!entries.length) {
     ctx.fillStyle = '#8b949e';
@@ -381,7 +388,9 @@ function drawLeadBars(canvas, byLead) {
   const padL = 40, padB = 26, padT = 10, padR = 8;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const vals = entries.map(([, v]) => v.crpss_vs_raw);
-  const maxAbs = Math.max(0.05, ...vals.map(Math.abs));
+  // Headroom so bars near the maximum are not flush against the frame, and so the
+  // per-bar value labels have somewhere to sit.
+  const maxAbs = Math.max(0.05, ...vals.map(Math.abs)) * 1.25;
   const zeroY = padT + plotH / 2;
   const bw = plotW / entries.length;
 
@@ -390,15 +399,23 @@ function drawLeadBars(canvas, byLead) {
 
   entries.forEach(([label, v], i) => {
     const h = ((v.crpss_vs_raw / maxAbs) * plotH) / 2;
+    const cx = padL + i * bw + bw / 2;
     ctx.fillStyle = v.crpss_vs_raw >= 0 ? 'rgba(63,185,80,0.65)' : 'rgba(248,81,73,0.65)';
     ctx.fillRect(padL + i * bw + 2, h >= 0 ? zeroY - h : zeroY, bw - 4, Math.abs(h));
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e6edf3';
+    ctx.font = '10px ui-monospace, monospace';
+    ctx.fillText(
+      `${(v.crpss_vs_raw * 100).toFixed(0)}%`,
+      cx,
+      h >= 0 ? zeroY - h - 4 : zeroY + Math.abs(h) + 11
+    );
+
     ctx.fillStyle = '#8b949e';
     ctx.font = '9px ui-monospace, monospace';
-    ctx.save();
-    ctx.translate(padL + i * bw + bw / 2, H - 6);
-    ctx.textAlign = 'center';
-    ctx.fillText(label + 'h', 0, 0);
-    ctx.restore();
+    ctx.fillText(label + 'h', cx, H - 6);
+    ctx.textAlign = 'start';
   });
 
   ctx.fillStyle = '#8b949e';
