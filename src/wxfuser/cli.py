@@ -26,9 +26,30 @@ def cmd_bootstrap(args) -> int:
     return 0 if entry.get("status") == "ok" else 1
 
 
+def _stage_catalogue() -> None:
+    """Copy the station catalogue from state into the published site, if we have one.
+
+    The catalogue is rebuilt weekly by its own workflow, but the site is republished
+    every few hours from a fresh checkout. Without this the search box would 404 on
+    every deploy that did not immediately follow a catalogue build, leaving the site
+    able to show enrolled stations only.
+    """
+    import shutil
+
+    src = core.STATE_DIR / "catalogue" / "stations.min.json"
+    dst = core.SITE_DIR / "stations.min.json"
+    if src.exists() and not dst.exists():
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+        print(f"staged catalogue from {src} ({src.stat().st_size // 1024} KB)")
+    elif not src.exists() and not dst.exists():
+        print("no station catalogue available; search will cover enrolled stations only")
+
+
 def cmd_refresh(args) -> int:
     """Update every enrolled station and rewrite the site JSON."""
     stations = load_registry()
+    _stage_catalogue()
     if args.station:
         stations = [s for s in stations if s.id == args.station]
     if not stations:
@@ -124,6 +145,10 @@ def cmd_catalogue(args) -> int:
     site_path = core.SITE_DIR / "stations.min.json"
     site_path.parent.mkdir(parents=True, exist_ok=True)
     with open(site_path, "w") as fh:
+        json.dump(payload, fh, separators=(",", ":"))
+    # Also keep it in state so later refreshes, which run from a clean checkout, can
+    # republish the catalogue without rebuilding it.
+    with open(out_dir / "stations.min.json", "w") as fh:
         json.dump(payload, fh, separators=(",", ":"))
 
     size_kb = site_path.stat().st_size / 1024
