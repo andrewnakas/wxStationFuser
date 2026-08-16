@@ -97,10 +97,19 @@ def forecast_json(
 
 
 def write_json(payload: dict, path: str | Path) -> Path:
+    """Write JSON, sanitising NaN and infinity at the boundary rather than trusting callers.
+
+    ``allow_nan=False`` is deliberate — NaN is not valid JSON and every parser handles it
+    differently — but it makes the writer throw on any value a caller forgot to clean.
+    Verification scorecards are full of legitimately undefined numbers (a skill score
+    against a zero-error baseline, coverage over an empty bucket), so cleaning here rather
+    than at each call site is what stops one undefined statistic from costing a station
+    its entire published page.
+    """
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w") as fh:
-        json.dump(payload, fh, separators=(",", ":"), allow_nan=False)
+        json.dump(_clean(payload), fh, separators=(",", ":"), allow_nan=False)
     return p
 
 

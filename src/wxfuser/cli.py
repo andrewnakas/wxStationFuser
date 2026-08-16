@@ -125,6 +125,87 @@ def cmd_retrain(args) -> int:
     return 0
 
 
+def cmd_enroll_bulk(args) -> int:
+    """Enroll many stations at once from the bulk sources.
+
+    Writes registry entries and, unless told not to, bootstraps them in shard-sized
+    batches so one long-running invocation can be interrupted without losing the
+    stations already trained.
+    """
+    from wxfuser.data import bulk
+    from wxfuser.data.registry import load_registry, save_registry
+    from wxfuser.pipeline import bulk_run
+
+    universe = bulk.enrollable_universe(
+        include_asos=not args.no_asos,
+        include_snotel=not args.no_snotel,
+        min_elevation_m=args.min_elevation,
+        countries=args.countries.split(",") if args.countries else None,
+    )
+    if universe.empty:
+        print("no stations matched")
+        return 1
+
+    if args.limit:
+        # Highest first, so a capped run selects the complex terrain where the correction
+        # has the most to do rather than an arbitrary alphabetical slice.
+        universe = universe.sort_values("elev_m", ascending=False, na_position="last")
+        universe = universe.head(args.limit)
+
+    existing = {s.id for s in load_registry()}
+    today = __import__("datetime").date.today().isoformat()
+    added = []
+    for _, r in universe.iterrows():
+        if r["id"] in existing:
+            continue
+        added.append(
+            Station(
+                id=str(r["id"]),
+                name=str(r["name"])[:80],
+                lat=float(r["lat"]),
+                lon=float(r["lon"]),
+                elev_m=float(r["elev_m"]) if pd_notna(r.get("elev_m")) else None,
+                country=str(r["country"]) if pd_notna(r.get("country")) else None,
+                enrolled_at=today,
+            )
+        )
+
+    print(f"\n{len(added)} new stations to enroll ({len(existing)} already registered)")
+    if args.dry_run:
+        for s in added[:10]:
+            print(f"  {s.id:24s} {s.name[:40]:42s} {s.elev_m or 0:6.0f} m")
+        if len(added) > 10:
+            print(f"  … and {len(added) - 10} more")
+        return 0
+
+    registry = load_registry() + added
+    registry.sort(key=lambda s: s.id)
+    save_registry(registry)
+    print(f"registry now holds {len(registry)} stations")
+
+    if args.no_bootstrap:
+        return 0
+
+    batch = args.batch
+    total_ok = 0
+    for i in range(0, len(added), batch):
+        chunk = added[i : i + batch]
+        print(f"\n=== bootstrapping {i + 1}..{i + len(chunk)} of {len(added)} ===")
+        entries = bulk_run.run_stations(
+            chunk, bootstrap=True, evaluate=True, years=args.years
+        )
+        total_ok += sum(1 for e in entries if e.get("status") == "ok")
+        print(f"  cumulative published: {total_ok}")
+    print(f"\nbulk enroll complete: {total_ok}/{len(added)} published")
+    return 0
+
+
+def pd_notna(v) -> bool:
+    import pandas as pd
+
+    return v is not None and not pd.isna(v)
+
+
 def cmd_catalogue(args) -> int:
     """Rebuild the global station catalogue the site's search box reads."""
     import json
@@ -212,6 +293,21 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("retrain", help="re-run verification and re-select champions")
     p.add_argument("--station")
     p.set_defaults(func=cmd_retrain)
+
+    p = sub.add_parser("enroll-bulk", help="enroll many stations from the bulk sources")
+    p.add_argument("--limit", type=int, help="cap the number enrolled, highest elevation first")
+    p.add_argument("--min-elevation", type=float,
+                   help="only stations at or above this elevation in metres")
+    p.add_argument("--countries", help="comma-separated ISO country codes")
+    p.add_argument("--no-asos", action="store_true", help="skip the ASOS airport archive")
+    p.add_argument("--no-snotel", action="store_true", help="skip SNOTEL mountain sites")
+    p.add_argument("--years", type=float, default=2.0, help="years of history to backfill")
+    p.add_argument("--batch", type=int, default=200,
+                   help="stations bootstrapped per batch; smaller batches checkpoint sooner")
+    p.add_argument("--no-bootstrap", action="store_true",
+                   help="register them but leave training to the scheduled jobs")
+    p.add_argument("--dry-run", action="store_true", help="show what would be enrolled")
+    p.set_defaults(func=cmd_enroll_bulk)
 
     p = sub.add_parser("catalogue", help="rebuild the global station catalogue")
     p.add_argument("--sources", default="nws,iem,meteostat")

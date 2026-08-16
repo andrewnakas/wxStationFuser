@@ -432,6 +432,13 @@ def fetch_obs(
         from wxfuser.data.meteostat import fetch_meteostat_hourly
 
         return fetch_meteostat_hourly(station_id[3:], start, end)
+    if station_id.startswith("ASOS:"):
+        # Single-station convenience only. The bulk archive is designed to be queried for
+        # many stations at once, so the pipeline uses bulk.asos_observations directly;
+        # calling this per station would rescan the same parquet files each time.
+        from wxfuser.data.bulk import asos_observations
+
+        return asos_observations([station_id], start, end)
     # Bare id: SNOTEL triplet (e.g. "663:CO:SNTL").
     return fetch_snotel_hourly(station_id, start, end)
 

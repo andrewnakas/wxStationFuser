@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import time
 from datetime import date, timedelta
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -48,18 +49,43 @@ class OpenMeteoError(RuntimeError):
     pass
 
 
-def _http_json(url: str, *, timeout: int = 120, retries: int = 4) -> dict | list:
-    """GET JSON with exponential backoff.
+# Minimum spacing between requests. The free tier allows 600/minute, but a burst of
+# batched multi-location calls is far heavier than a burst of single-point ones and gets
+# throttled well before that nominal rate. Pacing costs a little wall clock and saves
+# whole batches from being lost to 429s.
+MIN_REQUEST_INTERVAL_S = 0.6
+_last_request_at = 0.0
 
-    429s are the expected failure on the free tier, and they resolve by waiting, so we
-    back off rather than give up; anything still failing after the last attempt raises.
+
+def _http_json(url: str, *, timeout: int = 120, retries: int = 5) -> dict | list:
+    """GET JSON, paced between calls and backing off hard on throttling.
+
+    429 is the expected failure here and it resolves only by waiting, so it gets a much
+    longer backoff than a transient network error — an earlier version topped out around
+    nine seconds and lost entire model-years of history to sustained throttling.
     """
+    global _last_request_at
+
     req = Request(url, headers={"User-Agent": USER_AGENT})
     last: Exception | None = None
     for attempt in range(retries):
+        gap = time.monotonic() - _last_request_at
+        if gap < MIN_REQUEST_INTERVAL_S:
+            time.sleep(MIN_REQUEST_INTERVAL_S - gap)
         try:
+            _last_request_at = time.monotonic()
             with urlopen(req, timeout=timeout) as resp:
                 return json.loads(resp.read().decode("utf-8"))
+        except HTTPError as exc:
+            last = exc
+            if exc.code == 429 and attempt < retries - 1:
+                # Back off in minutes, not seconds: the quota window is per-minute.
+                wait = min(20 * (attempt + 1), 90)
+                print(f"  rate limited; waiting {wait}s", flush=True)
+                time.sleep(wait)
+                continue
+            if attempt < retries - 1:
+                time.sleep(2**attempt + 1)
         except Exception as exc:  # noqa: BLE001
             last = exc
             if attempt < retries - 1:
@@ -300,6 +326,200 @@ def fetch_previous_runs(
     out = pd.concat(frames, ignore_index=True)
     out = out.dropna(subset=[f"fc_{v}" for v in variables], how="all").reset_index(drop=True)
     return out[[*FC_COLUMNS, *(f"fc_{v}" for v in variables)]]
+
+
+# --------------------------------------------------------------------------- batching
+
+# Locations per request. Open-Meteo accepts comma-separated coordinates and returns one
+# result object per location, in order. This is what makes thousands of stations viable:
+# a refresh over 5,000 stations is ~50 requests instead of 5,000.
+BATCH_SIZE = 100
+
+
+def _batch_request(
+    base_url: str,
+    coords: list[tuple[str, float, float]],
+    params: dict,
+    models: list[str],
+    variables: list[str],
+    *,
+    lead_source: str,
+    day: int | None = None,
+) -> pd.DataFrame:
+    """One multi-location request; returns long-form rows tagged with station_id.
+
+    The response is a list aligned with the requested coordinates. A single-location
+    request comes back as a bare object instead, so both shapes are accepted — otherwise
+    a batch that happens to contain one station would break.
+    """
+    if not coords:
+        return pd.DataFrame()
+
+    q = dict(params)
+    q["latitude"] = ",".join(f"{la:.4f}" for _, la, _ in coords)
+    q["longitude"] = ",".join(f"{lo:.4f}" for _, _, lo in coords)
+    payload = _http_json(f"{base_url}?" + urlencode(q))
+    results = payload if isinstance(payload, list) else [payload]
+
+    frames = []
+    for (sid, _, _), res in zip(coords, results):
+        hourly = res.get("hourly", {}) if isinstance(res, dict) else {}
+        f = _frame_from_hourly(hourly, models, variables, lead_source=lead_source, day=day)
+        if f.empty:
+            continue
+        f["station_id"] = sid
+        frames.append(f)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def fetch_forecast_batch(
+    coords: list[tuple[str, float, float]],
+    models: list[str],
+    variables: list[str],
+    *,
+    forecast_days: int = 7,
+    batch_size: int = BATCH_SIZE,
+) -> pd.DataFrame:
+    """Current multi-model forecasts for many stations, batched by location."""
+    base = {
+        "hourly": ",".join(_om_vars(variables)),
+        "models": ",".join(models),
+        "wind_speed_unit": "ms",
+        "timezone": "GMT",
+        "forecast_days": str(forecast_days),
+    }
+    now = pd.Timestamp.utcnow().tz_localize(None).floor("h")
+    frames = []
+    for i in range(0, len(coords), batch_size):
+        chunk = coords[i : i + batch_size]
+        try:
+            f = _batch_request(FORECAST_URL, chunk, base, models, variables, lead_source="live")
+        except OpenMeteoError as exc:
+            print(f"  WARN: forecast batch {i // batch_size} failed ({exc})", flush=True)
+            continue
+        if not f.empty:
+            frames.append(f)
+        print(f"  forecast: {min(i + batch_size, len(coords))}/{len(coords)} stations",
+              flush=True)
+
+    if not frames:
+        return pd.DataFrame()
+    out = pd.concat(frames, ignore_index=True)
+    out["lead_h"] = ((out["valid_time"] - now) / pd.Timedelta(hours=1)).astype(int)
+    return out[out["lead_h"] >= 0].reset_index(drop=True)
+
+
+def fetch_historical_batch(
+    coords: list[tuple[str, float, float]],
+    models: list[str],
+    variables: list[str],
+    start: date,
+    end: date,
+    *,
+    batch_size: int = BATCH_SIZE,
+    chunk_days: int = 365,
+) -> pd.DataFrame:
+    """Archived forecasts for many stations, batched by location and chunked by date.
+
+    One model at a time: the archive's per-model availability differs, and asking for a
+    model outside its window wastes the whole batch rather than one column.
+    """
+    catalogue = model_catalogue()
+    frames = []
+    for model in models:
+        model_start = _as_date(catalogue.get(model, {}).get("archive_from")) or start
+        cursor = max(start, model_start)
+        while cursor <= end:
+            chunk_end = min(cursor + timedelta(days=chunk_days - 1), end)
+            base = {
+                "start_date": cursor.isoformat(),
+                "end_date": chunk_end.isoformat(),
+                "hourly": ",".join(_om_vars(variables)),
+                "models": model,
+                "wind_speed_unit": "ms",
+                "timezone": "GMT",
+            }
+            chunk_rows = 0
+            for i in range(0, len(coords), batch_size):
+                chunk = coords[i : i + batch_size]
+                try:
+                    f = _batch_request(
+                        HISTORICAL_URL, chunk, base, [model], variables, lead_source="hist"
+                    )
+                except OpenMeteoError as exc:
+                    print(f"  WARN: historical {model} {cursor} batch failed ({exc})",
+                          flush=True)
+                    continue
+                if not f.empty:
+                    frames.append(f)
+                    chunk_rows += len(f)
+            print(f"  historical {model} {cursor}..{chunk_end}: {chunk_rows} rows", flush=True)
+            cursor = chunk_end + timedelta(days=1)
+
+    if not frames:
+        return pd.DataFrame()
+    out = pd.concat(frames, ignore_index=True)
+    out["lead_h"] = 3  # seamless archive is short-lead by construction
+    return out.reset_index(drop=True)
+
+
+def fetch_previous_runs_batch(
+    coords: list[tuple[str, float, float]],
+    models: list[str],
+    variables: list[str],
+    *,
+    past_days: int = 92,
+    days: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7),
+    batch_size: int = BATCH_SIZE,
+) -> pd.DataFrame:
+    """Lead-resolved archived forecasts for many stations, batched by location."""
+    vmap = variable_map()
+    frames = []
+    for model in models:
+        wanted = [v for v in variables if model_supports(model, v)]
+        hourly_params = [f"{vmap[v]}_previous_day{d}" for d in days for v in wanted if v in vmap]
+        if not hourly_params:
+            continue
+        model_rows = 0
+        base = {
+            "hourly": ",".join(hourly_params),
+            "models": model,
+            "wind_speed_unit": "ms",
+            "timezone": "GMT",
+            "past_days": str(min(past_days, 92)),
+            "forecast_days": "1",
+        }
+        for i in range(0, len(coords), batch_size):
+            chunk = coords[i : i + batch_size]
+            try:
+                payload_frames = []
+                for d in days:
+                    f = _batch_request(
+                        PREVIOUS_RUNS_URL, chunk, base, [model], wanted,
+                        lead_source="prev_runs", day=d,
+                    )
+                    if f.empty:
+                        continue
+                    f["lead_h"] = 24 * d
+                    payload_frames.append(f)
+            except OpenMeteoError as exc:
+                print(f"  WARN: previous-runs {model} batch failed ({exc})", flush=True)
+                continue
+            frames.extend(payload_frames)
+            model_rows += sum(len(f) for f in payload_frames)
+        # Per-model, not cumulative: an earlier version printed the running total for each
+        # model, so a model that returned nothing still appeared to have contributed.
+        print(f"  previous-runs {model}: {model_rows} rows", flush=True)
+
+    if not frames:
+        return pd.DataFrame()
+    out = pd.concat(frames, ignore_index=True)
+    for v in variables:
+        if f"fc_{v}" not in out:
+            out[f"fc_{v}"] = np.nan
+    return out.dropna(
+        subset=[f"fc_{v}" for v in variables], how="all"
+    ).reset_index(drop=True)
 
 
 def _as_date(value) -> date | None:
