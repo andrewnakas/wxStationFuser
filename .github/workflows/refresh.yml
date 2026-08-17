@@ -33,9 +33,16 @@ permissions:
   pages: write
   id-token: write
 
+# Queue, do not cancel. A refresh is hours of network-bound work, and cancel-in-progress
+# meant any push touching src/ — or simply the next scheduled run coming round — killed a
+# fleet mid-flight and threw away everything it had downloaded. That happened repeatedly:
+# one cron tick landed on a twelve-shard run whose workers were nine steps in.
+#
+# The setting exists to stop stale deploys racing each other to Pages. Letting runs queue
+# achieves that too, and the last to finish is still the newest.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   plan:
