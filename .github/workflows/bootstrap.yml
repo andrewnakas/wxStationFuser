@@ -1,29 +1,33 @@
-name: Weekly retrain
+name: Bootstrap enrolled stations
 
-# Re-runs the walk-forward verification for every station and re-decides which method to
-# publish. This is the expensive job — dozens of refits per variable — which is exactly
-# why it is separate from the forecast cadence. The numbers it produces are what the site
-# quotes as its skill claim, so it must never be skipped to save time.
+# Trains stations that are registered but have no paired archive yet.
+#
+# Enrolling a large set happens in two steps on purpose. Registration writes
+# stations.yaml in one commit; this workflow then backfills history and trains, sharded
+# across runners. Doing both at once would have every parallel worker trying to commit
+# the same registry file.
+#
+# It is safe to re-run: a station that already has an archive takes the incremental path
+# instead of re-downloading years of history, so an interrupted bootstrap resumes rather
+# than restarting.
 
 on:
-  schedule:
-    - cron: '0 4 * * 0'
   workflow_dispatch:
     inputs:
-      station:
-        description: 'Limit to one station id (blank = all)'
-        required: false
       shards:
         description: 'Number of parallel workers'
         required: false
         default: '10'
+      years:
+        description: 'Years of history to backfill'
+        required: false
+        default: '2'
 
 permissions:
   contents: read
-  actions: write
 
 concurrency:
-  group: retrain
+  group: bootstrap
   cancel-in-progress: false
 
 jobs:
@@ -44,12 +48,14 @@ jobs:
           print('shards=' + str(n))
           " >> "$GITHUB_OUTPUT"
 
-  retrain:
+  bootstrap:
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 350
     strategy:
       fail-fast: false
+      # Bootstrapping is API-heavy. Limiting how many workers pull history at once keeps
+      # the whole fan-out from being throttled as a single burst.
       max-parallel: 5
       matrix:
         shard: ${{ fromJson(needs.plan.outputs.matrix) }}
@@ -58,41 +64,34 @@ jobs:
       SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
-
       - name: Install
         run: pip install -e ".[train]"
 
-      - name: Restore state (Actions cache)
-        uses: actions/cache@v4
-        with:
-          path: state
-          key: wxfuser-state-${{ github.run_id }}
-          restore-keys: |
-            wxfuser-state-
-
-      - name: Restore state (Hugging Face)
+      - name: Restore state
         if: env.HF_TOKEN != ''
         run: python scripts/sync_state.py download || echo "no hub state yet"
 
-      - name: Retrain and re-verify
+      - name: Bootstrap shard
         run: |
-          if [ -n "${{ inputs.station }}" ]; then
-            wxfuser retrain --station "${{ inputs.station }}"
-          else
-            wxfuser retrain --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
-          fi
+          wxfuser refresh --bootstrap \
+            --years ${{ inputs.years || '2' }} \
+            --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
-      - name: Save state (Hugging Face)
+      - name: Save state
         if: always() && env.HF_TOKEN != ''
-        run: python scripts/sync_state.py upload
+        run: |
+          for i in 1 2 3; do
+            python scripts/sync_state.py upload && break
+            echo "state upload attempt $i failed; retrying"
+            sleep $((i * 20))
+          done
 
   publish:
-    needs: retrain
+    needs: bootstrap
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -101,5 +100,5 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - name: Republish so the site shows the re-chosen methods
+      - name: Publish the newly trained stations
         run: gh workflow run refresh.yml || true

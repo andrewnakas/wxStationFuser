@@ -46,32 +46,94 @@ def _stage_catalogue() -> None:
         print("no station catalogue available; search will cover enrolled stations only")
 
 
+def select_shard(stations: list, shard: int | None, of: int | None) -> list:
+    """The slice of the registry this worker is responsible for.
+
+    Stations are assigned round-robin by position rather than in contiguous blocks, so
+    every shard gets a similar mix of networks and regions. Contiguous blocks would sort
+    all the SNOTEL sites into one shard, which then runs far longer than the rest because
+    they have no bulk observation source.
+    """
+    if not of or of <= 1:
+        return stations
+    shard = shard or 0
+    picked = [s for i, s in enumerate(stations) if i % of == shard]
+    print(f"shard {shard + 1}/{of}: {len(picked)} of {len(stations)} stations", flush=True)
+    return picked
+
+
+def _index_path(shard: int | None, of: int | None):
+    """Where this worker writes its index entries.
+
+    Sharded runs each write a fragment; a later job merges them. Writing the real
+    index.json from a shard would publish a site listing only that shard's stations.
+    """
+    if of and of > 1:
+        return core.SITE_DIR / f"index-shard-{shard or 0}.json"
+    return core.SITE_DIR / "index.json"
+
+
 def cmd_refresh(args) -> int:
-    """Update every enrolled station and rewrite the site JSON."""
+    """Update enrolled stations and write the site JSON.
+
+    Uses the bulk path, which acquires observations and forecasts for the whole shard in
+    a handful of requests rather than a pair per station.
+    """
+    from wxfuser.pipeline import bulk_run
+
     stations = load_registry()
     _stage_catalogue()
     if args.station:
         stations = [s for s in stations if s.id == args.station]
+    stations = select_shard(stations, args.shard, args.of)
+
     if not stations:
-        print("no stations enrolled; nothing to do")
-        emit.write_json(emit.index_json([]), core.SITE_DIR / "index.json")
+        print("no stations to refresh")
+        emit.write_json(emit.index_json([]), _index_path(args.shard, args.of))
         return 0
 
-    entries = []
-    failures = 0
-    for station in stations:
-        try:
-            entries.append(core.run_station(station, bootstrap=args.bootstrap))
-        except Exception as exc:  # noqa: BLE001
-            failures += 1
-            print(f"[{station.id}] FAILED: {exc}", flush=True)
-            entries.append({"id": station.id, "name": station.name, "lat": station.lat,
-                            "lon": station.lon, "status": "error"})
-
-    emit.write_json(emit.index_json(entries), core.SITE_DIR / "index.json")
+    entries = bulk_run.run_stations(
+        stations,
+        bootstrap=args.bootstrap,
+        evaluate=args.evaluate or args.bootstrap,
+        years=args.years,
+    )
+    emit.write_json(emit.index_json(entries), _index_path(args.shard, args.of))
     ok = sum(1 for e in entries if e.get("status") == "ok")
-    print(f"refresh complete: {ok}/{len(entries)} stations published, {failures} errors")
-    # A partial refresh still deploys: a stale station is better than an empty site.
+    print(f"refresh complete: {ok}/{len(entries)} stations published")
+    # A partial refresh still deploys: a stale station beats an empty site.
+    return 0
+
+
+def cmd_merge_index(args) -> int:
+    """Combine per-shard index fragments into the single index the site reads.
+
+    Also stages the catalogue, because this runs in the publish job, which assembles the
+    site from shard artifacts and never ran a refresh of its own.
+    """
+    import glob
+    import json as _json
+
+    _stage_catalogue()
+    entries = []
+    frags = sorted(glob.glob(str(core.SITE_DIR / "index-shard-*.json")))
+    for f in frags:
+        try:
+            entries.extend(_json.loads(Path(f).read_text()).get("stations", []))
+        except Exception as exc:  # noqa: BLE001
+            print(f"  WARN: could not read {f} ({exc})")
+    # Deduplicate defensively: a re-run shard could contribute a station twice, and the
+    # map would then draw it twice.
+    seen, unique = set(), []
+    for e in entries:
+        if e.get("id") in seen:
+            continue
+        seen.add(e.get("id"))
+        unique.append(e)
+
+    emit.write_json(emit.index_json(unique), core.SITE_DIR / "index.json")
+    ok = sum(1 for e in unique if e.get("status") == "ok")
+    print(f"merged {len(frags)} shards -> {len(unique)} stations, {ok} published")
     return 0
 
 
@@ -104,22 +166,18 @@ def cmd_retrain(args) -> int:
     Expensive (dozens of refits per variable), so it runs weekly rather than on the
     forecast cadence.
     """
+    from wxfuser.pipeline import bulk_run
+
     stations = load_registry()
     if args.station:
         stations = [s for s in stations if s.id == args.station]
+    stations = select_shard(stations, args.shard, args.of)
     if not stations:
-        print("no stations enrolled")
+        print("no stations to retrain")
         return 0
 
-    entries = []
-    for station in stations:
-        try:
-            entries.append(core.run_station(station, evaluate=True))
-        except Exception as exc:  # noqa: BLE001
-            print(f"[{station.id}] FAILED: {exc}", flush=True)
-            entries.append({"id": station.id, "name": station.name, "lat": station.lat,
-                            "lon": station.lon, "status": "error"})
-    emit.write_json(emit.index_json(entries), core.SITE_DIR / "index.json")
+    entries = bulk_run.run_stations(stations, bootstrap=False, evaluate=True)
+    emit.write_json(emit.index_json(entries), _index_path(args.shard, args.of))
     ok = sum(1 for e in entries if e.get("status") == "ok")
     print(f"retrain complete: {ok}/{len(entries)} stations evaluated")
     return 0
@@ -288,10 +346,20 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("refresh", help="update enrolled stations and write site JSON")
     p.add_argument("--station", help="limit to one station")
     p.add_argument("--bootstrap", action="store_true", help="deep pull instead of incremental")
+    p.add_argument("--evaluate", action="store_true",
+                   help="re-run verification and re-choose the champion")
+    p.add_argument("--years", type=float, default=2.0, help="years to backfill when bootstrapping")
+    p.add_argument("--shard", type=int, help="0-based index of this worker")
+    p.add_argument("--of", type=int, help="total number of workers")
     p.set_defaults(func=cmd_refresh)
+
+    p = sub.add_parser("merge-index", help="combine per-shard index fragments")
+    p.set_defaults(func=cmd_merge_index)
 
     p = sub.add_parser("retrain", help="re-run verification and re-select champions")
     p.add_argument("--station")
+    p.add_argument("--shard", type=int, help="0-based index of this worker")
+    p.add_argument("--of", type=int, help="total number of workers")
     p.set_defaults(func=cmd_retrain)
 
     p = sub.add_parser("enroll-bulk", help="enroll many stations from the bulk sources")

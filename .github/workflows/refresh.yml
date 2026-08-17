@@ -1,14 +1,22 @@
 name: Refresh forecasts
 
-# The forecast cadence. Pulls the latest observations and model runs for every enrolled
-# station, refits the cheap tiers on data up to the current hour, and republishes the
-# site. The champion method and its verification come from the weekly retrain, so this
-# job stays fast enough to run several times a day.
+# The forecast cadence, fanned out across workers.
+#
+# One runner cannot refresh a thousand stations inside the job limit, so the registry is
+# split round-robin and each shard handles its slice. Shards cannot each deploy Pages —
+# the deploy publishes a whole directory, so the last one to finish would replace the
+# site with only its own stations. Instead each shard uploads its output as an artifact
+# and a single publish job merges them and deploys once.
 
 on:
   schedule:
-    - cron: '17 */3 * * *'
+    - cron: '17 */6 * * *'
   workflow_dispatch:
+    inputs:
+      shards:
+        description: 'Number of parallel workers'
+        required: false
+        default: '8'
   push:
     branches: [main]
     paths:
@@ -26,58 +34,106 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  refresh:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - id: plan
+        env:
+          SHARDS: ${{ inputs.shards || '8' }}
+        run: |
+          python -c "
+          import json, os
+          n = int(os.environ['SHARDS'])
+          print('matrix=' + json.dumps(list(range(n))))
+          print('shards=' + str(n))
+          " >> "$GITHUB_OUTPUT"
+
+  refresh:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.plan.outputs.matrix) }}
     env:
-      # Promoted to a job-level variable so steps can test whether it is configured.
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
       SYNOPTIC_API_TOKEN: ${{ secrets.SYNOPTIC_API_TOKEN }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
-
       - name: Install
         run: pip install -e ".[train]"
 
-      # State is the paired archives and fitted champions. Two stores, in order of
-      # preference: a Hugging Face dataset when HF_TOKEN is configured (durable, shared
-      # across workflows), otherwise the Actions cache, which needs no secrets at all and
-      # stays warm because this job runs every few hours. Missing state is never fatal —
-      # a station rebuilds its history from the upstream APIs, which is slower but
-      # correct. The cache is saved automatically when the job ends.
-      - name: Restore state (Actions cache)
-        uses: actions/cache@v4
-        with:
-          path: state
-          key: wxfuser-state-${{ github.run_id }}
-          restore-keys: |
-            wxfuser-state-
-
-      - name: Restore state (Hugging Face)
+      - name: Restore state
         if: env.HF_TOKEN != ''
-        run: python scripts/sync_state.py download || echo "no hub state yet; using cache"
+        run: python scripts/sync_state.py download || echo "no hub state yet"
 
-      - name: Refresh all stations
-        run: wxfuser refresh
+      - name: Refresh shard
+        run: wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
-      - name: Save state (Hugging Face)
+      # Each shard writes only its own stations, so uploading in parallel touches
+      # disjoint paths. Conflicts are still possible on the underlying ref, hence retries.
+      - name: Save state
         if: always() && env.HF_TOKEN != ''
-        run: python scripts/sync_state.py upload || echo "state upload skipped"
+        run: |
+          for i in 1 2 3; do
+            python scripts/sync_state.py upload && break
+            echo "state upload attempt $i failed; retrying"
+            sleep $((i * 20))
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-shard-${{ matrix.shard }}
+          path: |
+            site/stations/
+            site/index-shard-*.json
+          retention-days: 1
+          if-no-files-found: ignore
+
+  publish:
+    needs: [plan, refresh]
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: pip install -e .
+
+      - name: Collect shard output
+        uses: actions/download-artifact@v4
+        with:
+          pattern: site-shard-*
+          path: site
+          merge-multiple: true
+
+      - name: Restore catalogue and merge the index
+        run: |
+          python scripts/sync_state.py download || echo "no hub state; catalogue may be absent"
+          wxfuser merge-index
+          rm -f site/index-shard-*.json
+          du -sh site || true
 
       - uses: actions/configure-pages@v5
-
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
-
       - id: deploy
         uses: actions/deploy-pages@v4
         with:
