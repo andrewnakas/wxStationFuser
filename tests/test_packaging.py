@@ -262,3 +262,40 @@ def test_the_test_suite_runs_in_the_environment_ci_builds():
         "these are imported by tests/scripts but not installed by `.[dev]`, so they pass "
         f"locally and error on CI: { {k: sorted(v) for k, v in missing.items()} }"
     )
+
+
+@pytest.mark.skipif(not _is_git_repo(), reason="not a git checkout")
+def test_every_job_touching_the_hub_installs_what_that_needs():
+    """A job that runs sync_state.py must install the extra providing huggingface_hub.
+
+    The publish job installed the base package only, so its hub restore raised
+    ModuleNotFoundError on every deploy. The call is wrapped in `|| echo`, so the job went
+    green while never once reading the hub — which is how the published catalogue
+    disappeared and why a merged index had no baseline to build on. A tolerated failure
+    that can never succeed is worse than a loud one.
+    """
+    import re
+
+    import yaml
+
+    workflows = sorted((REPO_ROOT / ".github" / "workflows").glob("*.yml"))
+    assert workflows, "no workflows found"
+
+    offenders = []
+    for wf in workflows:
+        cfg = yaml.safe_load(wf.read_text())
+        for job_name, job in (cfg.get("jobs") or {}).items():
+            steps = job.get("steps") or []
+            run_text = "\n".join(s.get("run", "") for s in steps if isinstance(s, dict))
+            if "sync_state.py" not in run_text:
+                continue
+            installs = re.findall(r"pip install[^\n]*", run_text)
+            # huggingface_hub ships with the train extra, so a bare `pip install -e .`
+            # leaves the hub unreachable no matter how the call is guarded.
+            if not any("[train]" in i or "[dev]" in i for i in installs):
+                offenders.append(f"{wf.name}:{job_name} installs {installs or ['nothing']}")
+
+    assert not offenders, (
+        "these jobs run sync_state.py without installing huggingface_hub, so their hub "
+        f"access can only ever fail: {offenders}"
+    )

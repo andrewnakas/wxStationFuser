@@ -113,8 +113,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
+      # Needs [train] despite doing no training: sync_state imports huggingface_hub, which
+      # the base install does not carry. With a bare install the hub restore below failed
+      # on every deploy — tolerated by `|| echo`, so silently — which is why the published
+      # catalogue went missing and why the merged index had no baseline to build on.
       - name: Install
-        run: pip install -e .
+        run: pip install -e ".[train]"
 
       - name: Collect shard output
         uses: actions/download-artifact@v4
