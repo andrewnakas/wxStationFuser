@@ -152,3 +152,38 @@ def test_every_third_party_import_is_declared():
         f"these are imported but not declared in pyproject.toml, so a fresh install "
         f"would fail at runtime: {sorted(undeclared)}"
     )
+
+
+def test_shard_assignment_is_stable_as_the_registry_grows():
+    """A station must keep its worker when other stations are added.
+
+    Positional round-robin reassigns nearly everything on any size change, which breaks
+    runs already in flight: the worker holds a station list from startup while its upload
+    step recomputes the split from a registry that has since grown, so it uploads paths it
+    never touched.
+    """
+    from wxfuser.cli import shard_of
+
+    ids = [f"ASOS:{i:04d}" for i in range(500)]
+    of = 20
+    before = {i: shard_of(i, of) for i in ids}
+
+    grown = ids + [f"SNOTEL:{i}" for i in range(400)]
+    after = {i: shard_of(i, of) for i in grown}
+
+    moved = [i for i in ids if before[i] != after[i]]
+    assert not moved, f"{len(moved)} stations changed worker when the registry grew"
+
+
+def test_shard_assignment_is_balanced_and_covers_everything():
+    from collections import Counter
+
+    from wxfuser.cli import shard_of
+
+    ids = [f"ASOS:{i:04d}" for i in range(2000)]
+    of = 20
+    counts = Counter(shard_of(i, of) for i in ids)
+    assert sum(counts.values()) == len(ids)
+    assert len(counts) == of, "some worker would get no stations at all"
+    # Hashing will not be perfectly even, but it must not be badly lopsided.
+    assert max(counts.values()) < 2 * min(counts.values())

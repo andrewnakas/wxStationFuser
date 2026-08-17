@@ -46,18 +46,35 @@ def _stage_catalogue() -> None:
         print("no station catalogue available; search will cover enrolled stations only")
 
 
+def shard_of(station_id: str, of: int) -> int:
+    """Which worker owns a station, derived from its id alone.
+
+    Deliberately not positional. An index-based split reassigns almost every station the
+    moment the registry grows, which matters in two ways: a run already in flight holds a
+    station list from startup while its checkpoint upload recomputes the split from the
+    registry on disk, so the two disagree and a worker uploads paths it never processed;
+    and re-running after adding stations reshuffles the work rather than resuming it.
+
+    Hashing the id keeps a station on the same worker for life, so the registry can grow
+    at any time. md5 rather than hash() because the latter is randomised per process.
+    """
+    import hashlib
+
+    digest = hashlib.md5(station_id.encode("utf-8"), usedforsecurity=False).digest()
+    return int.from_bytes(digest[:4], "big") % of
+
+
 def select_shard(stations: list, shard: int | None, of: int | None) -> list:
     """The slice of the registry this worker is responsible for.
 
-    Stations are assigned round-robin by position rather than in contiguous blocks, so
-    every shard gets a similar mix of networks and regions. Contiguous blocks would sort
-    all the SNOTEL sites into one shard, which then runs far longer than the rest because
-    they have no bulk observation source.
+    Assignment spreads networks and regions across workers because it depends on the id's
+    hash rather than its position, so no worker ends up holding all the SNOTEL sites —
+    which would run far longer than the rest, having no bulk observation source.
     """
     if not of or of <= 1:
         return stations
     shard = shard or 0
-    picked = [s for i, s in enumerate(stations) if i % of == shard]
+    picked = [s for s in stations if shard_of(s.id, of) == shard]
     print(f"shard {shard + 1}/{of}: {len(picked)} of {len(stations)} stations", flush=True)
     return picked
 

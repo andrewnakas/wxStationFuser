@@ -55,10 +55,14 @@ def _shard_patterns(shard: int, of: int) -> list[str] | None:
         from wxfuser.data.registry import load_registry
     except Exception:  # noqa: BLE001
         return None
+    from wxfuser.cli import shard_of
+
     stations = load_registry()
     if not stations or of <= 1:
         return None
-    slugs = [s.slug for i, s in enumerate(stations) if i % of == shard]
+    # Same id-hash split the work uses, so the paths uploaded are exactly the stations
+    # this worker processed even if the registry changed size in between.
+    slugs = [s.slug for s in stations if shard_of(s.id, of) == shard]
     patterns: list[str] = []
     for slug in slugs:
         patterns += [
