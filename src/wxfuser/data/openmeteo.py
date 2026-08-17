@@ -85,10 +85,15 @@ def _http_json(url: str, *, timeout: int = 120, retries: int = 5) -> dict | list
                 time.sleep(wait)
                 continue
             if attempt < retries - 1:
+                print(f"  HTTP {exc.code}; retry {attempt + 1}/{retries - 1}", flush=True)
                 time.sleep(2**attempt + 1)
         except Exception as exc:  # noqa: BLE001
             last = exc
             if attempt < retries - 1:
+                # Silence here is expensive to debug: a timing-out request and a merely
+                # slow one look identical from outside, and a retry cycle can burn twenty
+                # minutes looking exactly like progress.
+                print(f"  request failed ({exc}); retry {attempt + 1}/{retries - 1}", flush=True)
                 time.sleep(2**attempt + 1)
     assert last is not None
     raise OpenMeteoError(f"Open-Meteo request failed after {retries} attempts: {last}") from last
