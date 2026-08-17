@@ -57,18 +57,27 @@ MIN_REQUEST_INTERVAL_S = 1.0
 _last_request_at = 0.0
 
 
+# A 429 is not a failure, it is the server telling us to slow down, and it resolves only by
+# waiting. Counting it against the retry budget meant a shard could die of politeness: five
+# throttles inside four minutes ended a run that already held twenty minutes of downloaded
+# history. Throttling therefore gets its own, much larger allowance.
+MAX_THROTTLE_WAITS = 12
+
+
 def _http_json(url: str, *, timeout: int = 120, retries: int = 5) -> dict | list:
     """GET JSON, paced between calls and backing off hard on throttling.
 
-    429 is the expected failure here and it resolves only by waiting, so it gets a much
-    longer backoff than a transient network error — an earlier version topped out around
-    nine seconds and lost entire model-years of history to sustained throttling.
+    Open-Meteo prices a request by locations x models x variables rather than by count, so
+    throttling arrives in bursts when a batch is wide — and it is the expected failure
+    here, not an exceptional one.
     """
     global _last_request_at
 
     req = Request(url, headers={"User-Agent": USER_AGENT})
     last: Exception | None = None
-    for attempt in range(retries):
+    attempt = 0
+    throttled = 0
+    while attempt < retries:
         gap = time.monotonic() - _last_request_at
         if gap < MIN_REQUEST_INTERVAL_S:
             time.sleep(MIN_REQUEST_INTERVAL_S - gap)
@@ -78,22 +87,26 @@ def _http_json(url: str, *, timeout: int = 120, retries: int = 5) -> dict | list
                 return json.loads(resp.read().decode("utf-8"))
         except HTTPError as exc:
             last = exc
-            if exc.code == 429 and attempt < retries - 1:
-                # Back off in minutes, not seconds: the quota window is per-minute.
-                wait = min(20 * (attempt + 1), 90)
-                print(f"  rate limited; waiting {wait}s", flush=True)
+            if exc.code == 429 and throttled < MAX_THROTTLE_WAITS:
+                # Waiting out the window costs minutes; losing the shard costs the run.
+                throttled += 1
+                wait = min(20 * throttled, 90)
+                print(f"  rate limited; waiting {wait}s "
+                      f"({throttled}/{MAX_THROTTLE_WAITS})", flush=True)
                 time.sleep(wait)
                 continue
-            if attempt < retries - 1:
-                print(f"  HTTP {exc.code}; retry {attempt + 1}/{retries - 1}", flush=True)
+            attempt += 1
+            if attempt < retries:
+                print(f"  HTTP {exc.code}; retry {attempt}/{retries - 1}", flush=True)
                 time.sleep(2**attempt + 1)
         except Exception as exc:  # noqa: BLE001
             last = exc
-            if attempt < retries - 1:
+            attempt += 1
+            if attempt < retries:
                 # Silence here is expensive to debug: a timing-out request and a merely
                 # slow one look identical from outside, and a retry cycle can burn twenty
                 # minutes looking exactly like progress.
-                print(f"  request failed ({exc}); retry {attempt + 1}/{retries - 1}", flush=True)
+                print(f"  request failed ({exc}); retry {attempt}/{retries - 1}", flush=True)
                 time.sleep(2**attempt + 1)
     assert last is not None
     raise OpenMeteoError(f"Open-Meteo request failed after {retries} attempts: {last}") from last
