@@ -1,4 +1,1502 @@
 stations:
+- id: 1000:OR:SNTL
+  name: Annie Springs
+  lat: 42.87007
+  lon: -122.16518
+  elev_m: 1834.8960000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1005:CO:SNTL
+  name: Ute Creek
+  lat: 37.6148
+  lon: -105.37322
+  elev_m: 3267.456
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1006:NV:SNTL
+  name: Lewis Peak
+  lat: 40.3572
+  lon: -116.8647
+  elev_m: 2246.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1008:MT:SNTL
+  name: Onion Park
+  lat: 46.91348
+  lon: -110.8536
+  elev_m: 2261.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1009:MT:SNTL
+  name: Stringer Creek
+  lat: 46.9269
+  lon: -110.90198
+  elev_m: 1996.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1010:OR:SNTL
+  name: Crazyman Flat
+  lat: 42.6381
+  lon: -120.94917
+  elev_m: 1886.712
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1011:WA:SNTL
+  name: MF Nooksack
+  lat: 48.82441
+  lon: -121.92947
+  elev_m: 1505.712
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1013:UT:SNTL
+  name: Temple Fork
+  lat: 41.793
+  lon: -111.54605
+  elev_m: 2261.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1014:CO:SNTL
+  name: Middle Fork Camp
+  lat: 39.79565
+  lon: -106.02802
+  elev_m: 2731.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1015:WY:SNTL
+  name: Sage Creek Basin
+  lat: 41.40107
+  lon: -107.2574
+  elev_m: 2386.5840000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1017:NM:SNTL
+  name: Vacas Locas
+  lat: 36.02653
+  lon: -106.81361
+  elev_m: 2849.88
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1030:CO:SNTL
+  name: Arapaho Ridge
+  lat: 40.35098
+  lon: -106.38141
+  elev_m: 3340.608
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1031:CO:SNTL
+  name: Never Summer
+  lat: 40.40392
+  lon: -105.95567
+  elev_m: 3139.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1032:CO:SNTL
+  name: Rawah
+  lat: 40.70794
+  lon: -106.00727
+  elev_m: 2773.6800000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1033:CO:SNTL
+  name: Zirkel
+  lat: 40.79492
+  lon: -106.59544
+  elev_m: 2840.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1034:NM:SNTL
+  name: Sierra Blanca
+  lat: 33.40682
+  lon: -105.79467
+  elev_m: 3124.2000000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1039:UT:SNTL
+  name: Cascade Mountain
+  lat: 40.283
+  lon: -111.60992
+  elev_m: 2362.2000000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1040:CO:SNTL
+  name: Mccoy Park
+  lat: 39.60231
+  lon: -106.544
+  elev_m: 2895.6000000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1041:CO:SNTL
+  name: Beaver Ck Village
+  lat: 39.59871
+  lon: -106.51113
+  elev_m: 2599.944
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1042:CO:SNTL
+  name: Wild Basin
+  lat: 40.201
+  lon: -105.6025
+  elev_m: 2868.168
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1045:WY:SNTL
+  name: Crow Creek
+  lat: 41.22824
+  lon: -105.38571
+  elev_m: 2535.936
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1046:WY:SNTL
+  name: Cinnabar Park
+  lat: 41.23843
+  lon: -106.23101
+  elev_m: 2947.416
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1047:WY:SNTL
+  name: Little Snake River
+  lat: 41.07051
+  lon: -106.94284
+  elev_m: 2721.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1048:NM:SNTL
+  name: Mcknight Cabin
+  lat: 33.00796
+  lon: -107.86982
+  elev_m: 2813.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1049:CA:SNTL
+  name: Forestdale Creek
+  lat: 38.68245
+  lon: -119.9597
+  elev_m: 2453.6400000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1050:CA:SNTL
+  name: Horse Meadow
+  lat: 38.83652
+  lon: -119.88732
+  elev_m: 2615.184
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1051:CA:SNTL
+  name: Burnside Lake
+  lat: 38.71943
+  lon: -119.8942
+  elev_m: 2493.264
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1052:CA:SNTL
+  name: Summit Meadow
+  lat: 38.39747
+  lon: -119.53522
+  elev_m: 2852.9280000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1054:UT:SNTL
+  name: Farmington Lower
+  lat: 40.992
+  lon: -111.81702
+  elev_m: 2087.88
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1056:UT:SNTL
+  name: Lightning Ridge
+  lat: 41.35891
+  lon: -111.48749
+  elev_m: 2499.36
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1057:CO:SNTL
+  name: Glen Cove
+  lat: 38.87602
+  lon: -105.07605
+  elev_m: 3477.768
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1058:CO:SNTL
+  name: Grayback
+  lat: 37.47051
+  lon: -106.5379
+  elev_m: 3541.7760000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1059:CO:SNTL
+  name: Cochetopa Pass
+  lat: 38.16273
+  lon: -106.5988
+  elev_m: 3054.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1060:CO:SNTL
+  name: Sharkstooth
+  lat: 37.50356
+  lon: -108.11405
+  elev_m: 3270.5040000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1061:CO:SNTL
+  name: Bear River
+  lat: 40.06152
+  lon: -107.00948
+  elev_m: 2773.6800000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1065:UT:SNTL
+  name: Gutz Peak
+  lat: 37.49617
+  lon: -113.94235
+  elev_m: 2069.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1066:UT:SNTL
+  name: Gardner Peak
+  lat: 37.40083
+  lon: -113.45988
+  elev_m: 2535.936
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1067:CA:SNTL
+  name: Carson Pass
+  lat: 38.6927
+  lon: -120.0022
+  elev_m: 2548.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1077:OR:SNTL
+  name: Swan Lake Mtn
+  lat: 42.41323
+  lon: -121.68002
+  elev_m: 2081.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1078:OR:SNTL
+  name: Sun Pass
+  lat: 42.78637
+  lon: -121.97715
+  elev_m: 1645.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1079:OR:SNTL
+  name: Milk Shakes
+  lat: 45.9821
+  lon: -117.94883
+  elev_m: 1700.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1080:WA:SNTL
+  name: Brown Top
+  lat: 48.92753
+  lon: -121.19717
+  elev_m: 1783.0800000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1082:WY:SNTL
+  name: Grand Targhee
+  lat: 43.77933
+  lon: -110.92783
+  elev_m: 2822.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1083:NM:SNTL
+  name: Tres Ritos
+  lat: 36.1279
+  lon: -105.52706
+  elev_m: 2663.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1085:WA:SNTL
+  name: Cayuse Pass
+  lat: 46.86956
+  lon: -121.53434
+  elev_m: 1603.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1097:UT:SNTL
+  name: Timberline
+  lat: 39.67712
+  lon: -110.43395
+  elev_m: 2657.856
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1098:UT:SNTL
+  name: Usu Doc Daniel
+  lat: 41.86425
+  lon: -111.50603
+  elev_m: 2624.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1099:UT:SNTL
+  name: Jones Corral
+  lat: 38.07125
+  lon: -112.16788
+  elev_m: 2959.608
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1100:CO:SNTL
+  name: Saint Elmo
+  lat: 38.69985
+  lon: -106.36805
+  elev_m: 3176.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1101:CO:SNTL
+  name: Chapman Tunnel
+  lat: 39.2621
+  lon: -106.62944
+  elev_m: 3075.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1102:CO:SNTL
+  name: Hayden Pass
+  lat: 38.29303
+  lon: -105.85027
+  elev_m: 3261.36
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1105:MT:SNTL
+  name: East Boulder Mine
+  lat: 45.50381
+  lon: -110.08019
+  elev_m: 1923.288
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1110:NV:SNTL
+  name: Rainbow Canyon
+  lat: 36.2493
+  lon: -115.62972
+  elev_m: 2389.632
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1111:NV:SNTL
+  name: Bristlecone Trail
+  lat: 36.31575
+  lon: -115.69543
+  elev_m: 2712.7200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1112:NV:SNTL
+  name: Lee Canyon
+  lat: 36.30537
+  lon: -115.67508
+  elev_m: 2627.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1113:UT:SNTL
+  name: Tony Grove RS
+  lat: 41.88573
+  lon: -111.56918
+  elev_m: 1926.336
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1114:UT:SNTL
+  name: Garden City Summit
+  lat: 41.9215
+  lon: -111.4693
+  elev_m: 2340.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1115:UT:SNTL
+  name: Klondike Narrows
+  lat: 41.96769
+  lon: -111.59713
+  elev_m: 2218.944
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1116:UT:SNTL
+  name: 'Lakefork #3'
+  lat: 40.5502
+  lon: -110.3529
+  elev_m: 2569.464
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1117:UT:SNTL
+  name: Spirit Lk
+  lat: 40.83868
+  lon: -110.00527
+  elev_m: 3121.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1118:UT:SNTL
+  name: Lost Creek Resv
+  lat: 41.22155
+  lon: -111.35947
+  elev_m: 1850.1360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1119:WY:SNTL
+  name: Blackhall Mtn
+  lat: 41.05623
+  lon: -106.714
+  elev_m: 2996.184
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1120:CO:SNTL
+  name: Elliot Ridge
+  lat: 39.8638
+  lon: -106.42473
+  elev_m: 3215.6400000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1121:AZ:SNTL
+  name: Fort Valley
+  lat: 35.26773
+  lon: -111.74479
+  elev_m: 2243.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1122:CO:SNTL
+  name: Hourglass Lake
+  lat: 40.57717
+  lon: -105.62584
+  elev_m: 2859.0240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1123:CO:SNTL
+  name: Long Draw Resv
+  lat: 40.51154
+  lon: -105.7654
+  elev_m: 3041.904
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1124:CO:SNTL
+  name: Moon Pass
+  lat: 37.96627
+  lon: -106.55857
+  elev_m: 3386.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1125:AZ:SNTL
+  name: Mormon Mtn Summit
+  lat: 34.96942
+  lon: -111.50868
+  elev_m: 2575.56
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1127:AZ:SNTL
+  name: Nutrioso
+  lat: 33.89791
+  lon: -109.15465
+  elev_m: 2606.04
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1128:CO:SNTL
+  name: Sargents Mesa
+  lat: 38.2856
+  lon: -106.37085
+  elev_m: 3502.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1129:WA:SNTL
+  name: Indian Rock
+  lat: 45.99077
+  lon: -120.80768
+  elev_m: 1621.536
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1130:WY:SNTL
+  name: Castle Creek
+  lat: 43.6748
+  lon: -109.3774
+  elev_m: 2563.368
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1131:WY:SNTL
+  name: Little Goose
+  lat: 44.54315
+  lon: -107.17865
+  elev_m: 2609.088
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1132:WY:SNTL
+  name: Soldier Park
+  lat: 44.34847
+  lon: -107.0136
+  elev_m: 2645.664
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1133:WY:SNTL
+  name: Pocket Creek
+  lat: 42.7121
+  lon: -109.4112
+  elev_m: 2855.976
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1134:WY:SNTL
+  name: Larsen Creek
+  lat: 42.58019
+  lon: -109.08829
+  elev_m: 2706.6240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1135:UT:SNTL
+  name: Burts Miller Ranch
+  lat: 40.98492
+  lon: -110.85075
+  elev_m: 2407.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1136:NV:SNTL
+  name: Toe Jam
+  lat: 41.3187
+  lon: -116.3408
+  elev_m: 2346.96
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1137:NV:SNTL
+  name: Vacarro Springs
+  lat: 39.4495
+  lon: -115.9834
+  elev_m: 2404.8720000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1138:NM:SNTL
+  name: Navajo Whiskey Ck
+  lat: 36.17716
+  lon: -108.94556
+  elev_m: 2758.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1139:AZ:SNTL
+  name: Chalender
+  lat: 35.26238
+  lon: -112.06221
+  elev_m: 2139.696
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1140:AZ:SNTL
+  name: Baker Butte Smt
+  lat: 34.45552
+  lon: -111.38262
+  elev_m: 2356.1040000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1141:CO:SNTL
+  name: Upper Taylor
+  lat: 38.99071
+  lon: -106.74504
+  elev_m: 3264.4080000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1143:AZ:SNTL
+  name: Beaver Spring
+  lat: 36.32671
+  lon: -109.05702
+  elev_m: 2816.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1144:MT:SNTL
+  name: Blacktail Mtn
+  lat: 47.98317
+  lon: -114.35443
+  elev_m: 1725.1680000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1145:UT:SNTL
+  name: Kilfoil Creek
+  lat: 41.24764
+  lon: -111.41249
+  elev_m: 2203.704
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1146:UT:SNTL
+  name: Oak Creek
+  lat: 39.3485
+  lon: -112.192
+  elev_m: 2389.632
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1147:NV:SNTL
+  name: Wheeler Peak
+  lat: 39.00995
+  lon: -114.31021
+  elev_m: 3069.3360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1148:UT:SNTL
+  name: Panguitch Lake RS
+  lat: 37.70463
+  lon: -112.65037
+  elev_m: 2529.84
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1149:UT:SNTL
+  name: Fish Lake Utah
+  lat: 38.50455
+  lon: -111.76693
+  elev_m: 2676.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1150:NV:SNTL
+  name: Kalamazoo
+  lat: 39.5579
+  lon: -114.62762
+  elev_m: 2359.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1151:UT:SNTL
+  name: George Creek
+  lat: 41.91562
+  lon: -113.41154
+  elev_m: 2731.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1152:NV:SNTL
+  name: Cave Mountain
+  lat: 39.16337
+  lon: -114.6133
+  elev_m: 3224.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1153:UT:SNTL
+  name: Buckboard Flat
+  lat: 37.86943
+  lon: -109.44717
+  elev_m: 2718.8160000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1154:UT:SNTL
+  name: Brian Head
+  lat: 37.67994
+  lon: -112.85674
+  elev_m: 3060.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1155:NV:SNTL
+  name: Bird Creek
+  lat: 39.46138
+  lon: -114.64863
+  elev_m: 2295.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1156:UT:SNTL
+  name: Box Springs
+  lat: 38.49746
+  lon: -112.00779
+  elev_m: 2813.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1159:WA:SNTL
+  name: Gold Axe Camp
+  lat: 48.9516
+  lon: -118.9864
+  elev_m: 1639.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1160:CO:SNTL
+  name: Weminuche Creek
+  lat: 37.51968
+  lon: -107.32139
+  elev_m: 3270.5040000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1161:CO:SNTL
+  name: Black Mountain
+  lat: 40.8879
+  lon: -105.66404
+  elev_m: 2724.9120000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1162:UT:SNTL
+  name: Blacks Fork Jct
+  lat: 40.95814
+  lon: -110.5828
+  elev_m: 2706.6240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1163:UT:SNTL
+  name: EF Blacks Fork GS
+  lat: 40.88472
+  lon: -110.54056
+  elev_m: 2852.9280000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1164:UT:SNTL
+  name: Wolf Creek Peak
+  lat: 40.47733
+  lon: -111.04469
+  elev_m: 2977.896
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1168:NM:SNTL
+  name: Taos Powderhorn
+  lat: 36.58195
+  lon: -105.45617
+  elev_m: 3358.896
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1169:NM:SNTL
+  name: Shuree
+  lat: 36.78765
+  lon: -105.2392
+  elev_m: 3069.3360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1170:NM:SNTL
+  name: Palo
+  lat: 36.40869
+  lon: -105.33038
+  elev_m: 2843.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1172:NM:SNTL
+  name: San Antonio Sink
+  lat: 36.85967
+  lon: -106.22657
+  elev_m: 2779.7760000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1173:NM:SNTL
+  name: Garita Peak
+  lat: 36.00469
+  lon: -106.54805
+  elev_m: 3078.48
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1184:UT:SNTL
+  name: Gooseberry RS Up
+  lat: 38.7882
+  lon: -111.68892
+  elev_m: 2560.32
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1185:CO:SNTL
+  name: Black Mesa
+  lat: 37.78968
+  lon: -108.18376
+  elev_m: 3529.5840000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1186:CO:SNTL
+  name: Fool Creek
+  lat: 39.86866
+  lon: -105.86765
+  elev_m: 3392.424
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1187:CO:SNTL
+  name: High Lonesome
+  lat: 40.0359
+  lon: -105.75472
+  elev_m: 3240.0240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1188:CO:SNTL
+  name: Wager Gulch
+  lat: 37.88248
+  lon: -107.36428
+  elev_m: 3386.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1190:MT:SNTL
+  name: Bassoo Peak
+  lat: 47.85562
+  lon: -114.75841
+  elev_m: 1563.624
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1192:UT:SNTL
+  name: Buck Pasture
+  lat: 40.84456
+  lon: -110.66068
+  elev_m: 2935.224
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1193:UT:SNTLT
+  name: Henrys Fork
+  lat: 40.86313
+  lon: -110.38145
+  elev_m: 3102.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1194:NV:SNTL
+  name: Summit Lk
+  lat: 41.48953
+  lon: -118.99663
+  elev_m: 2316.48
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1195:NV:SNTL
+  name: Golconda
+  lat: 40.88358
+  lon: -117.58812
+  elev_m: 2023.872
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1196:WY:SNTL
+  name: Med Bow
+  lat: 41.37833
+  lon: -106.34697
+  elev_m: 3200.4
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1197:UT:SNTL
+  name: Yankee Reservoir
+  lat: 37.74797
+  lon: -112.77495
+  elev_m: 2645.664
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1198:NV:SNTLT
+  name: American Beauty
+  lat: 40.53373
+  lon: -115.45768
+  elev_m: 2292.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1199:NV:SNTLT
+  name: Robinson Lake
+  lat: 40.7255
+  lon: -115.2798
+  elev_m: 2804.1600000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1200:NV:SNTLT
+  name: Trout Creek Upper
+  lat: 41.0457
+  lon: -115.0965
+  elev_m: 2520.696
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1201:NV:SNTLT
+  name: Tent Mtn Upper
+  lat: 40.96535
+  lon: -115.16458
+  elev_m: 2545.08
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1202:NV:SNTL
+  name: Tent Mtn Lower
+  lat: 40.97852
+  lon: -115.17215
+  elev_m: 2164.08
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1203:NV:SNTL
+  name: Stag Mountain
+  lat: 41.408
+  lon: -115.4464
+  elev_m: 2328.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1204:NV:SNTL
+  name: Columbia Basin
+  lat: 41.67167
+  lon: -116.07033
+  elev_m: 1978.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1205:NV:SNTL
+  name: Silver Creek Nv
+  lat: 39.23305
+  lon: -114.2429
+  elev_m: 2505.456
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1206:NV:SNTL
+  name: Midas
+  lat: 41.26873
+  lon: -116.80332
+  elev_m: 2020.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1207:NV:SNTL
+  name: Merritt Mountain
+  lat: 41.8927
+  lon: -115.858
+  elev_m: 2109.216
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1208:NV:SNTL
+  name: Snowstorm Mtn
+  lat: 41.33981
+  lon: -116.98044
+  elev_m: 2258.568
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1209:NV:SNTL
+  name: Corduroy Flat
+  lat: 38.99651
+  lon: -115.42478
+  elev_m: 2633.472
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1210:NV:SNTL
+  name: Defiance Mines
+  lat: 39.08527
+  lon: -114.89977
+  elev_m: 2837.688
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1211:NV:SNTL
+  name: Jakes Creek
+  lat: 41.5687
+  lon: -115.03243
+  elev_m: 2249.424
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1212:AZ:SNTL
+  name: Bar M
+  lat: 34.86142
+  lon: -111.60497
+  elev_m: 1944.624
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1213:NV:SNTL
+  name: White River Nv
+  lat: 38.94557
+  lon: -115.37922
+  elev_m: 2246.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1214:UT:SNTL
+  name: Bevans Cabin
+  lat: 40.46182
+  lon: -112.25233
+  elev_m: 1972.056
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1215:UT:SNTL
+  name: Lasal Mountain-Lower
+  lat: 38.48167
+  lon: -109.29164
+  elev_m: 2676.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1216:UT:SNTL
+  name: Huntington Horse
+  lat: 39.61774
+  lon: -111.30576
+  elev_m: 2941.32
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1217:UT:SNTL
+  name: Rees Flat
+  lat: 39.49667
+  lon: -111.72508
+  elev_m: 2191.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1218:OR:SNTLT
+  name: Hart Mountain AM
+  lat: 42.47964
+  lon: -119.71908
+  elev_m: 1962.912
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1219:OR:SNTLT
+  name: Sherman Valley AM
+  lat: 42.3572
+  lon: -120.22522
+  elev_m: 2023.872
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1220:OR:SNTLT
+  name: Rogger Meadow AM
+  lat: 42.16528
+  lon: -120.24747
+  elev_m: 1938.528
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1221:UT:SNTL
+  name: GBRC HQ
+  lat: 39.32019
+  lon: -111.48827
+  elev_m: 2682.2400000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1222:UT:SNTL
+  name: GBRC Meadows
+  lat: 39.30229
+  lon: -111.45383
+  elev_m: 3002.28
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1223:UT:SNTL
+  name: Hobble Creek
+  lat: 40.18538
+  lon: -111.35971
+  elev_m: 2243.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1224:UT:SNTL
+  name: Mt Baldy
+  lat: 39.13648
+  lon: -111.50527
+  elev_m: 2901.6960000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1225:UT:SNTL
+  name: Redden Mine Lwr
+  lat: 40.67505
+  lon: -111.21765
+  elev_m: 2602.992
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1226:UT:SNTL
+  name: Thistle Flat
+  lat: 39.23803
+  lon: -111.51998
+  elev_m: 2679.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1227:UT:SNTL
+  name: Upper Joes Valley
+  lat: 39.4155
+  lon: -111.2491
+  elev_m: 2621.28
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1228:UT:SNTL
+  name: Wrigley Creek
+  lat: 39.13233
+  lon: -111.35685
+  elev_m: 2843.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1229:OR:SNTLT
+  name: Big Sheep AM
+  lat: 45.16842
+  lon: -117.08631
+  elev_m: 1905.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1230:OR:SNTLT
+  name: TV Ridge AM
+  lat: 45.3961
+  lon: -117.3892
+  elev_m: 2167.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1235:NV:SNTLT
+  name: Smith Creek
+  lat: 40.4467
+  lon: -115.5114
+  elev_m: 2313.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1236:UT:SNTL
+  name: Corral
+  lat: 39.65795
+  lon: -110.37906
+  elev_m: 2502.408
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1237:OR:SNTLT
+  name: V Lake AM
+  lat: 42.46573
+  lon: -118.76583
+  elev_m: 2023.872
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1238:OR:SNTLT
+  name: Trout Creek AM
+  lat: 42.03597
+  lon: -118.24008
+  elev_m: 2404.8720000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1239:CA:SNTLT
+  name: Althouse
+  lat: 41.99617
+  lon: -123.547
+  elev_m: 1517.904
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1240:NV:SNTLT
+  name: Bald Mtn AM
+  lat: 41.82168
+  lon: -119.63712
+  elev_m: 2029.968
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1241:OR:SNTLT
+  name: Patton Meadows AM
+  lat: 42.24522
+  lon: -120.60527
+  elev_m: 2066.5440000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1242:NV:SNTL
+  name: Little Valley
+  lat: 39.25259
+  lon: -119.8771
+  elev_m: 1981.2
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1243:NV:SNTL
+  name: Dry Creek
+  lat: 40.8638
+  lon: -115.22014
+  elev_m: 1996.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1244:NV:SNTL
+  name: Pole Canyon
+  lat: 40.86293
+  lon: -115.12067
+  elev_m: 2365.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1245:OR:SNTLT
+  name: Anthony Lake
+  lat: 44.9591
+  lon: -118.22668
+  elev_m: 2182.368
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1246:OR:SNTLT
+  name: Barney Creek
+  lat: 44.36069
+  lon: -118.31114
+  elev_m: 1773.9360000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1247:UT:SNTL
+  name: Takka Wiiya
+  lat: 39.74104
+  lon: -113.98262
+  elev_m: 2776.728
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1248:UT:SNTL
+  name: Suu Ranch
+  lat: 37.59711
+  lon: -112.92949
+  elev_m: 2453.6400000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1249:UT:SNTL
+  name: Sunflower Flat
+  lat: 38.048
+  lon: -111.33981
+  elev_m: 3051.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1250:OR:SNTLT
+  name: Government Corrals
+  lat: 42.04308
+  lon: -118.3195
+  elev_m: 2255.52
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1251:CO:SNTL
+  name: Sawtooth
+  lat: 40.13632
+  lon: -105.58486
+  elev_m: 2938.272
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1252:CO:SNTL
+  name: Elkhead Divide
+  lat: 40.79637
+  lon: -107.10113
+  elev_m: 2676.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1254:NM:SNTL
+  name: Rio Santa Barbara
+  lat: 36.07196
+  lon: -105.62949
+  elev_m: 3243.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1258:CA:SNTL
+  name: State Line
+  lat: 41.98609
+  lon: -120.71574
+  elev_m: 1734.3120000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1261:UT:SNTL
+  name: Lonesome Beaver
+  lat: 38.07
+  lon: -110.77241
+  elev_m: 2904.744
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1262:NV:SNTL
+  name: Fry Canyon
+  lat: 41.58008
+  lon: -115.9364
+  elev_m: 2069.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1269:UT:SNTL
+  name: Mt Pennell
+  lat: 37.97793
+  lon: -110.7933
+  elev_m: 2807.208
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1271:AZ:SNTL
+  name: Hawley Lake
+  lat: 33.97121
+  lon: -109.76531
+  elev_m: 2526.792
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1272:NV:SNTL
+  name: ONeil Creek
+  lat: 41.86411
+  lon: -115.08251
+  elev_m: 1978.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1273:OR:SNTLT
+  name: Cox Flat AM
+  lat: 42.36192
+  lon: -120.60912
+  elev_m: 1743.4560000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1274:OR:SNTLT
+  name: Finley Corrals AM
+  lat: 42.45988
+  lon: -120.78508
+  elev_m: 1813.5600000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1277:CA:SNTL
+  name: Fredonyer Peak
+  lat: 40.68799
+  lon: -120.60805
+  elev_m: 2200.656
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1278:UT:SNTL
+  name: Bobs Hollow
+  lat: 38.94569
+  lon: -112.15349
+  elev_m: 2840.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1280:UT:SNTL
+  name: Santaquin Meadows
+  lat: 39.92076
+  lon: -111.71802
+  elev_m: 2386.5840000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1281:CO:SNTLT
+  name: Cottonwood Pass
+  lat: 38.83416
+  lon: -106.42116
+  elev_m: 3557.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1286:MT:SNTL
+  name: Slagamelt Lakes
+  lat: 45.36526
+  lon: -113.71834
+  elev_m: 2621.28
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1287:MT:SNTL
+  name: JL Meadow
+  lat: 44.77665
+  lon: -113.12217
+  elev_m: 2667.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1288:OR:SNTLT
+  name: West Eagle Meadows AM
+  lat: 45.08467
+  lon: -117.48167
+  elev_m: 1658.112
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1289:OR:SNTLT
+  name: Call Meadows AM
+  lat: 43.81191
+  lon: -118.78565
+  elev_m: 1639.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1290:ID:SNTLT
+  name: Red Canyon AM
+  lat: 42.42817
+  lon: -116.84653
+  elev_m: 2011.68
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1291:OR:SNTLT
+  name: Bear Flat Meadow AM
+  lat: 42.41655
+  lon: -120.47043
+  elev_m: 2005.584
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1292:OR:SNTLT
+  name: Buckskin Lake AM
+  lat: 43.02503
+  lon: -118.94785
+  elev_m: 1584.96
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1293:ID:SNTLT
+  name: Bull Basin AM
+  lat: 42.35673
+  lon: -116.95906
+  elev_m: 1670.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1294:ID:SNTLT
+  name: Vaught Ranch AM
+  lat: 42.49491
+  lon: -116.43665
+  elev_m: 1783.0800000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1295:ID:SNTLT
+  name: Battle Creek AM
+  lat: 42.47694
+  lon: -116.32576
+  elev_m: 1746.5040000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1296:OR:SNTLT
+  name: Louse Canyon
+  lat: 42.07059
+  lon: -117.5483
+  elev_m: 1987.296
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1297:NV:SNTLT
+  name: Quinn Ridge
+  lat: 41.96219
+  lon: -117.33968
+  elev_m: 1908.048
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1298:OR:SNTLT
+  name: Lookout Butte
+  lat: 42.13397
+  lon: -117.17992
+  elev_m: 1749.5520000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1299:ID:SNTL
+  name: Pebble Creek
+  lat: 42.7674
+  lon: -112.10648
+  elev_m: 1987.296
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1300:UT:SNTL
+  name: Powder Mountain
+  lat: 41.37428
+  lon: -111.76673
+  elev_m: 2587.752
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1304:UT:SNTL
+  name: Gold Basin
+  lat: 38.46516
+  lon: -109.26332
+  elev_m: 3069.3360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1305:ID:SNTL
+  name: Fish Ck
+  lat: 43.55545
+  lon: -113.71931
+  elev_m: 1944.624
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1306:ID:SNTL
+  name: Couch Summit
+  lat: 43.51762
+  lon: -114.80214
+  elev_m: 2066.5440000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1307:NM:SNTL
+  name: Taos Pueblo
+  lat: 36.54099
+  lon: -105.35944
+  elev_m: 3349.752
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1308:UT:SNTL
+  name: Atwater
+  lat: 40.59124
+  lon: -111.63775
+  elev_m: 2667.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1309:UT:SNTL
+  name: Rockwood GS
+  lat: 38.67101
+  lon: -112.3305
+  elev_m: 2621.28
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1310:NV:SNTL
+  name: Lamoille Upper
+  lat: 40.59965
+  lon: -115.37902
+  elev_m: 2740.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1311:MT:SNTL
+  name: Stryker Basin
+  lat: 48.68005
+  lon: -114.66365
+  elev_m: 1889.76
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1312:MT:SNTL
+  name: Chicago Ridge
+  lat: 48.06224
+  lon: -115.69748
+  elev_m: 1737.3600000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1314:OR:SNTL
+  name: Fifteenmile
+  lat: 45.35265
+  lon: -121.53
+  elev_m: 1819.6560000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1316:MT:SNTL
+  name: Elk Peak Alt
+  lat: 46.47617
+  lon: -110.72148
+  elev_m: 2383.536
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1317:CA:SNTL
+  name: Willow Flat CA
+  lat: 38.27203
+  lon: -119.45124
+  elev_m: 2505.456
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1321:UT:SNTL
+  name: Mill Creek Canyon
+  lat: 40.69656
+  lon: -111.67712
+  elev_m: 2121.408
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1322:MT:SNTL
+  name: Mill Creek
+  lat: 45.263
+  lon: -110.40501
+  elev_m: 2261.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1323:UT:SNTL
+  name: Elk Ridge
+  lat: 37.82308
+  lon: -109.77156
+  elev_m: 2602.992
+  country: US
+  enrolled_at: '2026-08-16'
 - id: 1324:CO:SNTL
   name: Rat Creek
   lat: 37.93571
@@ -13,11 +1511,4274 @@ stations:
   elev_m: 3560.0640000000003
   country: US
   enrolled_at: '2026-08-16'
+- id: 1326:CO:SNTL
+  name: Castle Peak
+  lat: 39.00074
+  lon: -106.83912
+  elev_m: 3508.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1331:CA:SNTL
+  name: Lost Lakes
+  lat: 38.64745
+  lon: -119.95141
+  elev_m: 2633.472
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1333:OR:SNTLT
+  name: Buck Pasture AM
+  lat: 43.02795
+  lon: -118.41225
+  elev_m: 1749.5520000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1334:AK:SNTLT
+  name: Snowbird Glacier
+  lat: 61.8531
+  lon: -149.21818
+  elev_m: 1520.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1336:OR:SNTLT
+  name: Barley Camp AM
+  lat: 42.02282
+  lon: -120.1093
+  elev_m: 2100.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1341:WA:SNTLT
+  name: Buck Mountain
+  lat: 48.42909
+  lon: -119.85225
+  elev_m: 1612.392
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1344:CO:SNTL
+  name: Alta Lakes
+  lat: 37.88929
+  lon: -107.84484
+  elev_m: 3441.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1348:UT:SNTL
+  name: Clarkston Mountain
+  lat: 41.99513
+  lon: -112.16119
+  elev_m: 2039.112
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1350:NV:SNTL
+  name: Lee Canyon Upper
+  lat: 36.29604
+  lon: -115.6843
+  elev_m: 2862.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1351:OR:SNTLT
+  name: Pole Creek
+  lat: 42.59341
+  lon: -120.75101
+  elev_m: 2072.6400000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1352:OR:SNTLT
+  name: Chewaucan
+  lat: 42.50721
+  lon: -120.6282
+  elev_m: 1676.4
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1355:ID:SNTLT
+  name: Succor Creek
+  lat: 43.11658
+  lon: -116.87715
+  elev_m: 1920.24
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1358:WY:SNTL
+  name: SF Bull Lake Creek
+  lat: 42.96593
+  lon: -109.3903
+  elev_m: 3115.056
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1360:CO:SNTLT
+  name: Tin Cup
+  lat: 38.73119
+  lon: -106.43305
+  elev_m: 3410.712
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 1361:CO:SNTLT
+  name: Trail Creek
+  lat: 38.88056
+  lon: -106.64964
+  elev_m: 3179.0640000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 2029:ID:SNTL
+  name: Reynolds Creek
+  lat: 43.28863
+  lon: -116.8431
+  elev_m: 1703.832
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 2170:NV:SNTL
+  name: Porter Canyon
+  lat: 39.46544
+  lon: -117.62069
+  elev_m: 2191.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 301:CA:SNTL
+  name: Adin Mtn
+  lat: 41.23583
+  lon: -120.79192
+  elev_m: 1880.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 302:OR:SNTL
+  name: 'Aneroid Lake #2'
+  lat: 45.21332
+  lon: -117.19255
+  elev_m: 2264.664
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 303:CO:SNTL
+  name: Apishapa
+  lat: 37.33067
+  lon: -105.06766
+  elev_m: 3048.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 304:OR:SNTL
+  name: Arbuckle Mtn
+  lat: 45.19085
+  lon: -119.25392
+  elev_m: 1758.6960000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 306:ID:SNTL
+  name: Atlanta Summit
+  lat: 43.7569
+  lon: -115.23907
+  elev_m: 2307.3360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 307:MT:SNTL
+  name: Badger Pass
+  lat: 48.13091
+  lon: -113.02311
+  elev_m: 2093.976
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 308:AZ:SNTL
+  name: Baker Butte
+  lat: 34.45654
+  lon: -111.40651
+  elev_m: 2243.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 309:WY:SNTL
+  name: Bald Mtn.
+  lat: 44.80061
+  lon: -107.84428
+  elev_m: 2852.9280000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 310:AZ:SNTL
+  name: Baldy
+  lat: 33.97845
+  lon: -109.50357
+  elev_m: 2807.208
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 311:MT:SNTL
+  name: Banfield Mountain
+  lat: 48.5712
+  lon: -115.44573
+  elev_m: 1700.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 312:ID:SNTL
+  name: Banner Summit
+  lat: 44.30342
+  lon: -115.23447
+  elev_m: 2145.792
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 313:MT:SNTL
+  name: Barker Lakes
+  lat: 46.09713
+  lon: -113.13038
+  elev_m: 2514.6
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 314:WY:SNTL
+  name: Base Camp
+  lat: 43.94019
+  lon: -110.44544
+  elev_m: 2145.792
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 315:MT:SNTL
+  name: Basin Creek
+  lat: 45.79737
+  lon: -112.52047
+  elev_m: 2170.176
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 316:NM:SNTL
+  name: Bateman
+  lat: 36.51174
+  lon: -106.31543
+  elev_m: 2813.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 317:WY:SNTL
+  name: Battle Mountain
+  lat: 41.05402
+  lon: -107.26674
+  elev_m: 2273.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 318:MT:SNTL
+  name: Beagle Springs
+  lat: 44.47147
+  lon: -112.98191
+  elev_m: 2706.6240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 319:ID:SNTL
+  name: Bear Basin
+  lat: 44.95222
+  lon: -116.14293
+  elev_m: 1630.68
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 320:ID:SNTL
+  name: Bear Canyon
+  lat: 43.74367
+  lon: -113.93797
+  elev_m: 2414.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 321:NV:SNTL
+  name: Bear Creek
+  lat: 41.83391
+  lon: -115.45278
+  elev_m: 2465.8320000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 322:CO:SNTL
+  name: Bear Lake
+  lat: 40.31176
+  lon: -105.6467
+  elev_m: 2892.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 323:ID:SNTL
+  name: Bear Mountain
+  lat: 48.30583
+  lon: -116.07444
+  elev_m: 1664.208
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 324:ID:SNTL
+  name: Bear Saddle
+  lat: 44.60533
+  lon: -116.98097
+  elev_m: 1880.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 325:WY:SNTL
+  name: Bear Trap Meadow
+  lat: 43.88743
+  lon: -107.06135
+  elev_m: 2499.36
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 326:WY:SNTL
+  name: Beartooth Lake
+  lat: 44.94307
+  lon: -109.56743
+  elev_m: 2852.9280000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 327:CO:SNTL
+  name: Beartown
+  lat: 37.71433
+  lon: -107.5124
+  elev_m: 3529.5840000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 328:MT:SNTL
+  name: Beaver Creek
+  lat: 44.94966
+  lon: -111.35852
+  elev_m: 2383.536
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 329:UT:SNTL
+  name: Beaver Dams
+  lat: 39.13683
+  lon: -111.55813
+  elev_m: 2432.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 330:UT:SNTL
+  name: Beaver Divide
+  lat: 40.61233
+  lon: -111.09782
+  elev_m: 2508.504
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 331:OR:SNTL
+  name: Beaver Reservoir
+  lat: 45.14532
+  lon: -118.219
+  elev_m: 1566.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 332:UT:SNTL
+  name: Ben Lomond Peak
+  lat: 41.37603
+  lon: -111.94405
+  elev_m: 2343.9120000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 333:UT:SNTL
+  name: Ben Lomond Trail
+  lat: 41.38291
+  lon: -111.92103
+  elev_m: 1819.6560000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 334:NV:SNTL
+  name: Berry Creek
+  lat: 39.31917
+  lon: -114.62278
+  elev_m: 2849.88
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 335:CO:SNTL
+  name: Berthoud Summit
+  lat: 39.80364
+  lon: -105.77786
+  elev_m: 3444.2400000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 336:NV:SNTL
+  name: Big Bend
+  lat: 41.76168
+  lon: -115.6931
+  elev_m: 2100.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 337:NV:SNTL
+  name: Big Creek Sum
+  lat: 39.29148
+  lon: -117.11506
+  elev_m: 2654.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 338:ID:SNTL
+  name: Big Creek Summit
+  lat: 44.62621
+  lon: -115.79561
+  elev_m: 1996.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 339:UT:SNTL
+  name: Big Flat
+  lat: 38.30183
+  lon: -112.35672
+  elev_m: 3145.536
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 340:NV:SNTL
+  name: Big Meadow
+  lat: 39.455
+  lon: -119.9422
+  elev_m: 2511.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 341:OR:SNTL
+  name: Big Red Mountain
+  lat: 42.05257
+  lon: -122.85487
+  elev_m: 1847.0880000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 342:WY:SNTL
+  name: Big Sandy Opening
+  lat: 42.6458
+  lon: -109.25965
+  elev_m: 2773.6800000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 343:OR:SNTL
+  name: Bigelow Camp
+  lat: 42.07875
+  lon: -123.34393
+  elev_m: 1563.624
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 344:OR:SNTL
+  name: Billie Creek Divide
+  lat: 42.40717
+  lon: -122.26617
+  elev_m: 1609.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 345:CO:SNTL
+  name: Bison Lake
+  lat: 39.76458
+  lon: -107.35628
+  elev_m: 3337.56
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 347:MT:SNTL
+  name: Black Bear
+  lat: 44.50832
+  lon: -111.12803
+  elev_m: 2487.168
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 348:UT:SNTL
+  name: Black Flat-U.M. Ck
+  lat: 38.6799
+  lon: -111.59765
+  elev_m: 2871.2160000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 349:MT:SNTL
+  name: Black Pine
+  lat: 46.414
+  lon: -113.43095
+  elev_m: 2185.416
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 350:WY:SNTL
+  name: Blackwater
+  lat: 44.37667
+  lon: -109.79333
+  elev_m: 2996.184
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 353:WY:SNTL
+  name: Blind Bull Sum
+  lat: 42.96413
+  lon: -110.60992
+  elev_m: 2706.6240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 354:SD:SNTL
+  name: Blind Park
+  lat: 44.10772
+  lon: -103.97688
+  elev_m: 2103.12
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 355:MT:SNTL
+  name: Bloody Dick
+  lat: 45.16507
+  lon: -113.50099
+  elev_m: 2307.3360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 356:CA:SNTL
+  name: Blue Lakes
+  lat: 38.60801
+  lon: -119.92455
+  elev_m: 2456.688
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 357:OR:SNTL
+  name: Blue Mountain Spring
+  lat: 44.24767
+  lon: -118.51722
+  elev_m: 1792.2240000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 358:WY:SNTL
+  name: Bone Springs Div
+  lat: 44.67881
+  lon: -107.5811
+  elev_m: 2846.8320000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 359:ID:SNTL
+  name: Bostetter R.S.
+  lat: 42.16442
+  lon: -114.19272
+  elev_m: 2295.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 360:MT:SNTL
+  name: Boulder Mountain
+  lat: 46.5596
+  lon: -111.28973
+  elev_m: 2404.8720000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 361:OR:SNTL
+  name: Bourne
+  lat: 44.83052
+  lon: -118.18787
+  elev_m: 1783.0800000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 363:MT:SNTL
+  name: Box Canyon
+  lat: 45.27178
+  lon: -110.24899
+  elev_m: 2048.2560000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 364:UT:SNTL
+  name: Box Creek
+  lat: 38.50809
+  lon: -112.01856
+  elev_m: 3002.28
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 365:MT:SNTL
+  name: Brackett Creek
+  lat: 45.89107
+  lon: -110.93851
+  elev_m: 2246.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 366:UT:SNTL
+  name: Brighton
+  lat: 40.59936
+  lon: -111.58167
+  elev_m: 2679.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 367:WY:SNTL
+  name: Brooklyn Lake
+  lat: 41.36038
+  lon: -106.23038
+  elev_m: 3124.2000000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 368:UT:SNTL
+  name: Brown Duck
+  lat: 40.58102
+  lon: -110.58587
+  elev_m: 3221.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 369:CO:SNTL
+  name: Brumley
+  lat: 39.08758
+  lon: -106.54231
+  elev_m: 3221.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 370:ID:SNTL
+  name: Brundage Reservoir
+  lat: 45.04315
+  lon: -116.13253
+  elev_m: 1914.144
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 371:UT:SNTL
+  name: Buck Flat
+  lat: 39.134
+  lon: -111.43722
+  elev_m: 2868.168
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 373:NV:SNTL
+  name: Buckskin Lower
+  lat: 41.75067
+  lon: -117.53182
+  elev_m: 2109.216
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 374:UT:SNTL
+  name: Bug Lake
+  lat: 41.68541
+  lon: -111.41987
+  elev_m: 2432.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 376:WA:SNTL
+  name: Bunchgrass Mdw
+  lat: 48.68688
+  lon: -117.17633
+  elev_m: 1530.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 377:WY:SNTL
+  name: Burgess Junction
+  lat: 44.78765
+  lon: -107.52917
+  elev_m: 2410.9680000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 378:CO:SNTL
+  name: Burro Mountain
+  lat: 39.87504
+  lon: -107.59902
+  elev_m: 2831.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 379:WY:SNTL
+  name: Burroughs Creek
+  lat: 43.69733
+  lon: -109.67021
+  elev_m: 2670.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 380:CO:SNTL
+  name: Butte
+  lat: 38.89435
+  lon: -106.95327
+  elev_m: 3105.9120000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 381:MT:SNTL
+  name: Calvert Creek
+  lat: 45.8838
+  lon: -113.32553
+  elev_m: 1953.768
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 382:ID:SNTL
+  name: Camas Creek Divide
+  lat: 43.26548
+  lon: -115.3453
+  elev_m: 1743.4560000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 383:UT:SNTL
+  name: Camp Jackson
+  lat: 37.81333
+  lon: -109.48723
+  elev_m: 2694.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 384:WY:SNTL
+  name: Canyon
+  lat: 44.71961
+  lon: -110.51084
+  elev_m: 2398.7760000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 385:MT:SNTL
+  name: Carrot Basin
+  lat: 44.96192
+  lon: -111.29403
+  elev_m: 2804.1600000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 387:CO:SNTL
+  name: 'Cascade #2'
+  lat: 37.65751
+  lon: -107.80287
+  elev_m: 2740.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 388:OR:SNTL
+  name: Cascade Summit
+  lat: 43.59042
+  lon: -122.0601
+  elev_m: 1554.48
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 389:WY:SNTL
+  name: Casper Mtn.
+  lat: 42.73362
+  lon: -106.31789
+  elev_m: 2420.112
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 390:UT:SNTL
+  name: Castle Valley
+  lat: 37.66098
+  lon: -112.74093
+  elev_m: 2926.08
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 391:CA:SNTL
+  name: Cedar Pass
+  lat: 41.58216
+  lon: -120.30253
+  elev_m: 2151.888
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 392:UT:SNTL
+  name: 'Chalk Creek #1'
+  lat: 40.85464
+  lon: -111.04765
+  elev_m: 2791.9680000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 393:UT:SNTL
+  name: 'Chalk Creek #2'
+  lat: 40.88529
+  lon: -111.06954
+  elev_m: 2499.36
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 394:NM:SNTL
+  name: Chamita
+  lat: 36.95606
+  lon: -106.65723
+  elev_m: 2548.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 396:UT:SNTL
+  name: Chepeta
+  lat: 40.77458
+  lon: -110.0105
+  elev_m: 3197.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 399:UT:SNTL
+  name: 'Clear Creek #1'
+  lat: 39.86671
+  lon: -111.28363
+  elev_m: 2731.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 400:UT:SNTL
+  name: 'Clear Creek #2'
+  lat: 39.89275
+  lon: -111.25154
+  elev_m: 2392.6800000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 402:WY:SNTL
+  name: Cloud Peak Reservoir
+  lat: 44.40328
+  lon: -107.06074
+  elev_m: 2996.184
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 403:MT:SNTL
+  name: Clover Meadow
+  lat: 45.01788
+  lon: -111.8456
+  elev_m: 2673.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 405:WY:SNTL
+  name: Cold Springs
+  lat: 43.27676
+  lon: -109.44585
+  elev_m: 2938.272
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 406:OR:SNTL
+  name: Cold Springs Camp
+  lat: 42.53305
+  lon: -122.17683
+  elev_m: 1810.5120000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 407:MT:SNTL
+  name: Cole Creek
+  lat: 45.19405
+  lon: -109.34548
+  elev_m: 2410.9680000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 408:CO:SNTL
+  name: Columbine
+  lat: 40.39591
+  lon: -106.60437
+  elev_m: 2795.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 409:CO:SNTL
+  name: Columbine Pass
+  lat: 38.41819
+  lon: -108.38313
+  elev_m: 2791.9680000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 410:MT:SNTL
+  name: Combination
+  lat: 46.46523
+  lon: -113.39358
+  elev_m: 1712.976
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 411:ID:SNTL
+  name: Cool Creek
+  lat: 46.76361
+  lon: -115.29528
+  elev_m: 1926.336
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 412:CO:SNTL
+  name: Copeland Lake
+  lat: 40.20733
+  lon: -105.5695
+  elev_m: 2612.136
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 413:MT:SNTL
+  name: Copper Bottom
+  lat: 47.05678
+  lon: -112.595
+  elev_m: 1584.96
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 414:MT:SNTL
+  name: Copper Camp
+  lat: 47.08158
+  lon: -112.72955
+  elev_m: 2127.504
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 415:CO:SNTL
+  name: Copper Mountain
+  lat: 39.48917
+  lon: -106.17154
+  elev_m: 3200.4
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 416:AZ:SNTL
+  name: Coronado Trail
+  lat: 33.80418
+  lon: -109.15352
+  elev_m: 2560.32
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 417:NV:SNTL
+  name: Corral Canyon
+  lat: 40.27551
+  lon: -115.54017
+  elev_m: 2572.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 418:WA:SNTL
+  name: Corral Pass
+  lat: 47.01872
+  lon: -121.46464
+  elev_m: 1770.8880000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 419:WY:SNTL
+  name: Cottonwood Creek
+  lat: 42.6459
+  lon: -110.81482
+  elev_m: 2350.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 423:ID:SNTL
+  name: Cozy Cove
+  lat: 44.28846
+  lon: -115.65508
+  elev_m: 1648.968
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 424:ID:SNTL
+  name: Crab Creek
+  lat: 44.437
+  lon: -111.99384
+  elev_m: 2093.976
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 425:ID:SNTL
+  name: Crater Meadows
+  lat: 46.56394
+  lon: -115.28903
+  elev_m: 1816.6080000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 426:CO:SNTL
+  name: Crosho
+  lat: 40.16749
+  lon: -107.05769
+  elev_m: 2731.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 427:MT:SNTL
+  name: Crystal Lake
+  lat: 46.78936
+  lon: -109.51202
+  elev_m: 1868.4240000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 428:CA:SNTL
+  name: Css Lab
+  lat: 39.32565
+  lon: -120.36807
+  elev_m: 2100.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 430:CO:SNTL
+  name: 'Culebra #2'
+  lat: 37.20939
+  lon: -105.19988
+  elev_m: 3218.688
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 431:CO:SNTL
+  name: Cumbres Trestle
+  lat: 37.01877
+  lon: -106.45275
+  elev_m: 3057.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 432:UT:SNTL
+  name: Currant Creek
+  lat: 40.35747
+  lon: -111.08993
+  elev_m: 2414.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 433:MT:SNTL
+  name: Daly Creek
+  lat: 46.18367
+  lon: -113.8533
+  elev_m: 1761.7440000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 435:UT:SNTL
+  name: Daniels-Strawberry
+  lat: 40.2953
+  lon: -111.25677
+  elev_m: 2441.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 436:MT:SNTL
+  name: Darkhorse Lake
+  lat: 45.17368
+  lon: -113.5846
+  elev_m: 2721.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 437:MT:SNTL
+  name: Deadman Creek
+  lat: 46.79279
+  lon: -110.67545
+  elev_m: 1962.912
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 438:CO:SNTL
+  name: Deadman Hill
+  lat: 40.80572
+  lon: -105.77018
+  elev_m: 3121.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 439:ID:SNTL
+  name: Deadwood Summit
+  lat: 44.54492
+  lon: -115.56386
+  elev_m: 2130.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 440:OR:SNTL
+  name: Derr.
+  lat: 44.4465
+  lon: -119.93012
+  elev_m: 1783.0800000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 442:OR:SNTL
+  name: Diamond Lake
+  lat: 43.18787
+  lon: -122.14003
+  elev_m: 1609.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 443:NV:SNTL
+  name: Diamond Peak
+  lat: 39.56361
+  lon: -115.84421
+  elev_m: 2447.5440000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 444:UT:SNTL
+  name: Dills Camp
+  lat: 39.04554
+  lon: -111.46875
+  elev_m: 2816.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 445:NV:SNTL
+  name: Disaster Peak
+  lat: 41.96737
+  lon: -118.18934
+  elev_m: 1908.048
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 446:CA:SNTL
+  name: Dismal Swamp
+  lat: 41.99127
+  lon: -120.18033
+  elev_m: 2246.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 447:OR:SNTLT
+  name: Bald Mtn AM OR
+  lat: 45.21158
+  lon: -117.6626
+  elev_m: 2026.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 448:MT:SNTL
+  name: Divide
+  lat: 44.79317
+  lon: -112.05645
+  elev_m: 2368.2960000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 449:WY:SNTL
+  name: Divide Peak
+  lat: 41.30399
+  lon: -107.15255
+  elev_m: 2651.76
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 450:ID:SNTL
+  name: Dollarhide Summit
+  lat: 43.6025
+  lon: -114.67417
+  elev_m: 2557.272
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 451:WY:SNTL
+  name: Dome Lake
+  lat: 44.57462
+  lon: -107.29537
+  elev_m: 2709.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 452:UT:SNTL
+  name: Donkey Reservoir
+  lat: 38.2084
+  lon: -111.47412
+  elev_m: 2987.04
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 453:NV:SNTL
+  name: Dorsey Basin
+  lat: 40.89343
+  lon: -115.21104
+  elev_m: 2407.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 454:NV:SNTL
+  name: Draw Creek
+  lat: 41.661
+  lon: -115.3234
+  elev_m: 2225.04
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 455:UT:SNTL
+  name: Dry Bread Pond
+  lat: 41.41289
+  lon: -111.5377
+  elev_m: 2526.792
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 456:MT:SNTLT
+  name: Jahnke Lake Trail
+  lat: 45.21665
+  lon: -113.50143
+  elev_m: 2188.464
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 457:CO:SNTL
+  name: Dry Lake
+  lat: 40.5337
+  lon: -106.7814
+  elev_m: 2511.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 458:MT:SNTL
+  name: Dupuyer Creek
+  lat: 48.06341
+  lon: -112.7573
+  elev_m: 1749.5520000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 460:WY:SNTL
+  name: East Rim Divide
+  lat: 43.13097
+  lon: -110.2023
+  elev_m: 2441.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 461:UT:SNTL
+  name: East Willow Creek
+  lat: 39.31213
+  lon: -109.53179
+  elev_m: 2529.84
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 462:CA:SNTL
+  name: Ebbetts Pass
+  lat: 38.5497
+  lon: -119.80468
+  elev_m: 2639.568
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 463:CA:SNTL
+  name: Echo Peak
+  lat: 38.849
+  lon: -120.0795
+  elev_m: 2331.7200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 464:OR:SNTL
+  name: Eilertson Meadows
+  lat: 44.86887
+  lon: -118.11387
+  elev_m: 1679.448
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 465:CO:SNTL
+  name: El Diente Peak
+  lat: 37.78607
+  lon: -108.02235
+  elev_m: 3112.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 466:ID:SNTL
+  name: Elk Butte
+  lat: 46.83998
+  lon: -116.12233
+  elev_m: 1731.2640000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 467:CO:SNTL
+  name: Elk River
+  lat: 40.84758
+  lon: -106.96861
+  elev_m: 2654.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 468:WY:SNTL
+  name: Elkhart Park G.S.
+  lat: 43.00657
+  lon: -109.75893
+  elev_m: 2868.168
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 471:ID:SNTL
+  name: Emigrant Summit
+  lat: 42.36055
+  lon: -111.56085
+  elev_m: 2252.472
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 472:WY:SNTL
+  name: Evening Star
+  lat: 44.65258
+  lon: -109.78422
+  elev_m: 2752.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 473:CA:SNTL
+  name: Fallen Leaf
+  lat: 38.93403
+  lon: -120.0545
+  elev_m: 1905.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 474:UT:SNTL
+  name: Farmington
+  lat: 40.97462
+  lon: -111.80975
+  elev_m: 2414.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 475:UT:SNTL
+  name: Farnsworth Lake
+  lat: 38.77246
+  lon: -111.67662
+  elev_m: 2932.176
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 476:NV:SNTL
+  name: Fawn Creek
+  lat: 41.82098
+  lon: -116.10153
+  elev_m: 2145.792
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 477:OR:SNTL
+  name: Fish Creek
+  lat: 42.70993
+  lon: -118.63219
+  elev_m: 2346.96
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 480:MT:SNTL
+  name: Fisher Creek
+  lat: 45.06235
+  lon: -109.94488
+  elev_m: 2776.728
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 481:UT:SNTL
+  name: Five Points Lake
+  lat: 40.71785
+  lon: -110.46721
+  elev_m: 3328.416
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 482:MT:SNTL
+  name: Flattop Mtn.
+  lat: 48.80225
+  lon: -113.85713
+  elev_m: 1914.144
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 483:OR:SNTL
+  name: Fourmile Lake
+  lat: 42.43933
+  lon: -122.2288
+  elev_m: 1819.6560000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 484:ID:SNTL
+  name: Franklin Basin
+  lat: 42.0505
+  lon: -111.6012
+  elev_m: 2481.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 485:CO:SNTL
+  name: Fremont Pass
+  lat: 39.38014
+  lon: -106.19784
+  elev_m: 3447.288
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 486:NM:SNTL
+  name: Frisco Divide
+  lat: 33.73687
+  lon: -108.94327
+  elev_m: 2441.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 487:MT:SNTL
+  name: Frohner Meadow
+  lat: 46.43545
+  lon: -112.19277
+  elev_m: 1987.296
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 488:AZ:SNTL
+  name: Fry
+  lat: 35.07356
+  lon: -111.84477
+  elev_m: 2200.656
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 489:ID:SNTL
+  name: Galena
+  lat: 43.87722
+  lon: -114.6725
+  elev_m: 2276.856
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 490:ID:SNTL
+  name: Galena Summit
+  lat: 43.87497
+  lon: -114.71363
+  elev_m: 2679.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 491:NM:SNTL
+  name: Gallegos Peak
+  lat: 36.19418
+  lon: -105.55742
+  elev_m: 2883.4080000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 492:ID:SNTL
+  name: Garfield R.S.
+  lat: 43.6104
+  lon: -113.9308
+  elev_m: 2005.584
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 493:ID:SNTL
+  name: Giveout
+  lat: 42.4132
+  lon: -111.1663
+  elev_m: 2115.312
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 494:OR:SNTL
+  name: Gold Center
+  lat: 44.7638
+  lon: -118.3117
+  elev_m: 1645.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 495:UT:SNTL
+  name: Gooseberry RS
+  lat: 38.80034
+  lon: -111.68333
+  elev_m: 2417.0640000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 496:ID:SNTL
+  name: Graham Guard Sta.
+  lat: 43.9538
+  lon: -115.27387
+  elev_m: 1734.3120000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 497:WY:SNTL
+  name: Granite Creek
+  lat: 43.34298
+  lon: -110.43495
+  elev_m: 2063.496
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 498:NV:SNTL
+  name: Granite Peak
+  lat: 41.67032
+  lon: -117.56668
+  elev_m: 2590.8
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 499:WY:SNTL
+  name: Grassy Lake
+  lat: 44.12602
+  lon: -110.83429
+  elev_m: 2234.184
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 501:WY:SNTL
+  name: Grave Springs
+  lat: 43.46643
+  lon: -107.23977
+  elev_m: 2609.088
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 502:WA:SNTL
+  name: Green Lake
+  lat: 46.54741
+  lon: -121.17093
+  elev_m: 1804.4160000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 503:NV:SNTL
+  name: Green Mountain
+  lat: 40.3848
+  lon: -115.52757
+  elev_m: 2493.264
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 505:CO:SNTL
+  name: Grizzly Peak
+  lat: 39.64646
+  lon: -105.8694
+  elev_m: 3386.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 506:WY:SNTL
+  name: Gros Ventre Summit
+  lat: 43.38939
+  lon: -110.12943
+  elev_m: 2670.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 507:WA:SNTL
+  name: Grouse Camp
+  lat: 47.28107
+  lon: -120.48771
+  elev_m: 1642.872
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 508:CA:SNTL
+  name: Hagans Meadow
+  lat: 38.8519
+  lon: -119.9374
+  elev_m: 2359.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 509:WY:SNTL
+  name: Hams Fork
+  lat: 42.146
+  lon: -110.67833
+  elev_m: 2395.728
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 510:MT:SNTL
+  name: Hand Creek
+  lat: 48.30754
+  lon: -114.84075
+  elev_m: 1533.144
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 511:AZ:SNTL
+  name: Hannagan Meadows
+  lat: 33.65352
+  lon: -109.30877
+  elev_m: 2752.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 512:WY:SNTL
+  name: Hanson Sawmill
+  lat: 44.25602
+  lon: -106.97983
+  elev_m: 2548.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 513:UT:SNTL
+  name: Lakefork Basin
+  lat: 40.73785
+  lon: -110.62121
+  elev_m: 3319.2720000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 514:UT:SNTL
+  name: Harris Flat
+  lat: 37.48997
+  lon: -112.57602
+  elev_m: 2377.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 515:WA:SNTL
+  name: Harts Pass
+  lat: 48.72047
+  lon: -120.6586
+  elev_m: 1978.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 516:MT:SNTL
+  name: Hawkins Lake
+  lat: 48.9724
+  lon: -115.95344
+  elev_m: 1969.008
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 517:UT:SNTL
+  name: Hayden Fork
+  lat: 40.79669
+  lon: -110.88472
+  elev_m: 2795.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 518:CA:SNTL
+  name: Heavenly Valley
+  lat: 38.92431
+  lon: -119.91641
+  elev_m: 2602.992
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 519:AZ:SNTL
+  name: Heber
+  lat: 34.31254
+  lon: -110.75433
+  elev_m: 2331.7200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 520:ID:SNTL
+  name: Hemlock Butte
+  lat: 46.48111
+  lon: -115.63361
+  elev_m: 1767.8400000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 521:UT:SNTL
+  name: Hewinta
+  lat: 40.95009
+  lon: -110.48419
+  elev_m: 2898.648
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 522:UT:SNTL
+  name: Hickerson Park
+  lat: 40.90663
+  lon: -109.96287
+  elev_m: 2779.7760000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 524:ID:SNTL
+  name: Hilts Creek
+  lat: 44.01896
+  lon: -113.47242
+  elev_m: 2465.8320000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 525:WY:SNTL
+  name: Hobbs Park
+  lat: 42.86984
+  lon: -109.09455
+  elev_m: 3072.384
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 527:NV:SNTL
+  name: Hole-in-Mountain
+  lat: 40.94168
+  lon: -115.0954
+  elev_m: 2490.2160000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 528:UT:SNTL
+  name: Hole-in-Rock
+  lat: 40.92167
+  lon: -110.18623
+  elev_m: 2795.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 529:OR:SNTL
+  name: Holland Meadows
+  lat: 43.66917
+  lon: -122.56877
+  elev_m: 1502.664
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 530:MT:SNTL
+  name: Hoodoo Basin
+  lat: 46.97511
+  lon: -115.03486
+  elev_m: 1847.0880000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 531:CO:SNTL
+  name: Hoosier Pass
+  lat: 39.36092
+  lon: -106.05999
+  elev_m: 3535.6800000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 532:NM:SNTL
+  name: Hopewell
+  lat: 36.71632
+  lon: -106.2637
+  elev_m: 3072.384
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 533:UT:SNTL
+  name: Horse Ridge
+  lat: 41.31372
+  lon: -111.44624
+  elev_m: 2502.408
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 534:ID:SNTL
+  name: Howell Canyon
+  lat: 42.32029
+  lon: -113.61587
+  elev_m: 2441.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 536:MT:SNTLT
+  name: Elk Peak SC
+  lat: 46.47642
+  lon: -110.72065
+  elev_m: 2377.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 537:ID:SNTL
+  name: Hyndman
+  lat: 43.71077
+  lon: -114.15894
+  elev_m: 2313.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 538:CO:SNTL
+  name: Idarado
+  lat: 37.93389
+  lon: -107.6762
+  elev_m: 2980.944
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 539:CA:SNTL
+  name: Independence Camp
+  lat: 39.45269
+  lon: -120.29367
+  elev_m: 2124.456
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 540:CA:SNTL
+  name: Independence Creek
+  lat: 39.49001
+  lon: -120.28226
+  elev_m: 1962.912
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 541:CA:SNTL
+  name: Independence Lake
+  lat: 39.42752
+  lon: -120.31342
+  elev_m: 2542.032
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 542:CO:SNTL
+  name: Independence Pass
+  lat: 39.07543
+  lon: -106.61154
+  elev_m: 3221.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 543:UT:SNTL
+  name: Wilbur Bench
+  lat: 39.89166
+  lon: -110.74604
+  elev_m: 2795.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 544:WY:SNTL
+  name: Indian Creek
+  lat: 42.30023
+  lon: -110.67753
+  elev_m: 2865.1200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 545:OR:SNTL
+  name: Irish Taylor
+  lat: 43.80368
+  lon: -121.94793
+  elev_m: 1688.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 546:ID:SNTL
+  name: Island Park
+  lat: 44.4203
+  lon: -111.38512
+  elev_m: 1920.24
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 547:CO:SNTL
+  name: Ivanhoe
+  lat: 39.29228
+  lon: -106.54907
+  elev_m: 3212.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 548:NV:SNTL
+  name: Jack Creek Upper
+  lat: 41.54675
+  lon: -116.00517
+  elev_m: 2249.424
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 549:NV:SNTL
+  name: Jacks Peak
+  lat: 41.5136
+  lon: -116.0117
+  elev_m: 2572.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 550:ID:SNTL
+  name: Jackson Peak
+  lat: 44.05092
+  lon: -115.44322
+  elev_m: 2151.888
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 551:CO:SNTL
+  name: Joe Wright
+  lat: 40.53285
+  lon: -105.88747
+  elev_m: 3090.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 554:WY:SNTL
+  name: Kelley R.S.
+  lat: 42.26554
+  lon: -110.80181
+  elev_m: 2511.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 555:WY:SNTL
+  name: Kendall R.S.
+  lat: 43.24922
+  lon: -110.01671
+  elev_m: 2374.3920000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 556:CO:SNTL
+  name: Kiln
+  lat: 39.3172
+  lon: -106.61501
+  elev_m: 2929.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 557:UT:SNTL
+  name: Kimberly Mine
+  lat: 38.48383
+  lon: -112.39273
+  elev_m: 2776.728
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 559:UT:SNTL
+  name: Kings Cabin
+  lat: 40.71632
+  lon: -109.54401
+  elev_m: 2663.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 560:WY:SNTL
+  name: Kirwin
+  lat: 43.86067
+  lon: -109.32163
+  elev_m: 2919.984
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 561:UT:SNTL
+  name: Kolob
+  lat: 37.52664
+  lon: -113.05386
+  elev_m: 2819.4
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 563:OR:SNTL
+  name: Lake Creek R.S.
+  lat: 44.21007
+  lon: -118.63752
+  elev_m: 1600.2
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 564:CO:SNTL
+  name: Lake Eldora
+  lat: 39.93659
+  lon: -105.59031
+  elev_m: 2956.56
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 565:CO:SNTL
+  name: Lake Irene
+  lat: 40.41446
+  lon: -105.81941
+  elev_m: 3255.264
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 566:UT:SNTL
+  name: 'Lakefork #1'
+  lat: 40.59709
+  lon: -110.43316
+  elev_m: 3084.576
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 568:MT:SNTL
+  name: Lakeview Ridge
+  lat: 44.58907
+  lon: -111.82498
+  elev_m: 2237.232
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 569:NV:SNTL
+  name: Lamance Creek
+  lat: 41.51542
+  lon: -117.63197
+  elev_m: 1947.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 570:NV:SNTL
+  name: 'Lamoille #3'
+  lat: 40.6448
+  lon: -115.3812
+  elev_m: 2450.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 571:WY:SNTL
+  name: Laprele Creek
+  lat: 42.43566
+  lon: -105.86051
+  elev_m: 2551.176
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 572:UT:SNTL
+  name: Lasal Mountain
+  lat: 38.48226
+  lon: -109.27198
+  elev_m: 2919.984
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 573:NV:SNTL
+  name: Laurel Draw
+  lat: 41.77637
+  lon: -116.02957
+  elev_m: 2036.064
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 574:CA:SNTL
+  name: Leavitt Lake
+  lat: 38.27594
+  lon: -119.61281
+  elev_m: 2926.08
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 575:CA:SNTL
+  name: Leavitt Meadows
+  lat: 38.30367
+  lon: -119.55111
+  elev_m: 2194.56
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 576:MT:SNTL
+  name: Lemhi Ridge
+  lat: 44.9938
+  lon: -113.44399
+  elev_m: 2462.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 577:WY:SNTL
+  name: Lewis Lake Divide
+  lat: 44.20862
+  lon: -110.66628
+  elev_m: 2401.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 578:MT:SNTL
+  name: Lick Creek
+  lat: 45.5041
+  lon: -110.96625
+  elev_m: 2097.024
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 579:UT:SNTL
+  name: Lily Lake
+  lat: 40.86493
+  lon: -110.79813
+  elev_m: 2782.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 580:CO:SNTL
+  name: Lily Pond
+  lat: 37.38028
+  lon: -106.54823
+  elev_m: 3374.136
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 582:UT:SNTL
+  name: Little Bear
+  lat: 41.40562
+  lon: -111.82607
+  elev_m: 1993.392
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 583:UT:SNTL
+  name: Little Grassy
+  lat: 37.48631
+  lon: -113.84582
+  elev_m: 1850.1360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 585:WY:SNTL
+  name: Little Warm
+  lat: 43.50278
+  lon: -109.752
+  elev_m: 2855.976
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 586:CO:SNTL
+  name: Lizard Head Pass
+  lat: 37.79895
+  lon: -107.92475
+  elev_m: 3105.9120000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 587:CA:SNTL
+  name: Lobdell Lake
+  lat: 38.43745
+  lon: -119.36572
+  elev_m: 2822.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 588:ID:SNTL
+  name: Lolo Pass
+  lat: 46.63448
+  lon: -114.58072
+  elev_m: 1609.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 589:CO:SNTL
+  name: Lone Cone
+  lat: 37.89169
+  lon: -108.19636
+  elev_m: 2965.704
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 590:MT:SNTL
+  name: Lone Mountain
+  lat: 45.27412
+  lon: -111.42692
+  elev_m: 2688.3360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 592:UT:SNTL
+  name: Long Flat
+  lat: 37.51255
+  lon: -113.39661
+  elev_m: 2435.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 593:UT:SNTL
+  name: Long Valley Jct
+  lat: 37.48756
+  lon: -112.51458
+  elev_m: 2273.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 594:ID:SNTL
+  name: Lookout
+  lat: 47.45749
+  lon: -115.70457
+  elev_m: 1578.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 595:NM:SNTL
+  name: Lookout Mountain
+  lat: 33.36089
+  lon: -107.83203
+  elev_m: 2590.8
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 596:UT:SNTL
+  name: Lookout Peak
+  lat: 40.83731
+  lon: -111.70965
+  elev_m: 2484.1200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 597:WY:SNTL
+  name: Loomis Park
+  lat: 43.17387
+  lon: -110.14007
+  elev_m: 2511.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 599:WA:SNTL
+  name: Lost Horse
+  lat: 46.35754
+  lon: -121.0809
+  elev_m: 1554.48
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 600:ID:SNTL
+  name: Lost Lake
+  lat: 47.0809
+  lon: -115.9604
+  elev_m: 1856.2320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 601:ID:SNTL
+  name: Lost-Wood Divide
+  lat: 43.82441
+  lon: -114.26404
+  elev_m: 2398.7760000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 602:CO:SNTL
+  name: Loveland Basin
+  lat: 39.67428
+  lon: -105.90264
+  elev_m: 3477.768
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 603:MT:SNTL
+  name: Lower Twin
+  lat: 45.50871
+  lon: -111.92288
+  elev_m: 2414.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 605:OR:SNTL
+  name: Lucky Strike
+  lat: 45.27478
+  lon: -118.8479
+  elev_m: 1514.856
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 606:WA:SNTL
+  name: Lyman Lake
+  lat: 48.19798
+  lon: -120.91678
+  elev_m: 1825.7520000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 607:CO:SNTL
+  name: Lynx Pass
+  lat: 40.07832
+  lon: -106.67095
+  elev_m: 2715.768
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 608:OR:SNTL
+  name: Madison Butte
+  lat: 45.10513
+  lon: -119.49585
+  elev_m: 1569.72
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 609:MT:SNTL
+  name: Madison Plateau
+  lat: 44.58623
+  lon: -111.11627
+  elev_m: 2350.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 610:ID:SNTL
+  name: Magic Mountain
+  lat: 42.18071
+  lon: -114.28665
+  elev_m: 2115.312
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 612:UT:SNTL
+  name: Mammoth-Cottonwood
+  lat: 39.68338
+  lon: -111.31818
+  elev_m: 2654.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 613:MT:SNTL
+  name: Many Glacier
+  lat: 48.79698
+  lon: -113.6705
+  elev_m: 1502.664
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 615:NV:SNTL
+  name: Marlette Lake
+  lat: 39.16395
+  lon: -119.89672
+  elev_m: 2395.728
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 616:WY:SNTL
+  name: Marquette
+  lat: 44.3016
+  lon: -109.24019
+  elev_m: 2682.2400000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 617:AZ:SNTL
+  name: Maverick Fork
+  lat: 33.92123
+  lon: -109.45872
+  elev_m: 2807.208
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 618:CO:SNTL
+  name: Mc Clure Pass
+  lat: 39.12899
+  lon: -107.28834
+  elev_m: 2670.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 620:ID:SNTL
+  name: Meadow Lake
+  lat: 44.43655
+  lon: -113.31815
+  elev_m: 2801.112
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 621:UT:SNTL
+  name: Merchant Valley
+  lat: 38.30285
+  lon: -112.43637
+  elev_m: 2654.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 622:CO:SNTL
+  name: Mesa Lakes
+  lat: 39.05738
+  lon: -108.05756
+  elev_m: 3096.768
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 624:CO:SNTL
+  name: Middle Creek
+  lat: 37.61779
+  lon: -107.03932
+  elev_m: 3432.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 625:WY:SNTL
+  name: Middle Powder
+  lat: 43.62733
+  lon: -107.18152
+  elev_m: 2365.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 626:UT:SNTL
+  name: Midway Valley
+  lat: 37.56933
+  lon: -112.83849
+  elev_m: 2996.184
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 627:ID:SNTL
+  name: Mill Creek Summit
+  lat: 44.47212
+  lon: -114.48992
+  elev_m: 2676.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 628:UT:SNTL
+  name: Mill-D North
+  lat: 40.65883
+  lon: -111.63683
+  elev_m: 2724.9120000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 629:CO:SNTL
+  name: Mineral Creek
+  lat: 37.84737
+  lon: -107.72657
+  elev_m: 3057.1440000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 631:UT:SNTL
+  name: Mining Fork
+  lat: 40.49384
+  lon: -112.61141
+  elev_m: 2526.792
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 632:CO:SNTL
+  name: Molas Lake
+  lat: 37.74929
+  lon: -107.68933
+  elev_m: 3233.9280000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 633:CA:SNTL
+  name: Monitor Pass
+  lat: 38.6683
+  lon: -119.6087
+  elev_m: 2535.936
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 634:UT:SNTL
+  name: Monte Cristo
+  lat: 41.46547
+  lon: -111.49688
+  elev_m: 2721.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 635:MT:SNTL
+  name: Monument Peak
+  lat: 45.21759
+  lon: -110.237
+  elev_m: 2663.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 636:ID:SNTL
+  name: Moonshine
+  lat: 44.41478
+  lon: -113.39814
+  elev_m: 2282.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 637:ID:SNTL
+  name: Mores Creek Summit
+  lat: 43.932
+  lon: -115.66588
+  elev_m: 1856.2320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 638:ID:SNTL
+  name: Moose Creek
+  lat: 45.67008
+  lon: -113.95315
+  elev_m: 1880.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 639:ID:SNTL
+  name: Morgan Creek
+  lat: 44.84237
+  lon: -114.26871
+  elev_m: 2322.576
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 640:AZ:SNTL
+  name: Mormon Mountain
+  lat: 34.94141
+  lon: -111.51864
+  elev_m: 2282.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 642:WA:SNTL
+  name: Morse Lake
+  lat: 46.90585
+  lon: -121.4827
+  elev_m: 1645.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 643:UT:SNTL
+  name: Mosby Mtn.
+  lat: 40.60798
+  lon: -109.8881
+  elev_m: 2910.84
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 644:WA:SNTL
+  name: Moses Mtn
+  lat: 48.36166
+  lon: -119.08158
+  elev_m: 1667.256
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 645:ID:SNTL
+  name: Mosquito Ridge
+  lat: 48.05726
+  lon: -116.23055
+  elev_m: 1606.296
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 646:MT:SNTL
+  name: Moss Peak
+  lat: 47.68497
+  lon: -113.96239
+  elev_m: 2060.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 647:OR:SNTL
+  name: Moss Springs
+  lat: 45.27173
+  lon: -117.68747
+  elev_m: 1755.6480000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 649:MT:SNTL
+  name: Mount Lockhart
+  lat: 47.91727
+  lon: -112.8238
+  elev_m: 1959.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 650:ID:SNTL
+  name: Mountain Meadows
+  lat: 45.69694
+  lon: -115.22972
+  elev_m: 1932.432
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 651:OR:SNTL
+  name: Mt Hood Test Site
+  lat: 45.32097
+  lon: -121.7158
+  elev_m: 1639.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 652:NV:SNTL
+  name: Mt Rose Ski Area
+  lat: 39.31573
+  lon: -119.89473
+  elev_m: 2685.288
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 653:OR:SNTL
+  name: Mt. Howard
+  lat: 45.26514
+  lon: -117.17377
+  elev_m: 2389.632
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 654:ID:SNTL
+  name: Mud Flat
+  lat: 42.6004
+  lon: -116.55925
+  elev_m: 1752.6000000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 656:MT:SNTL
+  name: Mule Creek
+  lat: 45.40957
+  lon: -112.95927
+  elev_m: 2529.84
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 657:MT:SNTL
+  name: N Fk Elk Creek
+  lat: 46.8716
+  lon: -113.27725
+  elev_m: 1883.664
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 658:CO:SNTL
+  name: Nast Lake
+  lat: 39.29695
+  lon: -106.60786
+  elev_m: 2654.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 661:WY:SNTL
+  name: New Fork Lake
+  lat: 43.11265
+  lon: -109.94947
+  elev_m: 2554.224
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 662:MT:SNTL
+  name: Nez Perce Camp
+  lat: 45.73107
+  lon: -114.48075
+  elev_m: 1728.2160000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 663:CO:SNTL
+  name: Niwot
+  lat: 40.03581
+  lon: -105.5452
+  elev_m: 3029.712
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 664:MT:SNTL
+  name: Noisy Basin
+  lat: 48.15668
+  lon: -113.9463
+  elev_m: 1850.1360000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 665:NM:SNTL
+  name: North Costilla
+  lat: 36.99396
+  lon: -105.25988
+  elev_m: 3221.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 667:MT:SNTL
+  name: North Fork Jocko
+  lat: 47.27258
+  lon: -113.75631
+  elev_m: 1862.3280000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 668:WY:SNTL
+  name: North French Creek
+  lat: 41.33087
+  lon: -106.37558
+  elev_m: 3093.7200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 669:CO:SNTL
+  name: North Lost Trail
+  lat: 39.07818
+  lon: -107.14388
+  elev_m: 2801.112
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 670:MT:SNTL
+  name: Northeast Entrance
+  lat: 45.00568
+  lon: -110.01411
+  elev_m: 2261.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 671:OR:SNTL
+  name: Ochoco Meadows
+  lat: 44.42917
+  lon: -120.3311
+  elev_m: 1655.064
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 673:WY:SNTL
+  name: Old Battle
+  lat: 41.15426
+  lon: -106.96926
+  elev_m: 2999.232
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 675:CO:SNTL
+  name: Overland Res.
+  lat: 39.09035
+  lon: -107.63583
+  elev_m: 3014.472
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 676:WY:SNTL
+  name: Owl Creek
+  lat: 43.65868
+  lon: -109.00988
+  elev_m: 2740.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 677:ID:SNTL
+  name: Oxford Spring
+  lat: 42.26024
+  lon: -112.12523
+  elev_m: 2069.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 679:WA:SNTL
+  name: Paradise
+  lat: 46.78266
+  lon: -121.74767
+  elev_m: 1569.72
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 680:CO:SNTL
+  name: Park Cone
+  lat: 38.81982
+  lon: -106.58962
+  elev_m: 2926.08
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 682:CO:SNTL
+  name: Park Reservoir
+  lat: 39.04433
+  lon: -107.87951
+  elev_m: 3044.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 683:WY:SNTL
+  name: Parker Peak
+  lat: 44.73396
+  lon: -109.91484
+  elev_m: 2871.2160000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 684:UT:SNTL
+  name: Parleys Summit
+  lat: 40.76184
+  lon: -111.62917
+  elev_m: 2313.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 686:UT:SNTL
+  name: Payson R.S.
+  lat: 39.92976
+  lon: -111.63109
+  elev_m: 2453.6400000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 688:CO:SNTL
+  name: Phantom Valley
+  lat: 40.39803
+  lon: -105.84606
+  elev_m: 2752.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 689:WY:SNTL
+  name: Phillips Bench
+  lat: 43.51687
+  lon: -110.91258
+  elev_m: 2490.2160000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 690:MT:SNTL
+  name: Pickfoot Creek
+  lat: 46.57969
+  lon: -111.26812
+  elev_m: 2036.064
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 691:UT:SNTL
+  name: Pickle Keg
+  lat: 39.01219
+  lon: -111.58259
+  elev_m: 2746.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 692:WA:SNTL
+  name: Pigtail Peak
+  lat: 46.62153
+  lon: -121.38643
+  elev_m: 1767.8400000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 693:MT:SNTL
+  name: Pike Creek
+  lat: 48.30305
+  lon: -113.32868
+  elev_m: 1807.4640000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 694:UT:SNTL
+  name: Pine Creek
+  lat: 38.88185
+  lon: -112.24915
+  elev_m: 2660.904
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 695:ID:SNTL
+  name: Pine Creek Pass
+  lat: 43.56998
+  lon: -111.21157
+  elev_m: 2045.208
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 696:MT:SNTL
+  name: Placer Basin
+  lat: 45.41905
+  lon: -110.08844
+  elev_m: 2679.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 697:CA:SNTL
+  name: Poison Flat
+  lat: 38.50576
+  lon: -119.62624
+  elev_m: 2356.1040000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 698:NV:SNTL
+  name: Pole Creek R.S.
+  lat: 41.87255
+  lon: -115.24713
+  elev_m: 2551.176
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 700:MT:SNTL
+  name: Porcupine
+  lat: 46.11192
+  lon: -110.4696
+  elev_m: 1975.104
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 701:CO:SNTL
+  name: Porphyry Creek
+  lat: 38.48864
+  lon: -106.33967
+  elev_m: 3288.7920000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 703:WY:SNTL
+  name: Powder River Pass
+  lat: 44.16188
+  lon: -107.12622
+  elev_m: 2889.5040000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 705:AZ:SNTL
+  name: Promontory
+  lat: 34.36848
+  lon: -111.01088
+  elev_m: 2417.0640000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 706:OR:SNTL
+  name: Quartz Mountain
+  lat: 42.31923
+  lon: -120.82533
+  elev_m: 1740.4080000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 708:NM:SNTL
+  name: Quemazon
+  lat: 35.92195
+  lon: -106.39179
+  elev_m: 2895.6000000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 709:CO:SNTL
+  name: Rabbit Ears
+  lat: 40.36735
+  lon: -106.74118
+  elev_m: 2862.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 713:CO:SNTL
+  name: Red Mountain Pass
+  lat: 37.89168
+  lon: -107.71389
+  elev_m: 3371.088
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 714:UT:SNTL
+  name: Red Pine Ridge
+  lat: 39.45197
+  lon: -111.27221
+  elev_m: 2740.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 715:NM:SNTL
+  name: 'Red River Pass #2'
+  lat: 36.69935
+  lon: -105.34145
+  elev_m: 2999.232
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 716:WY:SNTL
+  name: Reno Hill
+  lat: 42.57089
+  lon: -106.08969
+  elev_m: 2563.368
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 717:CO:SNTL
+  name: Ripple Creek
+  lat: 40.10844
+  lon: -107.29383
+  elev_m: 3151.632
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 718:CO:SNTL
+  name: Roach
+  lat: 40.87498
+  lon: -106.04675
+  elev_m: 2959.608
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 719:OR:SNTL
+  name: Roaring River
+  lat: 43.90098
+  lon: -122.03063
+  elev_m: 1511.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 720:UT:SNTL
+  name: Rock Creek
+  lat: 40.54875
+  lon: -110.69292
+  elev_m: 2401.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 721:OR:SNTL
+  name: Rock Springs
+  lat: 44.00883
+  lon: -118.83842
+  elev_m: 1612.392
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 722:MT:SNTL
+  name: Rocker Peak
+  lat: 46.35613
+  lon: -112.26176
+  elev_m: 2426.208
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 723:UT:SNTL
+  name: Rocky Basin-Settleme
+  lat: 40.44293
+  lon: -112.22377
+  elev_m: 2651.76
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 724:CA:SNTL
+  name: 'Rubicon #2'
+  lat: 38.99927
+  lon: -120.13139
+  elev_m: 2304.288
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 725:MT:SNTL
+  name: S Fork Shields
+  lat: 46.08963
+  lon: -110.43367
+  elev_m: 2465.8320000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 727:MT:SNTL
+  name: Saddle Mtn.
+  lat: 45.69259
+  lon: -113.96828
+  elev_m: 2404.8720000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 730:WY:SNTL
+  name: Salt River Summit
+  lat: 42.5075
+  lon: -110.9099
+  elev_m: 2325.6240000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 731:WY:SNTL
+  name: Sand Lake
+  lat: 41.4625
+  lon: -106.281
+  elev_m: 3072.384
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 732:WY:SNTL
+  name: Sandstone RS
+  lat: 41.11179
+  lon: -107.17043
+  elev_m: 2484.1200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 735:ID:SNTL
+  name: Savage Pass
+  lat: 46.46633
+  lon: -114.63333
+  elev_m: 1880.616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 736:OR:SNTL
+  name: Schneider Meadows
+  lat: 45.00107
+  lon: -117.16522
+  elev_m: 1645.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 737:CO:SNTL
+  name: Schofield Pass
+  lat: 39.01467
+  lon: -107.04933
+  elev_m: 3243.072
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 738:ID:SNTL
+  name: Schweitzer Basin
+  lat: 48.37428
+  lon: -116.63917
+  elev_m: 1856.2320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 739:CO:SNTL
+  name: Scotch Creek
+  lat: 37.64562
+  lon: -108.00833
+  elev_m: 2791.9680000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 740:ID:SNTL
+  name: Secesh Summit
+  lat: 45.18848
+  lon: -115.97152
+  elev_m: 1990.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 741:ID:SNTL
+  name: Sedgwick Peak
+  lat: 42.52463
+  lon: -111.95632
+  elev_m: 2377.44
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 742:UT:SNTL
+  name: Seeley Creek
+  lat: 39.31042
+  lon: -111.43297
+  elev_m: 3017.52
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 744:NM:SNTL
+  name: 'Senorita Divide #2'
+  lat: 36.00152
+  lon: -106.83408
+  elev_m: 2609.088
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 745:OR:SNTL
+  name: Sevenmile Marsh
+  lat: 42.69825
+  lon: -122.14165
+  elev_m: 1734.3120000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 746:NV:SNTL
+  name: Seventysix Creek
+  lat: 41.73732
+  lon: -115.47215
+  elev_m: 2243.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 749:ID:SNTL
+  name: Sheep Mtn.
+  lat: 43.2103
+  lon: -111.68792
+  elev_m: 2020.824
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 750:NV:SNTL
+  name: Sheldon
+  lat: 41.90435
+  lon: -119.44464
+  elev_m: 1786.1280000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 751:WY:SNTL
+  name: Shell Creek
+  lat: 44.50012
+  lon: -107.42947
+  elev_m: 2916.936
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 753:MT:SNTL
+  name: Short Creek
+  lat: 44.97572
+  lon: -111.95215
+  elev_m: 2130.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 754:MT:SNTL
+  name: Shower Falls
+  lat: 45.40125
+  lon: -110.95758
+  elev_m: 2456.688
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 755:NM:SNTL
+  name: Signal Peak
+  lat: 32.92342
+  lon: -108.14546
+  elev_m: 2557.272
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 756:OR:SNTL
+  name: Silver Creek
+  lat: 42.95615
+  lon: -121.18123
+  elev_m: 1752.6000000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 757:NM:SNTL
+  name: Silver Creek Divide
+  lat: 33.3696
+  lon: -108.70711
+  elev_m: 2767.5840000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 759:OR:SNTL
+  name: Silvies
+  lat: 42.75333
+  lon: -118.68785
+  elev_m: 2133.6
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 760:MT:SNTL
+  name: Skalkaho Summit
+  lat: 46.24212
+  lon: -113.7725
+  elev_m: 2212.848
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 761:ID:SNTL
+  name: Slug Creek Divide
+  lat: 42.56248
+  lon: -111.29797
+  elev_m: 2206.752
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 762:CO:SNTL
+  name: Slumgullion
+  lat: 37.99076
+  lon: -107.20392
+  elev_m: 3523.4880000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 763:UT:SNTL
+  name: Smith  Morehouse
+  lat: 40.78931
+  lon: -111.09192
+  elev_m: 2328.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 764:WY:SNTL
+  name: Snake River Station
+  lat: 44.13361
+  lon: -110.66917
+  elev_m: 2103.12
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 765:WY:SNTL
+  name: Snider Basin
+  lat: 42.4949
+  lon: -110.53203
+  elev_m: 2462.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 766:UT:SNTL
+  name: Snowbird
+  lat: 40.56914
+  lon: -111.65852
+  elev_m: 2795.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 767:OR:SNTL
+  name: Snow Mountain
+  lat: 43.94885
+  lon: -119.54013
+  elev_m: 1898.904
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 768:AK:SNTL
+  name: Look Eyrie
+  lat: 63.32192
+  lon: -145.59655
+  elev_m: 1536.192
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 769:ID:SNTL
+  name: Soldier R.S.
+  lat: 43.48407
+  lon: -114.82692
+  elev_m: 1761.7440000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 770:ID:SNTL
+  name: Somsen Ranch
+  lat: 42.95275
+  lon: -111.35933
+  elev_m: 2081.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 771:CA:SNTL
+  name: Sonora Pass
+  lat: 38.31021
+  lon: -119.6003
+  elev_m: 2673.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 772:WY:SNTL
+  name: South Brush Creek
+  lat: 41.3295
+  lon: -106.5025
+  elev_m: 2584.704
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 773:CO:SNTL
+  name: South Colony
+  lat: 37.96647
+  lon: -105.53671
+  elev_m: 3288.7920000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 774:ID:SNTL
+  name: South Mtn.
+  lat: 42.76476
+  lon: -116.90029
+  elev_m: 2026.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 775:WY:SNTL
+  name: South Pass
+  lat: 42.57314
+  lon: -108.84324
+  elev_m: 2755.3920000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 778:CA:SNTL
+  name: Spratt Creek
+  lat: 38.66627
+  lon: -119.81741
+  elev_m: 1847.0880000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 779:WY:SNTL
+  name: Spring Creek Divide
+  lat: 42.52516
+  lon: -110.66148
+  elev_m: 2749.2960000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 780:CO:SNTL
+  name: Spud Mountain
+  lat: 37.69883
+  lon: -107.77841
+  elev_m: 3249.168
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 781:MT:SNTL
+  name: Spur Park
+  lat: 46.77962
+  lon: -110.62165
+  elev_m: 2462.784
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 782:ID:SNTL
+  name: Puhi Flat
+  lat: 44.77091
+  lon: -116.24805
+  elev_m: 1901.952
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 783:MT:SNTL
+  name: Sleeping Woman
+  lat: 47.17902
+  lon: -114.33371
+  elev_m: 1865.3760000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 784:CA:SNTL
+  name: Palisades Tahoe
+  lat: 39.18986
+  lon: -120.26576
+  elev_m: 2441.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 786:WY:SNTL
+  name: St. Lawrence Alt
+  lat: 43.03312
+  lon: -109.17021
+  elev_m: 2624.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 787:MT:SNTL
+  name: Stahl Peak
+  lat: 48.90902
+  lon: -114.86298
+  elev_m: 1840.9920000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 789:OR:SNTL
+  name: Starr Ridge
+  lat: 44.26423
+  lon: -119.02162
+  elev_m: 1597.152
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 790:UT:SNTL
+  name: Steel Creek Park
+  lat: 40.90862
+  lon: -110.50462
+  elev_m: 3090.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 792:ID:SNTL
+  name: Stickney Mill
+  lat: 43.86117
+  lon: -114.20902
+  elev_m: 2267.712
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 793:CO:SNTL
+  name: Stillwater Creek
+  lat: 40.22532
+  lon: -105.9198
+  elev_m: 2670.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 794:OR:SNTL
+  name: Strawberry
+  lat: 42.12587
+  lon: -120.8361
+  elev_m: 1755.6480000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 795:UT:SNTL
+  name: Strawberry Divide
+  lat: 40.16483
+  lon: -111.20665
+  elev_m: 2468.88
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 797:CO:SNTL
+  name: Stump Lakes
+  lat: 37.47647
+  lon: -107.63348
+  elev_m: 3422.904
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 798:WY:SNTL
+  name: Sucker Creek
+  lat: 44.72279
+  lon: -107.40035
+  elev_m: 2694.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 800:OR:SNTL
+  name: Summer Rim
+  lat: 42.6957
+  lon: -120.80158
+  elev_m: 2157.984
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 801:OR:SNTL
+  name: Summit Lake
+  lat: 43.44907
+  lon: -122.13808
+  elev_m: 1709.928
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 802:CO:SNTL
+  name: Summit Ranch
+  lat: 39.71803
+  lon: -106.1577
+  elev_m: 2849.88
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 803:ID:SNTL
+  name: Sunset
+  lat: 47.55545
+  lon: -115.82422
+  elev_m: 1697.736
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 805:ID:SNTL
+  name: Swede Peak
+  lat: 43.626
+  lon: -113.96887
+  elev_m: 2328.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 806:WY:SNTL
+  name: Sylvan Lake
+  lat: 44.47764
+  lon: -110.15651
+  elev_m: 2572.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 807:WY:SNTL
+  name: Sylvan Road
+  lat: 44.47825
+  lon: -110.03808
+  elev_m: 2176.272
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 809:CA:SNTL
+  name: Tahoe City Cross
+  lat: 39.17162
+  lon: -120.15362
+  elev_m: 2060.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 810:OR:SNTL
+  name: Taylor Butte
+  lat: 42.69108
+  lon: -121.42592
+  elev_m: 1533.144
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 811:NV:SNTL
+  name: Taylor Canyon
+  lat: 41.2287
+  lon: -116.0293
+  elev_m: 1926.336
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 812:OR:SNTL
+  name: Taylor Green
+  lat: 45.07707
+  lon: -117.55067
+  elev_m: 1746.5040000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 813:MT:SNTL
+  name: Tepee Creek
+  lat: 44.78562
+  lon: -111.71
+  elev_m: 2423.1600000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 814:UT:SNTL
+  name: Thaynes Canyon
+  lat: 40.6235
+  lon: -111.53322
+  elev_m: 2822.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 815:OR:SNTL
+  name: Three Creeks Meadow
+  lat: 44.14425
+  lon: -121.64095
+  elev_m: 1731.2640000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 816:WY:SNTL
+  name: Thumb Divide
+  lat: 44.36917
+  lon: -110.57717
+  elev_m: 2429.2560000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 818:WY:SNTL
+  name: Tie Creek
+  lat: 44.81243
+  lon: -107.41017
+  elev_m: 2148.84
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 819:WY:SNTL
+  name: Timber Creek
+  lat: 44.0274
+  lon: -109.17879
+  elev_m: 2410.9680000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 820:UT:SNTL
+  name: Timpanogos Divide
+  lat: 40.42817
+  lon: -111.61633
+  elev_m: 2493.264
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 821:OR:SNTL
+  name: Tipton
+  lat: 44.65567
+  lon: -118.42617
+  elev_m: 1569.72
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 822:WY:SNTL
+  name: Togwotee Pass
+  lat: 43.74902
+  lon: -110.0578
+  elev_m: 2923.032
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 823:UT:SNTL
+  name: Tony Grove Lake
+  lat: 41.89833
+  lon: -111.62957
+  elev_m: 2575.56
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 824:WA:SNTL
+  name: Touchet
+  lat: 46.11868
+  lon: -117.8505
+  elev_m: 1682.496
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 825:CO:SNTL
+  name: Tower
+  lat: 40.5374
+  lon: -106.67655
+  elev_m: 3233.9280000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 826:WY:SNTL
+  name: Townsend Creek
+  lat: 42.69525
+  lon: -108.89572
+  elev_m: 2657.856
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 827:CO:SNTL
+  name: Trapper Lake
+  lat: 39.99881
+  lon: -107.23618
+  elev_m: 2971.8
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 828:UT:SNTL
+  name: Trial Lake
+  lat: 40.678
+  lon: -110.94873
+  elev_m: 3038.856
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 829:CO:SNTL
+  name: Trinchera
+  lat: 37.35296
+  lon: -105.23259
+  elev_m: 3310.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 830:ID:SNTL
+  name: Trinity Mtn.
+  lat: 43.62903
+  lon: -115.43818
+  elev_m: 2374.3920000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 831:WY:SNTL
+  name: Triple Peak
+  lat: 42.76393
+  lon: -110.5914
+  elev_m: 2596.896
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 832:WA:SNTL
+  name: Trough
+  lat: 47.23328
+  lon: -120.29412
+  elev_m: 1670.304
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 833:UT:SNTL
+  name: Trout Creek
+  lat: 40.739
+  lon: -109.6728
+  elev_m: 2877.3120000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 834:CA:SNTL
+  name: 'Truckee #2'
+  lat: 39.30087
+  lon: -120.18407
+  elev_m: 1981.2
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 835:MT:SNTL
+  name: Twelvemile Creek
+  lat: 46.14287
+  lon: -114.44755
+  elev_m: 1685.544
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 836:MT:SNTL
+  name: Twin Lakes
+  lat: 46.1438
+  lon: -114.5056
+  elev_m: 1944.624
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 837:WY:SNTL
+  name: Two Ocean Plateau
+  lat: 44.15178
+  lon: -110.22122
+  elev_m: 2816.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 838:CO:SNTL
+  name: University Camp
+  lat: 40.03307
+  lon: -105.57562
+  elev_m: 3148.5840000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 839:CO:SNTL
+  name: Upper Rio Grande
+  lat: 37.72172
+  lon: -107.25971
+  elev_m: 2855.976
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 840:CO:SNTL
+  name: Upper San Juan
+  lat: 37.48563
+  lon: -106.83528
+  elev_m: 3090.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 842:CO:SNTL
+  name: Vail Mountain
+  lat: 39.61765
+  lon: -106.38019
+  elev_m: 3136.3920000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 843:CO:SNTL
+  name: Vallecito
+  lat: 37.48524
+  lon: -107.50748
+  elev_m: 3273.552
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 844:UT:SNTL
+  name: Vernon Creek
+  lat: 39.93667
+  lon: -112.41478
+  elev_m: 2228.088
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 845:ID:SNTL
+  name: Vienna Mine
+  lat: 43.79942
+  lon: -114.85273
+  elev_m: 2721.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 846:CA:SNTL
+  name: Virginia Lakes Ridge
+  lat: 38.07298
+  lon: -119.23433
+  elev_m: 2865.1200000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 847:MT:SNTL
+  name: Waldron
+  lat: 47.91998
+  lon: -112.79087
+  elev_m: 1719.0720000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 848:CA:SNTL
+  name: 'Ward Creek #3'
+  lat: 39.13545
+  lon: -120.21865
+  elev_m: 2057.4
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 849:NV:SNTL
+  name: Ward Mountain
+  lat: 39.13242
+  lon: -114.95575
+  elev_m: 2795.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 850:MT:SNTL
+  name: Warm Springs
+  lat: 46.27368
+  lon: -113.164
+  elev_m: 2389.632
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 852:WY:SNTL
+  name: Webber Springs
+  lat: 41.1591
+  lon: -106.92809
+  elev_m: 2819.4
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 853:UT:SNTL
+  name: Webster Flat
+  lat: 37.575
+  lon: -112.90155
+  elev_m: 2788.92
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 854:NM:SNTL
+  name: Wesner Springs
+  lat: 35.77584
+  lon: -105.54337
+  elev_m: 3386.328
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 855:ID:SNTL
+  name: West Branch
+  lat: 45.0722
+  lon: -116.45413
+  elev_m: 1703.832
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 856:UT:SNTL
+  name: Parleys Upper
+  lat: 40.70194
+  lon: -111.60619
+  elev_m: 2538.984
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 857:CO:SNTL
+  name: Whiskey Ck
+  lat: 37.21423
+  lon: -105.12262
+  elev_m: 3127.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 858:MT:SNTL
+  name: Whiskey Creek
+  lat: 44.61088
+  lon: -111.14998
+  elev_m: 2069.592
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 859:WY:SNTL
+  name: Whiskey Park
+  lat: 41.00368
+  lon: -106.90795
+  elev_m: 2727.96
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 860:ID:SNTL
+  name: White Elephant
+  lat: 44.53267
+  lon: -111.41085
+  elev_m: 2337.8160000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 861:AZ:SNTL
+  name: White Horse Lake
+  lat: 35.14189
+  lon: -112.14966
+  elev_m: 2191.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 862:MT:SNTL
+  name: White Mill
+  lat: 45.04575
+  lon: -109.90987
+  elev_m: 2660.904
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 864:UT:SNTL
+  name: 'White River #1'
+  lat: 39.9645
+  lon: -110.98845
+  elev_m: 2627.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 865:UT:SNTL
+  name: 'Widtsoe #3'
+  lat: 37.83633
+  lon: -111.88163
+  elev_m: 2938.272
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 866:AZ:SNTL
+  name: Wildcat
+  lat: 33.74347
+  lon: -109.48078
+  elev_m: 2392.6800000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 867:ID:SNTL
+  name: Wildhorse Divide
+  lat: 42.75743
+  lon: -112.47783
+  elev_m: 1975.104
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 868:WY:SNTL
+  name: Willow Creek
+  lat: 42.81513
+  lon: -110.83515
+  elev_m: 2456.688
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 869:CO:SNTL
+  name: Willow Creek Pass
+  lat: 40.34734
+  lon: -106.0952
+  elev_m: 2901.6960000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 870:CO:SNTL
+  name: Willow Park
+  lat: 40.43397
+  lon: -105.73588
+  elev_m: 3264.4080000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 871:ID:SNTL
+  name: Wilson Creek
+  lat: 42.01257
+  lon: -115.00278
+  elev_m: 2167.128
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 872:WY:SNTL
+  name: Windy Peak
+  lat: 42.27991
+  lon: -105.57782
+  elev_m: 2404.8720000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 873:OR:SNTL
+  name: Wolf Creek
+  lat: 45.06704
+  lon: -118.15185
+  elev_m: 1746.5040000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 874:CO:SNTL
+  name: Wolf Creek Summit
+  lat: 37.47903
+  lon: -106.80234
+  elev_m: 3331.464
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 875:WY:SNTL
+  name: Wolverine
+  lat: 44.80417
+  lon: -109.657
+  elev_m: 2334.768
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 876:MT:SNTL
+  name: Wood Creek
+  lat: 47.44847
+  lon: -112.81428
+  elev_m: 1819.6560000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 877:AZ:SNTL
+  name: Workman Creek
+  lat: 33.81259
+  lon: -110.91852
+  elev_m: 2142.744
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 878:WY:SNTL
+  name: Younts Peak
+  lat: 43.93225
+  lon: -109.81775
+  elev_m: 2542.032
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 893:MT:SNTL
+  name: Tizer Basin
+  lat: 46.34937
+  lon: -111.85308
+  elev_m: 2097.024
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 895:ID:SNTL
+  name: Chocolate Gulch
+  lat: 43.7685
+  lon: -114.41812
+  elev_m: 1923.288
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 896:UT:SNTL
+  name: Hardscrabble
+  lat: 40.86833
+  lon: -111.71865
+  elev_m: 2215.896
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 901:MT:SNTL
+  name: Stuart Mountain
+  lat: 46.99521
+  lon: -113.92667
+  elev_m: 2215.896
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 902:AZ:SNTL
+  name: Beaver Head
+  lat: 33.69115
+  lon: -109.21685
+  elev_m: 2459.7360000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 903:MT:SNTL
+  name: Nevada Ridge
+  lat: 46.84234
+  lon: -112.50787
+  elev_m: 2142.744
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 904:CO:SNTL
+  name: Columbus Basin
+  lat: 37.44146
+  lon: -108.02468
+  elev_m: 3285.744
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 905:CO:SNTL
+  name: Mancos
+  lat: 37.43109
+  lon: -108.17005
+  elev_m: 3054.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 906:UT:SNTL
+  name: Dry Fork
+  lat: 40.56533
+  lon: -112.17343
+  elev_m: 2188.464
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 907:UT:SNTL
+  name: Agua Canyon
+  lat: 37.52217
+  lon: -112.27118
+  elev_m: 2709.672
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 913:CO:SNTL
+  name: Buffalo Park
+  lat: 40.22838
+  lon: -106.5962
+  elev_m: 2816.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 914:CO:SNTL
+  name: Medano Pass
+  lat: 37.85192
+  lon: -105.43666
+  elev_m: 2941.32
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 915:ID:SNTL
+  name: Schwartz Lake
+  lat: 44.84618
+  lon: -113.83732
+  elev_m: 2627.376
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 916:MT:SNTL
+  name: Albro Lake
+  lat: 45.59723
+  lon: -111.95902
+  elev_m: 2590.8
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 919:MT:SNTL
+  name: Daisy Peak
+  lat: 46.66858
+  lon: -110.33022
+  elev_m: 2313.4320000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 920:SD:SNTL
+  name: North Rapid Creek
+  lat: 44.20617
+  lon: -103.78758
+  elev_m: 1874.52
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 921:NM:SNTL
+  name: Elk Cabin
+  lat: 35.7073
+  lon: -105.80584
+  elev_m: 2505.456
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 922:NM:SNTL
+  name: Santa Fe
+  lat: 35.77154
+  lon: -105.78487
+  elev_m: 3499.1040000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 923:WY:SNTL
+  name: Deer Park
+  lat: 42.59076
+  lon: -108.90273
+  elev_m: 2953.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 924:MT:SNTL
+  name: West Yellowstone
+  lat: 44.65866
+  lon: -111.09199
+  elev_m: 2036.064
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 926:ID:SNTL
+  name: Smiley Mountain
+  lat: 43.72718
+  lon: -113.83402
+  elev_m: 2907.7920000000004
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 927:AZ:SNTL
+  name: Snowslide Canyon
+  lat: 35.34179
+  lon: -111.65084
+  elev_m: 2962.656
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 929:MT:SNTL
+  name: Sacajawea
+  lat: 45.87395
+  lon: -110.92783
+  elev_m: 2014.728
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 930:MT:SNTL
+  name: Peterson Meadows
+  lat: 46.12588
+  lon: -113.30792
+  elev_m: 2191.512
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 931:WY:SNTL
+  name: Big Goose
+  lat: 44.57922
+  lon: -107.20068
+  elev_m: 2441.4480000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 932:MT:SNTL
+  name: Poorman Creek
+  lat: 48.12632
+  lon: -115.6234
+  elev_m: 1539.24
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 933:NM:SNTL
+  name: Rice Park
+  lat: 35.23658
+  lon: -108.27404
+  elev_m: 2584.704
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 934:NM:SNTL
+  name: Tolby
+  lat: 36.47498
+  lon: -105.19534
+  elev_m: 3112.0080000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 935:CO:SNTL
+  name: Jackwhacker Gulch
+  lat: 39.57096
+  lon: -105.80355
+  elev_m: 3361.944
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 936:CO:SNTL
+  name: Echo Lake
+  lat: 39.65539
+  lon: -105.59358
+  elev_m: 3249.168
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 937:CO:SNTL
+  name: Michigan Creek
+  lat: 39.43579
+  lon: -105.91072
+  elev_m: 3261.36
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 938:CO:SNTL
+  name: Buckskin Joe
+  lat: 39.30378
+  lon: -106.11316
+  elev_m: 3401.568
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 939:CO:SNTL
+  name: Rough And Tumble
+  lat: 39.02611
+  lon: -106.08063
+  elev_m: 3176.016
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 940:CO:SNTL
+  name: Lost Dog
+  lat: 40.81557
+  lon: -106.74833
+  elev_m: 2849.88
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 944:WY:SNTL
+  name: Gunsight Pass
+  lat: 43.38332
+  lon: -109.87815
+  elev_m: 2993.136
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 969:AZ:SNTL
+  name: Happy Jack
+  lat: 34.74594
+  lon: -111.41219
+  elev_m: 2292.096
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 970:CO:SNTL
+  name: Jones Pass
+  lat: 39.7645
+  lon: -105.90655
+  elev_m: 3179.0640000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 971:UT:SNTL
+  name: Parrish Creek
+  lat: 40.93417
+  lon: -111.81372
+  elev_m: 2365.248
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 972:UT:SNTL
+  name: Louis Meadow
+  lat: 40.83033
+  lon: -111.76457
+  elev_m: 2054.3520000000003
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 974:WA:SNTL
+  name: Waterhole
+  lat: 47.94485
+  lon: -123.42594
+  elev_m: 1527.048
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 977:CA:SNTL
+  name: Crowder Flat
+  lat: 41.89318
+  lon: -120.75202
+  elev_m: 1578.864
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 978:ID:SNTL
+  name: Bogus Basin
+  lat: 43.76377
+  lon: -116.09685
+  elev_m: 1941.576
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 979:ID:SNTL
+  name: Van Wyck
+  lat: 44.37665
+  lon: -116.3366
+  elev_m: 1511.808
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 981:MT:SNTL
+  name: Burnt Mtn
+  lat: 45.2401
+  lon: -109.45961
+  elev_m: 1804.4160000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 982:WY:SNTL
+  name: Cole Canyon
+  lat: 44.48632
+  lon: -104.41057
+  elev_m: 1807.4640000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 983:UT:SNTL
+  name: Clayton Springs
+  lat: 37.9725
+  lon: -111.83355
+  elev_m: 3051.0480000000002
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 984:WA:SNTL
+  name: Spruce Springs
+  lat: 46.18287
+  lon: -117.54155
+  elev_m: 1734.3120000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 988:ID:SNTL
+  name: Hidden Lake
+  lat: 48.89368
+  lon: -116.75743
+  elev_m: 1524.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 992:UT:SNTL
+  name: Bear River RS
+  lat: 40.8852
+  lon: -110.8277
+  elev_m: 2593.848
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 993:CA:SNTLT
+  name: State Line AM
+  lat: 41.9869
+  lon: -120.7151
+  elev_m: 1734.3120000000001
+  country: US
+  enrolled_at: '2026-08-16'
+- id: 998:WA:SNTL
+  name: Easy Pass
+  lat: 48.85933
+  lon: -121.43895
+  elev_m: 1609.344
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:04V
+  name: SAGUACHE MUNI
+  lat: 38.1
+  lon: -106.17
+  elev_m: 2385.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:05U
+  name: Eureka
+  lat: 39.6042
+  lon: -116.0051
+  elev_m: 1811.2307
+  country: US
+  enrolled_at: '2026-08-16'
 - id: ASOS:0CO
   name: Berthoud Pass
   lat: 39.7939
   lon: -105.7639
   elev_m: 3792.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:0E0
+  name: Moriarty
+  lat: 34.9856
+  lon: -106.0095
+  elev_m: 1889.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:10U
+  name: Owyhee
+  lat: 41.9532
+  lon: -116.1876
+  elev_m: 1637.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:1BW
+  name: Long Springs
+  lat: 41.5117
+  lon: -103.995
+  elev_m: 1602.9132
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:1U7
+  name: Bear Lake County
+  lat: 42.2497
+  lon: -111.3416
+  elev_m: 1807.0803
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:1V6
+  name: Canon City
+  lat: 38.428
+  lon: -105.1058
+  elev_m: 1645.1505
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:20V
+  name: KREMMLING
+  lat: 40.0537
+  lon: -106.3689
+  elev_m: 2259.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:33V
+  name: Walden
+  lat: 40.7503
+  lon: -106.2715
+  elev_m: 2484.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:3U3
+  name: Anaconda
+  lat: 46.1531
+  lon: -112.8678
+  elev_m: 1524.888
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:40U
+  name: Manilla
+  lat: 40.9861
+  lon: -109.6785
+  elev_m: 1873.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:41U
+  name: Manti
+  lat: 39.3314
+  lon: -111.6126
+  elev_m: 1679.1724
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:46U
+  name: Alpine
+  lat: 43.1846
+  lon: -111.0424
+  elev_m: 1713.6123
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:4BM
+  name: WILKERSON PASS
+  lat: 39.05
+  lon: -105.514
+  elev_m: 3438.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:4V0
+  name: Rangely
+  lat: 40.0956
+  lon: -108.7593
+  elev_m: 1605.0275
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:4V1
+  name: Walsenburg
+  lat: 37.6941
+  lon: -104.7881
+  elev_m: 1843.6492
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:5SM
+  name: Sunlight
+  lat: 39.426
+  lon: -107.379
+  elev_m: 3232.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:74V
+  name: Roosevelt
+  lat: 40.2783
+  lon: -110.0513
+  elev_m: 1568.6509
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:7BM
+  name: COTTONWOOD PASS
+  lat: 38.7825
+  lon: -106.2181
+  elev_m: 2995.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:82V
+  name: Pine Bluffs
+  lat: 41.1533
+  lon: -104.1302
+  elev_m: 1563.2053
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ABH
+  name: ELLICOTT-B AFA
+  lat: 38.7578
+  lon: -104.3083
+  elev_m: 1840.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ABQ
+  name: ALBUQUERQUE INTL
+  lat: 35.0419
+  lon: -106.6155
+  elev_m: 1620.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AEG
+  name: ALBUQUERQUE/DOUBLE EAGLE II APT
+  lat: 35.1452
+  lon: -106.7952
+  elev_m: 1779.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AEJ
+  name: BUENA VISTA
+  lat: 38.8142
+  lon: -106.1207
+  elev_m: 2422.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AFF
+  name: AIR FORCE ACADEMY
+  lat: 38.9697
+  lon: -104.8128
+  elev_m: 2003.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AFO
+  name: Afton
+  lat: 42.7112
+  lon: -110.9422
+  elev_m: 1882.1039
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AIB
+  name: Nucla
+  lat: 38.2388
+  lon: -108.5633
+  elev_m: 1810.1539
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AJZ
+  name: Delta
+  lat: 38.7864
+  lon: -108.0636
+  elev_m: 1572.5869
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ALS
+  name: ALAMOSA MUNI(AWOS)
+  lat: 37.4389
+  lon: -105.8614
+  elev_m: 2299.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ANK
+  name: Salida
+  lat: 38.5383
+  lon: -106.0486
+  elev_m: 2293.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:APA
+  name: DENVER/CENTENNIAL
+  lat: 39.57
+  lon: -104.85
+  elev_m: 1793.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ASE
+  name: ASPEN/SARDY FIELD
+  lat: 39.2232
+  lon: -106.8689
+  elev_m: 2382.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:AXX
+  name: Angel Fire
+  lat: 36.422
+  lon: -105.2899
+  elev_m: 2554.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BAN
+  name: Usmc Mtn Warfare Tra
+  lat: 38.3636
+  lon: -119.52
+  elev_m: 2067.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BCE
+  name: BRYCE CANYON
+  lat: 37.7064
+  lon: -112.1456
+  elev_m: 2312.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BDG
+  name: Blanding
+  lat: 37.5828
+  lon: -109.4831
+  elev_m: 1774.1791
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BDU
+  name: Boulder
+  lat: 40.0394
+  lon: -105.2258
+  elev_m: 1612.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BJC
+  name: BROOMFIELD/JEFFCO
+  lat: 39.9088
+  lon: -105.1172
+  elev_m: 1724.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BKF
+  name: BUCKLEY ANGB/DENVER
+  lat: 39.7017
+  lon: -104.7517
+  elev_m: 1726.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BLU
+  name: Blue Canyon - Nyack
+  lat: 39.275
+  lon: -120.7097
+  elev_m: 1611.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BPI
+  name: Big Piney - Marbleton
+  lat: 42.5851
+  lon: -110.1111
+  elev_m: 2124.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BRG
+  name: Belen
+  lat: 34.646
+  lon: -106.836
+  elev_m: 1576.069
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BTM
+  name: BUTTE/BERT MOONEY
+  lat: 45.9548
+  lon: -112.4975
+  elev_m: 1690.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:BYG
+  name: BUFFALO/JOHNSON COUNTY
+  lat: 44.38
+  lon: -106.72
+  elev_m: 1514.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:C07
+  name: Walton Peak
+  lat: 40.3544
+  lon: -106.6992
+  elev_m: 3210.7876
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:C08
+  name: Westcliffe
+  lat: 38.0133
+  lon: -105.3743
+  elev_m: 2512.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:C99
+  name: Dakota Hills
+  lat: 39.8689
+  lon: -105.5533
+  elev_m: 3319.951
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CAG
+  name: Craig - Moffat
+  lat: 40.4952
+  lon: -107.5216
+  elev_m: 1915.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CAO
+  name: Clayton
+  lat: 36.4486
+  lon: -103.1539
+  elev_m: 1515.0
   country: US
   enrolled_at: '2026-08-16'
 - id: ASOS:CCU
@@ -27,11 +5788,578 @@ stations:
   elev_m: 3680.0
   country: US
   enrolled_at: '2026-08-16'
+- id: ASOS:CDC
+  name: CEDAR CITY MUNI
+  lat: 37.7
+  lon: -113.1
+  elev_m: 1714.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CEZ
+  name: CORTEZ/MONTEZUMA CO
+  lat: 37.303
+  lon: -108.6281
+  elev_m: 1803.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CFO
+  name: Colorado Air and Space
+  lat: 39.7841
+  lon: -104.5376
+  elev_m: 1674.3636
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CMR
+  name: Williams
+  lat: 35.3054
+  lon: -112.1947
+  elev_m: 2036.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:COD
+  name: CODY MUNI (AWOS)
+  lat: 44.5202
+  lon: -109.0238
+  elev_m: 1553.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:COS
+  name: COLORADO SPRINGS
+  lat: 38.8058
+  lon: -104.7008
+  elev_m: 1881.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CPR
+  name: CASPER/NATRONA INTL
+  lat: 42.908
+  lon: -106.4644
+  elev_m: 1612.0
+  country: US
+  enrolled_at: '2026-08-16'
 - id: ASOS:CPW
   name: WOLF CREEK PASS (CDOT)
   lat: 37.45
   lon: -106.8
   elev_m: 3584.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CQC
+  name: CLINES CORNERS
+  lat: 35.0028
+  lon: -105.6628
+  elev_m: 2160.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CUT
+  name: CUSTER
+  lat: 43.7331
+  lon: -103.6114
+  elev_m: 1686.81
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CWN
+  name: Cheyenne Mountain
+  lat: 38.75
+  lon: -104.85
+  elev_m: 2227.647
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:CWYL
+  name: Yoho Park
+  lat: 51.4428
+  lon: -116.3446
+  elev_m: 1598.6891
+  country: CA
+  enrolled_at: '2026-08-16'
+- id: ASOS:CYS
+  name: CHEYENNE/WARREN AFB
+  lat: 41.1556
+  lon: -104.8105
+  elev_m: 1871.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DEN
+  name: DENVER INTNL ARPT
+  lat: 39.8328
+  lon: -104.6575
+  elev_m: 1656.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DGW
+  name: DOUGLAS/CONVERSE COUNTY AIRPORT
+  lat: 42.7972
+  lon: -105.3858
+  elev_m: 1502.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DIJ
+  name: Driggs
+  lat: 43.7419
+  lon: -111.0979
+  elev_m: 1898.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DLN
+  name: DILLON AIRPORT
+  lat: 45.2554
+  lon: -112.5525
+  elev_m: 1597.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DRO
+  name: DURANGO/LA PLATA CO
+  lat: 37.1515
+  lon: -107.7538
+  elev_m: 2038.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DUB
+  name: Dubois
+  lat: 43.5484
+  lon: -109.6903
+  elev_m: 2210.3616
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:DWX
+  name: DIxon
+  lat: 41.0374
+  lon: -107.4925
+  elev_m: 1983.8618
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EEO
+  name: MEEKER
+  lat: 40.0488
+  lon: -107.8859
+  elev_m: 1957.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EGE
+  name: EAGLE CO. REGIONAL
+  lat: 39.6426
+  lon: -106.9177
+  elev_m: 1993.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EHY
+  name: Elk Mountain
+  lat: 41.7253
+  lon: -106.4594
+  elev_m: 2225.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EIK
+  name: Erie
+  lat: 40.0102
+  lon: -105.048
+  elev_m: 1563.6
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EKS
+  name: Ennis
+  lat: 45.2718
+  lon: -111.6486
+  elev_m: 1630.2418
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ELY
+  name: ELY/YELLAND FLD
+  lat: 39.295
+  lon: -114.8453
+  elev_m: 1909.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EMM
+  name: Kemmerer
+  lat: 41.8241
+  lon: -110.557
+  elev_m: 2217.5945
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:EVW
+  name: EVANSTON/BURNS FLD
+  lat: 41.2731
+  lon: -111.0306
+  elev_m: 2183.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FAJB
+  name: Johannesburg
+  lat: -26.1683
+  lon: 28.0771
+  elev_m: 1719.7092
+  country: ZA
+  enrolled_at: '2026-08-16'
+- id: ASOS:FAOR
+  name: Johannesburg - O. R. Tambo
+  lat: -26.1326
+  lon: 28.2386
+  elev_m: 1690.0
+  country: ZA
+  enrolled_at: '2026-08-16'
+- id: ASOS:FASI
+  name: Springs
+  lat: -26.25
+  lon: 28.4
+  elev_m: 1628.0
+  country: ZA
+  enrolled_at: '2026-08-16'
+- id: ASOS:FAWK
+  name: Waterkloof
+  lat: -25.83
+  lon: 28.2225
+  elev_m: 1500.0
+  country: ZA
+  enrolled_at: '2026-08-16'
+- id: ASOS:FBR
+  name: Fort Bridger
+  lat: 41.3941
+  lon: -110.4059
+  elev_m: 2140.5823
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FCS
+  name: FORT CARSON/BUTTS
+  lat: 38.6784
+  lon: -104.7566
+  elev_m: 1789.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FEW
+  name: Cheyenne FEW
+  lat: 41.1333
+  lon: -104.8672
+  elev_m: 1878.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FLG
+  name: Flagstaff - Pulliam
+  lat: 35.1403
+  lon: -111.6722
+  elev_m: 2137.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FLY
+  name: Meadow Lake
+  lat: 38.9457
+  lon: -104.5699
+  elev_m: 2082.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FMN
+  name: FARMINGTON REGIONAL
+  lat: 36.7436
+  lon: -108.2292
+  elev_m: 1677.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FNL
+  name: FORT COLLINS (AWOS)
+  lat: 40.4518
+  lon: -105.0113
+  elev_m: 1529.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:FOM
+  name: Fillmore
+  lat: 38.9581
+  lon: -112.3631
+  elev_m: 1509.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:GCN
+  name: GRAND CANYON PARK
+  lat: 35.9461
+  lon: -112.1547
+  elev_m: 2014.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:GNB
+  name: Granby
+  lat: 40.0904
+  lon: -105.9113
+  elev_m: 2501.8435
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:GNT
+  name: GRANTS-MILAN MUNI
+  lat: 35.1673
+  lon: -107.9021
+  elev_m: 1987.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:GUC
+  name: GUNNISON CO. (AWOS)
+  lat: 38.5339
+  lon: -106.933
+  elev_m: 2339.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:GUP
+  name: GALLUP MUNI/CLARKE
+  lat: 35.5111
+  lon: -108.7893
+  elev_m: 1972.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:HCR
+  name: Heber City
+  lat: 40.47
+  lon: -111.43
+  elev_m: 1724.0114
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:HDN
+  name: HAYDEN/YAMPA (AWOS)
+  lat: 40.48
+  lon: -107.22
+  elev_m: 2012.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:JAC
+  name: JACKSON HOLE (AWOS)
+  lat: 43.6128
+  lon: -110.737
+  elev_m: 1964.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:JTC
+  name: Springerville
+  lat: 34.1294
+  lon: -109.3109
+  elev_m: 2148.3633
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:L35
+  name: Big Bear City
+  lat: 34.2638
+  lon: -116.856
+  elev_m: 2058.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LAM
+  name: LOS ALAMOS
+  lat: 35.8798
+  lon: -106.2694
+  elev_m: 2179.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LAR
+  name: LARAMIE/GEN. BREES
+  lat: 41.3121
+  lon: -105.675
+  elev_m: 2218.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LIC
+  name: LIMON MUNICIPAL
+  lat: 39.2748
+  lon: -103.6659
+  elev_m: 1635.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LLJ
+  name: Challis
+  lat: 44.5228
+  lon: -114.215
+  elev_m: 1546.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LMO
+  name: LONGMONT/VBRAND
+  lat: 40.1637
+  lon: -105.163
+  elev_m: 1541.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LND
+  name: LANDER/HUNT FIELD
+  lat: 42.8152
+  lon: -108.7298
+  elev_m: 1694.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LVS
+  name: LAS VEGAS MUNICIPAL
+  lat: 35.6542
+  lon: -105.1424
+  elev_m: 2095.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:LXV
+  name: LEADVILLE/LAKE CO.
+  lat: 39.2281
+  lon: -106.3161
+  elev_m: 3026.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MLF
+  name: MILFORD MUNICIPAL
+  lat: 38.4266
+  lon: -113.0125
+  elev_m: 1536.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MLP
+  name: Mullan Pass
+  lat: 47.4548
+  lon: -115.6711
+  elev_m: 1830.0652
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMAS
+  name: Aguascalientes
+  lat: 21.8533
+  lon: -102.2914
+  elev_m: 1863.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMCB
+  name: Cuernavaca
+  lat: 18.8922
+  lon: -99.2333
+  elev_m: 1560.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMDO
+  name: Durango
+  lat: 24.1242
+  lon: -104.528
+  elev_m: 1857.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMGL
+  name: Guadalajara
+  lat: 20.5218
+  lon: -103.3112
+  elev_m: 1528.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMH
+  name: MAMMOTH/JUNE LAKES
+  lat: 37.6241
+  lon: -118.8388
+  elev_m: 2173.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMLO
+  name: Del Bajio
+  lat: 20.9935
+  lon: -101.4809
+  elev_m: 1819.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMMM
+  name: Morelia
+  lat: 19.8499
+  lon: -101.0255
+  elev_m: 1833.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMMX
+  name: Mexico City
+  lat: 19.4363
+  lon: -99.0721
+  elev_m: 2238.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMOX
+  name: Oaxaca
+  lat: 17.0667
+  lon: -96.7
+  elev_m: 1528.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMPB
+  name: Puebla
+  lat: 19.05
+  lon: -98.1667
+  elev_m: 2244.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMPN
+  name: Uruapan
+  lat: 19.3967
+  lon: -102.0391
+  elev_m: 1593.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMQT
+  name: Queretaro
+  lat: 20.5833
+  lon: -100.4
+  elev_m: 1813.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMSM
+  name: Santa Lucia
+  lat: 19.7553
+  lon: -99.0164
+  elev_m: 2245.42
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMSP
+  name: San Luis Potosi
+  lat: 22.2075
+  lon: -101.0222
+  elev_m: 1903.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMTL
+  name: TULANCINGO  HGO.
+  lat: 20.0842
+  lon: -98.3572
+  elev_m: 2181.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMTO
+  name: Toluca
+  lat: 19.3371
+  lon: -99.566
+  elev_m: 2576.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MMZC
+  name: Zacatecas
+  lat: 22.8971
+  lon: -102.6869
+  elev_m: 2177.0
+  country: MX
+  enrolled_at: '2026-08-16'
+- id: ASOS:MNH
+  name: MONUMENT/ELBERT (CDOT)
+  lat: 39.2231
+  lon: -104.6422
+  elev_m: 2152.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MTJ
+  name: MONTROSE CO. ARPT
+  lat: 38.505
+  lon: -107.8975
+  elev_m: 1755.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MWN
+  name: Mount Washington
+  lat: 44.2708
+  lon: -71.3035
+  elev_m: 1910.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MWS
+  name: MOUNT WILSON
+  lat: 34.2333
+  lon: -118.0667
+  elev_m: 1739.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:MYL
+  name: MC CALL
+  lat: 44.8889
+  lon: -116.1017
+  elev_m: 1531.0
   country: US
   enrolled_at: '2026-08-16'
 - id: ASOS:MYP
@@ -40,6 +6368,335 @@ stations:
   lon: -106.3168
   elev_m: 3667.0
   country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:N24
+  name: Questa
+  lat: 36.8
+  lon: -105.6
+  elev_m: 2333.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:P60
+  name: YELLOWSTONE (RAMOS)
+  lat: 44.5444
+  lon: -110.4211
+  elev_m: 2368.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:P68
+  name: EUREKA (RAMOS)
+  lat: 39.6014
+  lon: -116.0056
+  elev_m: 1993.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:PAN
+  name: Payson
+  lat: 34.2568
+  lon: -111.3393
+  elev_m: 1571.9
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:PHSF
+  name: BRADSHAW_AAF/HAWAII
+  lat: 19.76
+  lon: -155.5538
+  elev_m: 1887.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:PNA
+  name: PINEDALE/RALPH WENZ FIELD
+  lat: 42.7955
+  lon: -109.8071
+  elev_m: 2160.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:POY
+  name: Powell
+  lat: 44.8672
+  lon: -108.7934
+  elev_m: 1538.4971
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:PRC
+  name: PRESCOTT/LOVE FLD
+  lat: 34.65
+  lon: -112.42
+  elev_m: 1537.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:PSO
+  name: Pagosa Springs
+  lat: 37.2863
+  lon: -107.056
+  elev_m: 2336.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:PUC
+  name: PRICE/CARBON(RAMOS)
+  lat: 39.6092
+  lon: -110.7547
+  elev_m: 1799.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RCV
+  name: Del Norte
+  lat: 37.7138
+  lon: -106.352
+  elev_m: 2411.7869
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RIL
+  name: RIFLE/GARFIELD RGNL
+  lat: 39.5263
+  lon: -107.7269
+  elev_m: 1691.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RIW
+  name: RIVERTON
+  lat: 43.0642
+  lon: -108.4598
+  elev_m: 1688.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RKS
+  name: ROCK SPRINGS
+  lat: 41.5942
+  lon: -109.0652
+  elev_m: 2060.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RQE
+  name: WINDOW ROCK (WAS P34)
+  lat: 35.6575
+  lon: -109.0614
+  elev_m: 2054.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RTN
+  name: RATON/CREWS FLD
+  lat: 36.7415
+  lon: -104.5022
+  elev_m: 1935.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RTS
+  name: Reno
+  lat: 39.6682
+  lon: -119.8764
+  elev_m: 1539.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:RWL
+  name: RAWLINS MUNICIPAL
+  lat: 41.8056
+  lon: -107.1999
+  elev_m: 2077.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SAA
+  name: Saratoga
+  lat: 41.4435
+  lon: -106.8275
+  elev_m: 2114.2974
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SAF
+  name: SANTA FE CO. MUNI
+  lat: 35.6171
+  lon: -106.0894
+  elev_m: 1934.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SBS
+  name: STEAMBOAT SPRINGS
+  lat: 40.5162
+  lon: -106.8663
+  elev_m: 2096.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SHM
+  name: Schriever AFB
+  lat: 38.8
+  lon: -104.5167
+  elev_m: 1896.5726
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SJN
+  name: ST. JOHNS AIR PARK
+  lat: 34.52
+  lon: -109.38
+  elev_m: 1747.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SNT
+  name: Stanley Ranger Station
+  lat: 44.1708
+  lon: -114.9269
+  elev_m: 1979.9354
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SOW
+  name: SHOW LOW MUNICIPAL
+  lat: 34.2655
+  lon: -110.0057
+  elev_m: 1954.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SRR
+  name: RUIDOSO REGIONAL
+  lat: 33.4629
+  lon: -105.5348
+  elev_m: 2076.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SUN
+  name: HAILEY/FRIEDMAN MEM
+  lat: 43.5038
+  lon: -114.2956
+  elev_m: 1620.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:SVC
+  name: SILVER CITY/GRANT
+  lat: 32.6365
+  lon: -108.1564
+  elev_m: 1659.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TAD
+  name: TRINIDAD/ANIMAS CO.
+  lat: 37.2594
+  lon: -104.3407
+  elev_m: 1756.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TBX
+  name: Boysen Peak
+  lat: 43.4646
+  lon: -108.2384
+  elev_m: 2224.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TEX
+  name: TELLURIDE REGIONAL
+  lat: 37.9538
+  lon: -107.9085
+  elev_m: 2769.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TMT
+  name: Austin
+  lat: 39.4643
+  lon: -117.1971
+  elev_m: 1749.3367
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TPH
+  name: TONOPAH AIRPORT
+  lat: 38.0505
+  lon: -117.0904
+  elev_m: 1654.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TRK
+  name: TRUCKEE-TAHOE
+  lat: 39.32
+  lon: -120.1396
+  elev_m: 1798.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TVL
+  name: SOUTH LAKE TAHOE
+  lat: 38.8939
+  lon: -119.9953
+  elev_m: 1909.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:TYL
+  name: Taylor
+  lat: 34.4577
+  lon: -110.1118
+  elev_m: 1746.0222
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:U14
+  name: Nephi
+  lat: 39.7366
+  lon: -111.87
+  elev_m: 1526.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:U52
+  name: Beaver
+  lat: 38.2307
+  lon: -112.6753
+  elev_m: 1779.804
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:U55
+  name: Panguitch
+  lat: 37.8511
+  lon: -112.3911
+  elev_m: 2060.384
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:U64
+  name: Monticello
+  lat: 37.9324
+  lon: -109.3412
+  elev_m: 2119.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:U69
+  name: Duchesne
+  lat: 40.1919
+  lon: -110.381
+  elev_m: 1770.5417
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:VEL
+  name: VERNAL
+  lat: 40.4409
+  lon: -109.5099
+  elev_m: 1608.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:VTP
+  name: LA VETA PASS (CDOT)
+  lat: 37.5007
+  lon: -105.1668
+  elev_m: 3114.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:WYS
+  name: West Yellowstone
+  lat: 44.6884
+  lon: -111.1176
+  elev_m: 2026.6
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:XNI
+  name: Zuni
+  lat: 35.0606
+  lon: -108.93
+  elev_m: 1940.0
+  country: US
+  enrolled_at: '2026-08-16'
+- id: ASOS:ZLLL
+  name: Lanzhou
+  lat: 36.02
+  lon: 103.75
+  elev_m: 1947.0
+  country: CN
+  enrolled_at: '2026-08-16'
+- id: ASOS:ZPPP
+  name: Kunming
+  lat: 25.0167
+  lon: 102.6833
+  elev_m: 1892.0
+  country: CN
   enrolled_at: '2026-08-16'
 - id: IEM:DEN
   name: Denver International Airport

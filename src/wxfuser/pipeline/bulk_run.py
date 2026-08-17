@@ -56,8 +56,18 @@ def gather_observations_bulk(
             for sid, g in frame.groupby("station_id"):
                 out[str(sid)] = obs_mod.qc(obs_mod.normalize_hourly(g))
 
+    # SNOTEL ids are bare triplets, so they land in the catch-all group. They are usually
+    # the bulk of a mountain registry, and AWDB accepts many triplets per request.
+    snotel = groups.get("SNOTEL", [])
+    if snotel:
+        print(f"  bulk SNOTEL: {len(snotel)} stations, {start}..{end}", flush=True)
+        frame = bulk.snotel_observations([s.id for s in snotel], start, end)
+        if not frame.empty:
+            for sid, g in frame.groupby("station_id"):
+                out[str(sid)] = obs_mod.qc(obs_mod.normalize_hourly(g))
+
     for prefix, group in groups.items():
-        if prefix == "ASOS":
+        if prefix in ("ASOS", "SNOTEL"):
             continue
         for st in group:
             try:

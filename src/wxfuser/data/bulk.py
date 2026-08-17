@@ -226,6 +226,88 @@ def snotel_stations() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def snotel_observations(
+    triplets: list[str], start: date, end: date, *, chunk: int = 40
+) -> pd.DataFrame:
+    """Hourly observations for many SNOTEL sites per request.
+
+    The AWDB data endpoint takes a comma-separated ``stationTriplets`` list, so a set of
+    sites costs one request rather than one each. That matters because SNOTEL has no bulk
+    archive and makes up most of a mountain-focused registry — fetched one at a time it
+    would dominate every refresh.
+
+    Elements: TOBS is observed air temperature in Fahrenheit; PREC accumulates through the
+    water year, so hourly precipitation is its positive first difference — negative steps
+    are the sensor's seasonal reset, not negative rainfall.
+    """
+    if not triplets:
+        return pd.DataFrame(columns=OBS_COLUMNS)
+
+    frames: list[pd.DataFrame] = []
+    for i in range(0, len(triplets), chunk):
+        batch = triplets[i : i + chunk]
+        params = {
+            "stationTriplets": ",".join(batch),
+            "elements": "TOBS,PREC",
+            "duration": "HOURLY",
+            "beginDate": start.isoformat(),
+            "endDate": end.isoformat(),
+        }
+        try:
+            payload = _http_json(f"{AWDB}/data?" + urlencode(params), timeout=180)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  WARN: SNOTEL batch {i // chunk} failed ({exc})", flush=True)
+            continue
+        if not isinstance(payload, list):
+            continue
+        for station in payload:
+            frame = _normalise_snotel(station)
+            if not frame.empty:
+                frames.append(frame)
+        print(f"  SNOTEL: {min(i + chunk, len(triplets))}/{len(triplets)} stations, "
+              f"{sum(len(f) for f in frames)} rows", flush=True)
+
+    if not frames:
+        return pd.DataFrame(columns=OBS_COLUMNS)
+    return pd.concat(frames, ignore_index=True)
+
+
+def _normalise_snotel(station: dict) -> pd.DataFrame:
+    triplet = station.get("stationTriplet")
+    if not triplet:
+        return pd.DataFrame(columns=OBS_COLUMNS)
+
+    series: dict[str, dict[str, float]] = {}
+    for element in station.get("data", []):
+        code = (element.get("stationElement") or {}).get("elementCode")
+        for v in element.get("values", []):
+            ts, val = v.get("date"), v.get("value")
+            if ts is None or val is None:
+                continue
+            series.setdefault(ts, {})[code] = float(val)
+    if not series:
+        return pd.DataFrame(columns=OBS_COLUMNS)
+
+    df = pd.DataFrame.from_dict(series, orient="index").sort_index()
+    df.index = pd.to_datetime(df.index)
+
+    out = pd.DataFrame(index=df.index)
+    out["air_temp_c"] = (df["TOBS"] - 32.0) * 5.0 / 9.0 if "TOBS" in df else np.nan
+    if "PREC" in df:
+        out["precip_1h_mm"] = (df["PREC"].diff() * 25.4).clip(lower=0.0)
+    else:
+        out["precip_1h_mm"] = np.nan
+
+    out = out.reset_index(names="valid_time")
+    out["valid_time"] = pd.to_datetime(out["valid_time"]).dt.floor("h")
+    out["station_id"] = triplet
+    out["source"] = "SNOTEL"
+    for c in OBS_COLUMNS:
+        if c not in out:
+            out[c] = np.nan
+    return out[OBS_COLUMNS]
+
+
 def enrollable_universe(
     *,
     include_asos: bool = True,
