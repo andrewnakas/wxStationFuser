@@ -75,6 +75,12 @@ jobs:
           restore-keys: |
             wxfuser-state-
 
+      # Hugging Face allows 1000 API requests per 5 minutes and snapshot_download spends
+      # one per file, so a fleet that all restores at once bursts through the quota and
+      # every shard fails on its first step.
+      - name: Stagger the restore
+        run: sleep $(( ${{ matrix.shard }} * 25 ))
+
       - name: Restore state (Hugging Face)
         if: env.HF_TOKEN != ''
         run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}

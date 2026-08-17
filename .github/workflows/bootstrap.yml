@@ -77,6 +77,13 @@ jobs:
       - name: Install
         run: pip install -e ".[train]"
 
+      # Hugging Face allows 1000 API requests per 5 minutes and snapshot_download spends
+      # one per file, so a fleet that all restores at once bursts straight through the
+      # quota and every shard fails on its first step. Staggering keeps roughly two
+      # workers downloading at a time, which stays comfortably inside the window.
+      - name: Stagger the restore
+        run: sleep $(( ${{ matrix.shard }} * 25 ))
+
       - name: Restore state
         if: env.HF_TOKEN != ''
         run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}

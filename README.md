@@ -172,7 +172,7 @@ US mesonet coverage (RAWS, state networks), and the other five sources cover the
 
 ## What limits the number of stations
 
-Three ceilings, measured rather than assumed.
+Four ceilings, measured rather than assumed.
 
 **Open-Meteo throttling** is the one felt during a run. The API prices a request by
 locations x models x variables rather than by request count, and refuses with a 429 above a
@@ -189,6 +189,14 @@ example: as of August 2026 its year-partitioned files stop at 2026-03-29, its fu
 at 2025-08, and its `full/` variant at 2022. Those stations need a deep bootstrap rather
 than an incremental refresh, and they publish `obs_age_days` so the staleness is legible
 instead of inferred.
+
+**Hugging Face request limits** shape how the fleet starts rather than how large it gets.
+The hub allows 1000 API requests per five minutes, and a snapshot download spends one per
+file, so restoring ~2,800 archive files exceeds the window on its own. Each worker
+therefore restores only the stations its shard owns, and the workers stagger their starts;
+restoring the whole archive on every runner is what took a twenty-shard run down at its
+first step, with each shard correctly refusing to continue rather than overwrite deep
+history with a shallow rebuild.
 
 **GitHub Pages** is the loosest of the three. At roughly 83 KB per station against a ~1 GB
 soft limit, the site holds on the order of 12,000 stations.
