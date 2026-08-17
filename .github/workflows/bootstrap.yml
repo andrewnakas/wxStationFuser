@@ -54,9 +54,10 @@ jobs:
     timeout-minutes: 350
     strategy:
       fail-fast: false
-      # Bootstrapping is API-heavy. Limiting how many workers pull history at once keeps
-      # the whole fan-out from being throttled as a single burst.
-      max-parallel: 5
+      # Bootstrapping is API-heavy and each worker paces itself independently, so
+      # concurrency multiplies the effective request rate. Four workers at one request per
+      # second stays well inside the quota; five was enough to start drawing 429s.
+      max-parallel: 4
       matrix:
         shard: ${{ fromJson(needs.plan.outputs.matrix) }}
     env:

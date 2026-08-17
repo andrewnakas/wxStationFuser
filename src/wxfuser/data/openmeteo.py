@@ -49,11 +49,11 @@ class OpenMeteoError(RuntimeError):
     pass
 
 
-# Minimum spacing between requests. The free tier allows 600/minute, but a burst of
-# batched multi-location calls is far heavier than a burst of single-point ones and gets
-# throttled well before that nominal rate. Pacing costs a little wall clock and saves
-# whole batches from being lost to 429s.
-MIN_REQUEST_INTERVAL_S = 0.6
+# Minimum spacing between requests, per process. The free tier allows 600/minute, but a
+# batched multi-location call is far heavier than a single-point one and gets throttled
+# well before that nominal rate. Note this is per process: parallel shards multiply the
+# effective rate, which is why the workflows also cap how many run at once.
+MIN_REQUEST_INTERVAL_S = 1.0
 _last_request_at = 0.0
 
 
@@ -335,6 +335,39 @@ def fetch_previous_runs(
 # a refresh over 5,000 stations is ~50 requests instead of 5,000.
 BATCH_SIZE = 100
 
+# History requests are bounded by response size, not by location count. Measured against
+# the live archive: 25 locations x 365 days and 50 x 180 both time out, while 25 x 180
+# takes 91s and 10 x 365 takes 25s for a similar payload. Fewer locations over a longer
+# span is markedly faster than the reverse, so history batches stay small and the per-call
+# timeout is raised to match.
+HISTORY_BATCH_SIZE = 10
+HISTORY_TIMEOUT_S = 300
+
+
+def _batch_request_raw(
+    base_url: str,
+    coords: list[tuple[str, float, float]],
+    params: dict,
+    *,
+    timeout: int = 120,
+) -> list[tuple[str, dict]]:
+    """One multi-location request, returned as (station_id, hourly) pairs.
+
+    Kept separate from ``_batch_request`` so a caller that needs several views of the same
+    response — every lead offset, say — can read them all from one fetch.
+    """
+    if not coords:
+        return []
+    q = dict(params)
+    q["latitude"] = ",".join(f"{la:.4f}" for _, la, _ in coords)
+    q["longitude"] = ",".join(f"{lo:.4f}" for _, _, lo in coords)
+    payload = _http_json(f"{base_url}?" + urlencode(q), timeout=timeout)
+    results = payload if isinstance(payload, list) else [payload]
+    return [
+        (sid, res.get("hourly", {}) if isinstance(res, dict) else {})
+        for (sid, _, _), res in zip(coords, results)
+    ]
+
 
 def _batch_request(
     base_url: str,
@@ -345,6 +378,7 @@ def _batch_request(
     *,
     lead_source: str,
     day: int | None = None,
+    timeout: int = 120,
 ) -> pd.DataFrame:
     """One multi-location request; returns long-form rows tagged with station_id.
 
@@ -358,7 +392,7 @@ def _batch_request(
     q = dict(params)
     q["latitude"] = ",".join(f"{la:.4f}" for _, la, _ in coords)
     q["longitude"] = ",".join(f"{lo:.4f}" for _, _, lo in coords)
-    payload = _http_json(f"{base_url}?" + urlencode(q))
+    payload = _http_json(f"{base_url}?" + urlencode(q), timeout=timeout)
     results = payload if isinstance(payload, list) else [payload]
 
     frames = []
@@ -416,7 +450,7 @@ def fetch_historical_batch(
     start: date,
     end: date,
     *,
-    batch_size: int = BATCH_SIZE,
+    batch_size: int = HISTORY_BATCH_SIZE,
     chunk_days: int = 365,
 ) -> pd.DataFrame:
     """Archived forecasts for many stations, batched by location and chunked by date.
@@ -444,7 +478,8 @@ def fetch_historical_batch(
                 chunk = coords[i : i + batch_size]
                 try:
                     f = _batch_request(
-                        HISTORICAL_URL, chunk, base, [model], variables, lead_source="hist"
+                        HISTORICAL_URL, chunk, base, [model], variables,
+                        lead_source="hist", timeout=HISTORY_TIMEOUT_S,
                     )
                 except OpenMeteoError as exc:
                     print(f"  WARN: historical {model} {cursor} batch failed ({exc})",
@@ -470,9 +505,15 @@ def fetch_previous_runs_batch(
     *,
     past_days: int = 92,
     days: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7),
-    batch_size: int = BATCH_SIZE,
+    batch_size: int = HISTORY_BATCH_SIZE,
 ) -> pd.DataFrame:
-    """Lead-resolved archived forecasts for many stations, batched by location."""
+    """Lead-resolved archived forecasts for many stations, batched by location.
+
+    One request per (model, batch) carries every lead offset, and all of them are read
+    out of that single response. An earlier version asked for all seven offsets and then
+    issued the request seven times, extracting one offset and discarding the rest — seven
+    times the traffic for the same data, on the heaviest endpoint in the system.
+    """
     vmap = variable_map()
     frames = []
     for model in models:
@@ -492,19 +533,24 @@ def fetch_previous_runs_batch(
         for i in range(0, len(coords), batch_size):
             chunk = coords[i : i + batch_size]
             try:
-                payload_frames = []
-                for d in days:
-                    f = _batch_request(
-                        PREVIOUS_RUNS_URL, chunk, base, [model], wanted,
-                        lead_source="prev_runs", day=d,
-                    )
-                    if f.empty:
-                        continue
-                    f["lead_h"] = 24 * d
-                    payload_frames.append(f)
+                raw = _batch_request_raw(
+                    PREVIOUS_RUNS_URL, chunk, base, timeout=HISTORY_TIMEOUT_S
+                )
             except OpenMeteoError as exc:
                 print(f"  WARN: previous-runs {model} batch failed ({exc})", flush=True)
                 continue
+
+            payload_frames = []
+            for sid, hourly in raw:
+                for d in days:
+                    f = _frame_from_hourly(
+                        hourly, [model], wanted, lead_source="prev_runs", day=d
+                    )
+                    if f.empty:
+                        continue
+                    f["station_id"] = sid
+                    f["lead_h"] = 24 * d
+                    payload_frames.append(f)
             frames.extend(payload_frames)
             model_rows += sum(len(f) for f in payload_frames)
         # Per-model, not cumulative: an earlier version printed the running total for each
