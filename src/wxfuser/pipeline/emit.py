@@ -44,8 +44,18 @@ def _clean(value):
     return value
 
 
+# Weather values are published to two decimals. The extra digits a float carries are not
+# measurement — no station reports temperature to a ten-thousandth of a degree — but they
+# are a third of the size of every hourly array on the site.
+SERIES_DECIMALS = 2
+
+
 def _series(arr) -> list:
-    return [_clean(v) for v in np.asarray(arr).tolist()]
+    out = []
+    for v in np.asarray(arr).tolist():
+        c = _clean(v)
+        out.append(round(c, SERIES_DECIMALS) if isinstance(c, float) else c)
+    return out
 
 
 def forecast_json(

@@ -39,6 +39,9 @@ def _is_occurrence_threshold(thr: float) -> bool:
 # Share of the walk-forward output used to choose the method; the remainder scores it.
 SELECTION_FRACTION = 0.6
 
+# Days of per-day scores published per variable; the rest is summarised in the stats.
+DAILY_SERIES_DAYS = 90
+
 
 def _rank_tiers(frames: dict[str, pd.DataFrame]) -> tuple[dict, dict, bool]:
     """Score each tier, preferring the rows every candidate covered.
@@ -479,7 +482,12 @@ def scorecard(
         by_lead[label] = entry
     out["by_lead"] = by_lead
 
+    # The daily series drives one chart and was the largest single item on a station page
+    # — bigger than the forecast it verifies. The recent window is what a reader looks at,
+    # and the summary statistics above already cover the whole evaluation.
     daily_raw_map = daily_raw.to_dict() if daily_raw is not None else {}
+    daily_items = list(daily_fused.items())[-DAILY_SERIES_DAYS:]
+    out["daily_days_shown"] = len(daily_items)
     out["daily"] = [
         {
             "date": str(d.date()),
@@ -488,7 +496,7 @@ def scorecard(
             if np.isfinite(daily_raw_map.get(d, np.nan))
             else None,
         }
-        for d, v in daily_fused.items()
+        for d, v in daily_items
     ]
     return out
 
