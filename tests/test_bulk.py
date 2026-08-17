@@ -98,3 +98,38 @@ def test_empty_station_list_returns_the_empty_schema():
     out = bulk.asos_observations([], date(2025, 1, 1), date(2025, 1, 2))
     assert out.empty
     assert list(out.columns) == OBS_COLUMNS
+
+
+# --------------------------------------------------- routing to the batched fetchers
+
+def test_snotel_triplets_group_under_snotel():
+    """A SNOTEL id names its network last, so the leading field must not decide routing.
+
+    ``1000:OR:SNTL`` begins with a bare number. Grouping on the leading colon files each
+    site under its own id, leaves the SNOTEL group empty, and drops every one of them into
+    the per-station fallback — one HTTP request each, for the network that has no bulk
+    archive and most needs the batching.
+    """
+    from wxfuser.pipeline.bulk_run import _source_of
+
+    assert _source_of("1000:OR:SNTL") == "SNOTEL"
+    assert _source_of("663:CO:SNTL") == "SNOTEL"
+    assert _source_of("1165:MT:SNTLT") == "SNOTEL"
+
+
+def test_prefixed_networks_still_route_on_their_prefix():
+    from wxfuser.pipeline.bulk_run import _source_of
+
+    assert _source_of("ASOS:KDEN") == "ASOS"
+    assert _source_of("MS:10637") == "MS"
+    assert _source_of("IEM:DEN") == "IEM"
+
+
+def test_every_registry_station_reaches_a_batched_fetcher():
+    """No enrolled station should silently fall back to one-request-per-station."""
+    from wxfuser.data.registry import load_registry
+    from wxfuser.pipeline.bulk_run import _source_of
+
+    batched = {"ASOS", "SNOTEL", "MS"}
+    stragglers = [s.id for s in load_registry() if _source_of(s.id) not in batched]
+    assert len(stragglers) <= 1, f"{len(stragglers)} stations on the slow path: {stragglers[:5]}"

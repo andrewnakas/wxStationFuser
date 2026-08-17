@@ -27,12 +27,30 @@ from wxfuser.data.registry import Station
 from wxfuser.pipeline import core, emit
 from wxfuser.pipeline import state as state_mod
 
+# AWDB station triplets are ``{id}:{state}:{network}``. Both SNOTEL networks answer on the
+# same endpoint, so both batch together; SNTLT is the telemetry-only variant.
+AWDB_NETWORKS = frozenset({"SNTL", "SNTLT", "SCAN", "SNOW", "OTHER", "USGS", "COOP", "BOR"})
+
+
+def _source_of(station_id: str) -> str:
+    """Which fetcher owns this id.
+
+    Most networks announce themselves with a prefix, but an AWDB triplet is
+    ``{id}:{state}:{network}`` — the network is the *last* field, and the first is a bare
+    number. Splitting on the leading colon therefore files every SNOTEL site under its own
+    numeric id, which silently empties the SNOTEL group and sends all of them down the
+    one-request-per-station fallback: one HTTP request each, for the one network with no
+    bulk archive.
+    """
+    if station_id.rsplit(":", 1)[-1] in AWDB_NETWORKS:
+        return "SNOTEL"
+    return station_id.split(":", 1)[0] if ":" in station_id else "SNOTEL"
+
 
 def _group_by_source(stations: list[Station]) -> dict[str, list[Station]]:
     groups: dict[str, list[Station]] = defaultdict(list)
     for s in stations:
-        prefix = s.id.split(":", 1)[0] if ":" in s.id else "SNOTEL"
-        groups[prefix].append(s)
+        groups[_source_of(s.id)].append(s)
     return groups
 
 
@@ -56,8 +74,8 @@ def gather_observations_bulk(
             for sid, g in frame.groupby("station_id"):
                 out[str(sid)] = obs_mod.qc(obs_mod.normalize_hourly(g))
 
-    # SNOTEL ids are bare triplets, so they land in the catch-all group. They are usually
-    # the bulk of a mountain registry, and AWDB accepts many triplets per request.
+    # SNOTEL is usually the bulk of a mountain registry, and AWDB accepts many triplets
+    # per request, so the whole group costs a handful of requests rather than one each.
     snotel = groups.get("SNOTEL", [])
     if snotel:
         print(f"  bulk SNOTEL: {len(snotel)} stations, {start}..{end}", flush=True)
