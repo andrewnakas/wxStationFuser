@@ -113,7 +113,7 @@ def cmd_refresh(args) -> int:
             ok_so_far = sum(1 for e in entries if e.get("status") == "ok")
             print(f"--- checkpoint: {done}/{len(stations)} stations, {ok_so_far} published",
                   flush=True)
-            _checkpoint_state()
+            _checkpoint_state(args.shard, args.of)
 
     emit.write_json(emit.index_json(entries), _index_path(args.shard, args.of))
     ok = sum(1 for e in entries if e.get("status") == "ok")
@@ -122,8 +122,11 @@ def cmd_refresh(args) -> int:
     return 0
 
 
-def _checkpoint_state() -> None:
+def _checkpoint_state(shard: int | None = None, of: int | None = None) -> None:
     """Push state to the hub mid-run, if one is configured.
+
+    Scoped to this worker's stations: uploading everything would push back the stale
+    copies of other shards' stations that this runner restored at startup.
 
     Best-effort by design: a failed checkpoint should slow the run down, not end it.
     """
@@ -136,7 +139,10 @@ def _checkpoint_state() -> None:
     if not script.exists():
         return
     try:
-        subprocess.run([sys.executable, str(script), "upload"], check=False, timeout=900)
+        cmd = [sys.executable, str(script), "upload"]
+        if shard is not None and of:
+            cmd += ["--shard", str(shard), "--of", str(of)]
+        subprocess.run(cmd, check=False, timeout=900)
     except Exception as exc:  # noqa: BLE001
         print(f"  WARN: checkpoint upload failed ({exc})", flush=True)
 

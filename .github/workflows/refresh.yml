@@ -84,7 +84,7 @@ jobs:
         if: always() && env.HF_TOKEN != ''
         run: |
           for i in 1 2 3; do
-            python scripts/sync_state.py upload && break
+            python scripts/sync_state.py upload --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} && break
             echo "state upload attempt $i failed; retrying"
             sleep $((i * 20))
           done

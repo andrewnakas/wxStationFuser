@@ -89,7 +89,7 @@ jobs:
 
       - name: Save state (Hugging Face)
         if: always() && env.HF_TOKEN != ''
-        run: python scripts/sync_state.py upload
+        run: python scripts/sync_state.py upload --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
   publish:
     needs: retrain

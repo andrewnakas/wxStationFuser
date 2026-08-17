@@ -11,7 +11,6 @@ station rebuilds its archive from the upstream APIs, which is slower but correct
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 
 from wxfuser.config import hf_state_repo
@@ -43,7 +42,35 @@ def download() -> int:
     return 0
 
 
-def upload() -> int:
+def _shard_patterns(shard: int, of: int) -> list[str] | None:
+    """Upload globs covering only the stations this worker owns.
+
+    Without this, sharded runs corrupt each other. Every worker restores the whole state
+    at startup, so it holds a snapshot of the other shards' stations from before they ran.
+    Uploading the whole folder then pushes those stale copies back, and a worker that
+    finishes late silently reverts the work of one that finished early — deep history
+    replaced by the shallow archive it started from.
+    """
+    try:
+        from wxfuser.data.registry import load_registry
+    except Exception:  # noqa: BLE001
+        return None
+    stations = load_registry()
+    if not stations or of <= 1:
+        return None
+    slugs = [s.slug for i, s in enumerate(stations) if i % of == shard]
+    patterns: list[str] = []
+    for slug in slugs:
+        patterns += [
+            f"pairs/{slug}.parquet",
+            f"obs/{slug}.parquet",
+            f"models/{slug}.json",
+            f"models/{slug}/**",
+        ]
+    return patterns
+
+
+def upload(shard: int | None = None, of: int | None = None) -> int:
     repo = hf_state_repo()
     api, token = _api()
     if not token:
@@ -53,13 +80,20 @@ def upload() -> int:
         print("no local state to upload")
         return 0
 
+    allow = _shard_patterns(shard, of) if (shard is not None and of) else None
+    if allow:
+        print(f"uploading only shard {shard + 1}/{of}: {len(allow) // 4} stations")
+
     api.create_repo(repo_id=repo, repo_type="dataset", exist_ok=True, token=token)
     api.upload_folder(
         folder_path=str(STATE_DIR),
         repo_id=repo,
         repo_type="dataset",
         token=token,
-        commit_message="update station state",
+        commit_message=(
+            f"update station state (shard {shard + 1}/{of})" if allow else "update station state"
+        ),
+        allow_patterns=allow,
         # Filesystem and interpreter debris would otherwise be published alongside the
         # data and downloaded by every subsequent run.
         ignore_patterns=[".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp"],
@@ -69,12 +103,18 @@ def upload() -> int:
 
 
 def main() -> int:
-    action = sys.argv[1] if len(sys.argv) > 1 else "download"
-    if action == "download":
+    import argparse
+
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("action", nargs="?", default="download", choices=["download", "upload"])
+    ap.add_argument("--shard", type=int, help="0-based worker index; scopes an upload")
+    ap.add_argument("--of", type=int, help="total workers")
+    args = ap.parse_args()
+
+    if args.action == "download":
         return download()
-    if action == "upload":
-        return upload()
-    print(f"unknown action {action!r}; expected download or upload")
+    if args.action == "upload":
+        return upload(args.shard, args.of)
     return 2
 
 
