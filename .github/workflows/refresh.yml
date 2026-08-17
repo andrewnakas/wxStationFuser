@@ -99,11 +99,16 @@ jobs:
         if: env.HF_TOKEN != ''
         run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
+      # Checkpointed because a timeout kills the job outright and its final upload never
+      # runs. A shard covering hundreds of stations is hours of network-bound work, and
+      # without this the whole lot dies with the runner — bootstrap has always checkpointed
+      # for exactly this reason, and refresh grew long enough to need it too.
       - name: Refresh shard
         env:
           SOURCES: ${{ inputs.sources }}
         run: |
           wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
+            --checkpoint-every 100 \
             ${SOURCES:+--sources "$SOURCES"}
 
       # Each shard writes only its own stations, so uploading in parallel touches
