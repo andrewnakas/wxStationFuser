@@ -79,7 +79,7 @@ jobs:
 
       - name: Restore state
         if: env.HF_TOKEN != ''
-        run: python scripts/sync_state.py download
+        run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
       - name: Bootstrap shard
         run: |

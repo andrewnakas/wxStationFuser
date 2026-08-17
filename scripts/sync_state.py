@@ -54,13 +54,18 @@ def _repo_exists() -> bool:
         return False
 
 
-def download() -> int:
+def download(shard: int | None = None, of: int | None = None, paths: str | None = None) -> int:
     """Restore state, and fail loudly if state exists but could not be fetched.
 
     Swallowing a failed restore is what turns a transient network problem into data loss:
     the run continues with an empty state directory, rebuilds a shallow ten-day archive
     for every station, and uploads that over the deep history it never managed to read.
     A missing repository is fine — that is a genuine cold start.
+
+    A worker restores only the stations it owns. Pulling the whole archive on every shard
+    made twenty runners fetch the same hundred-plus megabytes at once, which Hugging Face
+    answers with 429s — so the fleet failed on the download step, correctly refusing to
+    continue, and the run produced nothing. The split is the same id hash the work uses.
     """
     from huggingface_hub import snapshot_download
 
@@ -72,12 +77,27 @@ def download() -> int:
         print(f"{repo} does not exist yet; starting cold")
         return 0
 
+    allow = None
+    if paths:
+        # The publish job wants the catalogue and the index baseline, not a hundred
+        # megabytes of paired archives it will never open.
+        allow = [f"{p.strip().rstrip('/')}/**" for p in paths.split(",") if p.strip()]
+        print(f"restoring only: {', '.join(allow)}")
+    elif shard is not None and of and of > 1:
+        allow = _shard_patterns(shard, of)
+        if allow:
+            # The catalogue and the published index are shared, not per-station, and the
+            # jobs that stage them need them whatever slice they hold.
+            allow = allow + ["catalogue/**", "site/**"]
+            print(f"restoring shard {shard + 1}/{of} only: {len(allow) // 4} stations")
+
     try:
         path = snapshot_download(
             repo_id=repo,
             repo_type="dataset",
             local_dir=str(STATE_DIR),
             token=token,  # public repos read without one
+            allow_patterns=allow,
         )
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: {repo} exists but could not be restored ({exc}).")
@@ -85,19 +105,33 @@ def download() -> int:
         return 1
 
     n = sum(1 for _ in Path(path).rglob("*") if _.is_file())
-    (STATE_DIR / RESTORE_MARKER).write_text(repo)
-    print(f"restored {n} state files from {repo}")
+    # Record what was restored, not just that something was. Local state after a scoped
+    # restore holds one shard's stations; an unscoped upload of it would look like a
+    # complete snapshot, which is the failure the marker exists to prevent.
+    scope = "full" if allow is None else (f"{shard}/{of}" if not paths else f"paths:{paths}")
+    (STATE_DIR / RESTORE_MARKER).write_text(f"{repo}\n{scope}\n")
+    print(f"restored {n} state files from {repo} ({scope})")
     return 0
 
 
-def _shard_patterns(shard: int, of: int) -> list[str] | None:
-    """Upload globs covering only the stations this worker owns.
+def _restored_scope() -> str | None:
+    """Which slice this runner restored: "full", "shard/of", or None if it never did."""
+    marker = STATE_DIR / RESTORE_MARKER
+    if not marker.exists():
+        return None
+    lines = marker.read_text().splitlines()
+    return lines[1].strip() if len(lines) > 1 else "full"
 
-    Without this, sharded runs corrupt each other. Every worker restores the whole state
-    at startup, so it holds a snapshot of the other shards' stations from before they ran.
-    Uploading the whole folder then pushes those stale copies back, and a worker that
-    finishes late silently reverts the work of one that finished early — deep history
-    replaced by the shallow archive it started from.
+
+def _shard_patterns(shard: int, of: int) -> list[str] | None:
+    """The globs covering exactly the stations this worker owns.
+
+    Used for both halves of the round trip. On the way in it keeps a runner from pulling
+    an archive twenty times larger than it needs, which is what drew rate limits when the
+    whole fleet started at once. On the way out it stops shards corrupting each other: a
+    worker that uploaded the whole folder would push back its startup snapshot of the
+    other shards' stations, so one finishing late would silently revert one that finished
+    early — deep history replaced by the shallow archive it began with.
     """
     try:
         from wxfuser.data.registry import load_registry
@@ -134,9 +168,20 @@ def upload(shard: int | None = None, of: int | None = None, paths: str | None = 
 
     # If the hub already holds state that this runner never restored, anything local is a
     # partial rebuild and publishing it would destroy the real thing.
-    if _repo_exists() and not (STATE_DIR / RESTORE_MARKER).exists():
+    scope = _restored_scope()
+    if _repo_exists() and scope is None:
         print("refusing to upload: hub state exists but was never restored here")
         return 1
+
+    # An upload may never claim more than the restore covered. A shard that restored its
+    # own slice holds nothing of the others', so publishing unscoped would present one
+    # twentieth of the archive as the whole of it.
+    if scope and scope != "full" and not paths:
+        want = f"{shard}/{of}" if shard is not None and of else None
+        if want != scope:
+            print(f"refusing to upload {want or 'everything'}: this runner restored only "
+                  f"shard {scope}, so it cannot vouch for anything else")
+            return 1
 
     # Each writer publishes only what it owns: a shard its stations, the catalogue job
     # its catalogue. Whole-folder uploads from concurrent jobs collide on the underlying
@@ -181,7 +226,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.action == "download":
-        return download()
+        return download(args.shard, args.of, args.paths)
     if args.action == "upload":
         return upload(args.shard, args.of, args.paths)
     return 2

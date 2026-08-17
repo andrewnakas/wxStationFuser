@@ -114,3 +114,52 @@ def test_restore_marker_is_never_published(hub):
     assert sync_state.download() == 0
     assert sync_state.upload() == 0
     assert sync_state.RESTORE_MARKER in hub["api"].uploaded["ignore_patterns"]
+
+
+# ------------------------------------------------- restoring only what a worker needs
+
+def test_a_shard_restores_only_its_own_stations(hub, monkeypatch):
+    """Twenty runners each pulling the whole archive is what drew Hugging Face's 429s."""
+    seen = {}
+
+    def fake_snapshot(**kw):
+        seen.update(kw)
+        target = Path(kw["local_dir"])
+        target.mkdir(parents=True, exist_ok=True)
+        return str(target)
+
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot)
+    assert sync_state.download(shard=0, of=20) == 0
+
+    allow = seen.get("allow_patterns")
+    assert allow, "a sharded restore must be scoped, not a full pull"
+    assert any(p.startswith("pairs/") for p in allow)
+    # Shared state is not per-station and every job needs it whatever slice it holds.
+    assert "catalogue/**" in allow and "site/**" in allow
+
+
+def test_an_unsharded_restore_still_takes_everything(hub):
+    assert sync_state.download() == 0
+    assert sync_state._restored_scope() == "full"
+
+
+def test_a_partial_restore_may_not_be_uploaded_as_a_whole_one(hub, monkeypatch):
+    """Local state after a scoped restore is one slice; publishing it unscoped would
+    present a twentieth of the archive as the entirety of it."""
+    monkeypatch.setattr("huggingface_hub.snapshot_download",
+                        lambda **kw: (Path(kw["local_dir"]).mkdir(parents=True, exist_ok=True),
+                                      str(kw["local_dir"]))[1])
+    assert sync_state.download(shard=3, of=20) == 0
+    assert sync_state._restored_scope() == "3/20"
+
+    assert sync_state.upload() == 1, "an unscoped upload after a scoped restore must refuse"
+    assert hub["api"].uploaded is None
+    assert sync_state.upload(shard=3, of=20) == 0, "its own shard is fine"
+
+
+def test_a_shard_may_not_upload_a_different_shard(hub, monkeypatch):
+    monkeypatch.setattr("huggingface_hub.snapshot_download",
+                        lambda **kw: (Path(kw["local_dir"]).mkdir(parents=True, exist_ok=True),
+                                      str(kw["local_dir"]))[1])
+    assert sync_state.download(shard=3, of=20) == 0
+    assert sync_state.upload(shard=7, of=20) == 1

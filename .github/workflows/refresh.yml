@@ -73,7 +73,7 @@ jobs:
 
       - name: Restore state
         if: env.HF_TOKEN != ''
-        run: python scripts/sync_state.py download
+        run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
       - name: Refresh shard
         run: wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
@@ -129,7 +129,7 @@ jobs:
 
       - name: Restore catalogue and merge the index
         run: |
-          python scripts/sync_state.py download || echo "no hub state; catalogue may be absent"
+          python scripts/sync_state.py download --paths catalogue,site || echo "no hub state; catalogue may be absent"
           wxfuser merge-index
           rm -f site/index-shard-*.json
           du -sh site || true
