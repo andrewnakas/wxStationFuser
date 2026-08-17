@@ -175,3 +175,27 @@ def test_a_station_with_neither_window_nor_archive_is_reported_honestly(monkeypa
         _station(), None, None, live, ["air_temp_c"], evaluate=False
     )
     assert out["status"] == "no_observations"
+
+
+def test_source_filter_selects_networks_and_preserves_shards():
+    """Filtering must not reshuffle the split, or workers would swap stations mid-run."""
+    from wxfuser.cli import filter_sources, shard_of
+    from wxfuser.data.registry import load_registry
+
+    everything = load_registry()
+    live = filter_sources(everything, "ASOS,SNOTEL")
+
+    assert 0 < len(live) < len(everything)
+    assert not [s for s in live if s.id.startswith("MS:")]
+    # A station keeps its worker whether or not its network was selected.
+    before = {s.id: shard_of(s.id, 40) for s in everything}
+    assert all(before[s.id] == shard_of(s.id, 40) for s in live)
+
+
+def test_no_source_filter_is_a_no_op():
+    from wxfuser.cli import filter_sources
+    from wxfuser.data.registry import load_registry
+
+    everything = load_registry()
+    assert filter_sources(everything, None) is everything
+    assert len(filter_sources(everything, "")) == len(everything)

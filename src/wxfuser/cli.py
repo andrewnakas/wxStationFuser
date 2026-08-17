@@ -79,6 +79,28 @@ def select_shard(stations: list, shard: int | None, of: int | None) -> list:
     return picked
 
 
+def filter_sources(stations: list, spec: str | None) -> list:
+    """Restrict a run to particular networks.
+
+    Forecast requests are the scarce resource — Open-Meteo prices them by locations x
+    models and throttles hard — so it is worth being able to spend them only where an
+    observation can actually arrive. A network publishing months in arrears returns
+    nothing for an incremental window, and every forecast fetched for it is budget taken
+    from a station that would have produced a verifiable pair.
+
+    Filtering does not disturb the split: ``shard_of`` reads the id alone, so a station
+    keeps its worker whether or not its network was selected.
+    """
+    if not spec:
+        return stations
+    from wxfuser.pipeline.bulk_run import _source_of
+
+    wanted = {s.strip().upper() for s in spec.split(",") if s.strip()}
+    picked = [s for s in stations if _source_of(s.id) in wanted]
+    print(f"sources {sorted(wanted)}: {len(picked)} of {len(stations)} stations", flush=True)
+    return picked
+
+
 def _index_path(shard: int | None, of: int | None):
     """Where this worker writes its index entries.
 
@@ -102,6 +124,7 @@ def cmd_refresh(args) -> int:
     _stage_catalogue()
     if args.station:
         stations = [s for s in stations if s.id == args.station]
+    stations = filter_sources(stations, getattr(args, "sources", None))
     stations = select_shard(stations, args.shard, args.of)
 
     if not stations:
@@ -423,6 +446,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--checkpoint-every", type=int,
                    help="push state to the hub every N stations, so a killed job loses "
                         "one batch rather than the whole run")
+    p.add_argument("--sources",
+                   help="comma-separated networks to process (ASOS, SNOTEL, MS). Forecast "
+                        "requests are the scarce resource, so an incremental run can skip "
+                        "networks whose observations cannot arrive yet")
     p.set_defaults(func=cmd_refresh)
 
     p = sub.add_parser("merge-index", help="combine per-shard index fragments")
