@@ -262,6 +262,10 @@ def cmd_enroll_bulk(args) -> int:
     universe = bulk.enrollable_universe(
         include_asos=not args.no_asos,
         include_snotel=not args.no_snotel,
+        include_meteostat=args.meteostat,
+        meteostat_exclude_countries=(
+            args.meteostat_exclude.split(",") if args.meteostat_exclude else None
+        ),
         min_elevation_m=args.min_elevation,
         countries=args.countries.split(",") if args.countries else None,
     )
@@ -437,6 +441,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--countries", help="comma-separated ISO country codes")
     p.add_argument("--no-asos", action="store_true", help="skip the ASOS airport archive")
     p.add_argument("--no-snotel", action="store_true", help="skip SNOTEL mountain sites")
+    p.add_argument("--meteostat", action="store_true",
+                   help="include Meteostat, which supplies most non-US coverage")
+    p.add_argument("--meteostat-exclude", metavar="CC,CC",
+                   help="country codes to skip for Meteostat, e.g. already-covered ones")
     p.add_argument("--years", type=float, default=2.0, help="years of history to backfill")
     p.add_argument("--batch", type=int, default=200,
                    help="stations bootstrapped per batch; smaller batches checkpoint sooner")

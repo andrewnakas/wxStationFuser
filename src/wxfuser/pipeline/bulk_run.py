@@ -66,8 +66,18 @@ def gather_observations_bulk(
             for sid, g in frame.groupby("station_id"):
                 out[str(sid)] = obs_mod.qc(obs_mod.normalize_hourly(g))
 
+    # Meteostat is per-station but its year files are small, so it parallelises rather
+    # than batching. It is most of the non-US coverage.
+    ms = groups.get("MS", [])
+    if ms:
+        print(f"  bulk Meteostat: {len(ms)} stations, {start}..{end}", flush=True)
+        frame = bulk.meteostat_observations([s.id for s in ms], start, end)
+        if not frame.empty:
+            for sid, g in frame.groupby("station_id"):
+                out[str(sid)] = obs_mod.qc(obs_mod.normalize_hourly(g))
+
     for prefix, group in groups.items():
-        if prefix in ("ASOS", "SNOTEL"):
+        if prefix in ("ASOS", "SNOTEL", "MS"):
             continue
         for st in group:
             try:

@@ -308,10 +308,79 @@ def _normalise_snotel(station: dict) -> pd.DataFrame:
     return out[OBS_COLUMNS]
 
 
+def meteostat_observations(
+    ids: list[str], start: date, end: date, *, workers: int = 8
+) -> pd.DataFrame:
+    """Hourly observations for many Meteostat stations, fetched concurrently.
+
+    Meteostat has no single bulk archive to query, but it does publish one small gzipped
+    CSV per station per year — about 100 KB for 8,760 rows — so the cost is a request per
+    station-year rather than a scan of everything. Fetching them in parallel is what makes
+    this usable at thousands of stations; the parsing is the existing per-station reader,
+    which already handles the km/h wind units and the year-file layout.
+
+    Concurrency is kept modest on purpose. This is a free public service and the point is
+    to be a well-behaved client of it, not to extract data as fast as possible.
+    """
+    if not ids:
+        return pd.DataFrame(columns=OBS_COLUMNS)
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    from wxfuser.data.meteostat import fetch_meteostat_hourly
+
+    def one(sid: str) -> pd.DataFrame:
+        try:
+            return fetch_meteostat_hourly(sid.split(":", 1)[-1], start, end)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  WARN: Meteostat {sid} failed ({exc})", flush=True)
+            return pd.DataFrame(columns=OBS_COLUMNS)
+
+    frames, done = [], 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        for frame in ex.map(one, ids):
+            done += 1
+            if not frame.empty:
+                frames.append(frame)
+            if done % 200 == 0:
+                print(f"  Meteostat: {done}/{len(ids)} stations, "
+                      f"{sum(len(f) for f in frames)} rows", flush=True)
+
+    if not frames:
+        return pd.DataFrame(columns=OBS_COLUMNS)
+    return pd.concat(frames, ignore_index=True)
+
+
+def meteostat_stations(exclude_countries: list[str] | None = None) -> pd.DataFrame:
+    """Meteostat's global station list, the source of most non-US coverage.
+
+    ASOS is overwhelmingly North American airports and SNOTEL is entirely the western US,
+    so a registry built from those two is about three-quarters US. Meteostat aggregates
+    national networks — Russia, Canada, Germany, Australia, Brazil, China — and is what
+    makes the coverage global rather than American.
+    """
+    from wxfuser.data.catalogue import fetch_meteostat_stations
+
+    df = fetch_meteostat_stations()
+    if df.empty:
+        return df
+    df = df.dropna(subset=["lat", "lon"]).copy()
+    if exclude_countries:
+        before = len(df)
+        df = df[~df["country"].isin(exclude_countries)]
+        print(f"  excluding {exclude_countries}: {len(df)} of {before}", flush=True)
+    df["station"] = df["id"]
+    df["n_obs"] = None
+    df["state"] = None
+    return df[["id", "station", "name", "lat", "lon", "elev_m", "country", "state", "n_obs"]]
+
+
 def enrollable_universe(
     *,
     include_asos: bool = True,
     include_snotel: bool = True,
+    include_meteostat: bool = False,
+    meteostat_exclude_countries: list[str] | None = None,
     min_elevation_m: float | None = None,
     countries: list[str] | None = None,
     year: int | None = None,
@@ -335,6 +404,13 @@ def enrollable_universe(
         s["network"] = "SNOTEL"
         frames.append(s)
         print(f"  {len(s)} SNOTEL stations", flush=True)
+    if include_meteostat:
+        print("querying Meteostat station list…", flush=True)
+        m = meteostat_stations(exclude_countries=meteostat_exclude_countries)
+        if not m.empty:
+            m["network"] = "MS"
+            frames.append(m)
+            print(f"  {len(m)} Meteostat stations", flush=True)
 
     if not frames:
         return pd.DataFrame()
