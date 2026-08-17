@@ -174,13 +174,19 @@ US mesonet coverage (RAWS, state networks), and the other five sources cover the
 
 Four ceilings, measured rather than assumed.
 
-**Open-Meteo throttling** is the one felt during a run. The API prices a request by
+**Open-Meteo throttling** is the one that actually stops work. The API prices a request by
 locations x models x variables rather than by request count, and refuses with a 429 above a
-per-minute budget. Measured against the previous-runs endpoint: 10 locations x 4 models
-returns in about 4 s, while 25 x 4 and 53 x 1 are both refused and clear roughly a minute
-later. That is why the history endpoints batch 10 locations where the plain forecast
-endpoint batches 100, and why a shard's wall clock is dominated by one sequential pass per
-model. Adding stations costs time, not accuracy.
+budget. Measured against the previous-runs endpoint: 10 locations x 4 models returns in
+about 4 s, while 25 x 4 and 53 x 1 are both refused and clear roughly a minute later. That
+is why the history endpoints batch 10 locations where the plain forecast endpoint batches
+100, and why a shard's wall clock is dominated by one sequential pass per model
+(measured per 10-location chunk: 1.4 s on gfs_seamless, 25 s on icon_seamless, 36 s on
+ncep_hrrr_conus).
+
+Sustained use exhausts it. After a night of refreshing, a single worker running alone was
+still throttled 26 times in a row and could not complete one chunk. Refreshing 4,760
+stations across four models is not something the free tier will do quickly, and no amount
+of sharding changes that — the quota is the ceiling, not the parallelism.
 
 **Observation freshness** decides whether a station can be verified at all. A forecast can
 only be scored where recent observations exist, so a network that publishes on a delay

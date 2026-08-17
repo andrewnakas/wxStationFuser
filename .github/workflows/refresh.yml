@@ -13,13 +13,18 @@ on:
     - cron: '17 */6 * * *'
   workflow_dispatch:
     inputs:
-      # More workers is not faster past a point. Open-Meteo prices requests by
-      # locations x models and throttles on a per-minute budget shared by the whole fleet,
-      # so the shards end up waiting on each other rather than on the work. A twelve-shard
-      # run over 4,760 stations spent four hours without a single shard finishing, against
-      # a measured ~1.5 hours of actual work per shard. Six or fewer is the useful range.
+      # Kept modest deliberately, though the evidence for the exact number is weaker than
+      # it first looked. What is established: a twelve-shard run over 4,760 stations spent
+      # 5.7 hours and banked nothing, and sustained refreshing exhausts Open-Meteo's free
+      # tier — a single shard running alone afterwards was still throttled 26 times.
+      #
+      # What is NOT established is that the shard count caused it. Runners are separate
+      # machines, so they may not share a rate-limit budget the way concurrent processes on
+      # one host do; the un-chunked fetch (see --checkpoint-every below) and simple quota
+      # exhaustion explain the observation without invoking shard concurrency at all.
+      # Six is a cautious default, not a measured optimum.
       shards:
-        description: 'Number of parallel workers (>6 mostly buys API contention)'
+        description: 'Number of parallel workers'
         required: false
         default: '6'
       sources:
