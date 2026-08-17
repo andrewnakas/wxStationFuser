@@ -10,6 +10,11 @@ name: Bootstrap enrolled stations
 # It is safe to re-run: a station that already has an archive takes the incremental path
 # instead of re-downloading years of history, so an interrupted bootstrap resumes rather
 # than restarting.
+#
+# It deliberately does not verify. Walk-forward verification is the bulk of the
+# per-station cost and the weekly retrain already does it; bootstrap's job is to fetch the
+# history, which is the part that cannot be recomputed locally. Stations report themselves
+# unmeasured until the retrain reaches them.
 
 on:
   workflow_dispatch:
@@ -17,7 +22,7 @@ on:
       shards:
         description: 'Number of parallel workers'
         required: false
-        default: '20'
+        default: '16'
       years:
         description: 'Years of history to backfill'
         required: false
@@ -39,7 +44,7 @@ jobs:
     steps:
       - id: plan
         env:
-          SHARDS: ${{ inputs.shards || '20' }}
+          SHARDS: ${{ inputs.shards || '16' }}
         run: |
           python -c "
           import json, os

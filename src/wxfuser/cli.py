@@ -121,7 +121,13 @@ def cmd_refresh(args) -> int:
             bulk_run.run_stations(
                 chunk,
                 bootstrap=args.bootstrap,
-                evaluate=args.evaluate or args.bootstrap,
+                # Bootstrapping no longer forces evaluation. Walk-forward verification is
+                # around 88% of the per-station cost — 278 hours across the full registry
+                # versus 33 for the archive and fit alone — and the weekly retrain already
+                # does exactly that job, sharded. Bootstrap's irreplaceable work is the
+                # network-bound history it downloads; verification can follow on its own
+                # schedule, and until it does a station honestly reports itself unmeasured.
+                evaluate=args.evaluate,
                 years=args.years,
             )
         )
