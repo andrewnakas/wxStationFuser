@@ -219,10 +219,52 @@ def cmd_merge_index(args) -> int:
         seen.add(e.get("id"))
         unique.append(e)
 
-    emit.write_json(emit.index_json(unique), core.SITE_DIR / "index.json")
-    ok = sum(1 for e in unique if e.get("status") == "ok")
-    print(f"merged {len(frags)} shards -> {len(unique)} stations, {ok} published")
+    # The index is cumulative, not a snapshot of this run. A run may deliberately cover
+    # part of the registry — a shard retry, or --sources aimed at the networks whose
+    # observations can actually arrive — and rebuilding from its fragments alone would
+    # erase every station it did not touch from the map. So this run's entries are laid
+    # over the last published index rather than replacing it.
+    baseline = _load_index_baseline()
+    merged = {e.get("id"): e for e in baseline}
+    merged.update({e.get("id"): e for e in unique})
+    final = list(merged.values())
+
+    # The publish job runs with `if: always()`, so it also runs when every refresh shard
+    # failed. Without this it collects no artifacts, merges an empty index, and deploys it
+    # over a working site — which is exactly how the map went to zero stations after the
+    # state sync broke. An empty registry is a legitimate cold start; an empty index
+    # against a populated registry is a failed run, and must not reach Pages.
+    if not final and load_registry():
+        print(f"refusing to publish an empty index over {len(load_registry())} enrolled "
+              f"stations: no shard produced output, so this run has nothing to say.")
+        return 1
+
+    emit.write_json(emit.index_json(final), core.SITE_DIR / "index.json")
+    # Keep the baseline in state so the next run inherits it. The site itself is rebuilt
+    # from a fresh checkout every deploy and so cannot carry anything forward.
+    emit.write_json(emit.index_json(final), _index_baseline_path())
+    ok = sum(1 for e in final if e.get("status") == "ok")
+    print(f"merged {len(frags)} shards -> {len(unique)} fresh, "
+          f"{len(final)} total stations, {ok} published")
     return 0
+
+
+def _index_baseline_path():
+    return core.STATE_DIR / "site" / "index.json"
+
+
+def _load_index_baseline() -> list[dict]:
+    """The last published index, so a partial run adds to the map instead of replacing it."""
+    import json as _json
+
+    path = _index_baseline_path()
+    if not path.exists():
+        return []
+    try:
+        return _json.loads(path.read_text()).get("stations", [])
+    except Exception as exc:  # noqa: BLE001
+        print(f"  WARN: could not read index baseline ({exc})")
+        return []
 
 
 def cmd_enroll(args) -> int:

@@ -130,6 +130,12 @@ jobs:
           rm -f site/index-shard-*.json
           du -sh site || true
 
+      # The merged index is the only record of stations this run did not touch. The site
+      # is rebuilt from a fresh checkout every deploy, so without this the next partial
+      # run would have no baseline to add to.
+      - name: Persist the merged index
+        run: python scripts/sync_state.py upload --paths site || echo "index baseline not saved"
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

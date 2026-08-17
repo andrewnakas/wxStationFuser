@@ -199,3 +199,44 @@ def test_no_source_filter_is_a_no_op():
     everything = load_registry()
     assert filter_sources(everything, None) is everything
     assert len(filter_sources(everything, "")) == len(everything)
+
+
+# --------------------------------------------------------------- publishing the index
+
+def test_merge_index_refuses_to_publish_an_empty_index(monkeypatch, tmp_path):
+    """A failed run must not deploy an empty map over a populated one."""
+    from wxfuser import cli
+    from wxfuser.pipeline import core
+
+    monkeypatch.setattr(core, "SITE_DIR", tmp_path / "site")
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path / "state")
+    (tmp_path / "site").mkdir(parents=True)
+
+    assert cli.cmd_merge_index(object()) == 1
+    assert not (tmp_path / "site" / "index.json").exists()
+
+
+def test_a_partial_run_adds_to_the_map_rather_than_replacing_it(monkeypatch, tmp_path):
+    """--sources or a shard retry covers part of the registry; the rest must survive."""
+    import json
+
+    from wxfuser import cli
+    from wxfuser.pipeline import core
+
+    site, state = tmp_path / "site", tmp_path / "state"
+    monkeypatch.setattr(core, "SITE_DIR", site)
+    monkeypatch.setattr(core, "STATE_DIR", state)
+    site.mkdir(parents=True)
+    (state / "site").mkdir(parents=True)
+
+    (state / "site" / "index.json").write_text(json.dumps(
+        {"stations": [{"id": "MS:1", "status": "ok"}, {"id": "ASOS:K1", "status": "ok"}]}
+    ))
+    (site / "index-shard-0.json").write_text(json.dumps(
+        {"stations": [{"id": "ASOS:K1", "status": "ok", "crpss_vs_raw": 0.5}]}
+    ))
+
+    assert cli.cmd_merge_index(object()) == 0
+    out = {e["id"]: e for e in json.loads((site / "index.json").read_text())["stations"]}
+    assert set(out) == {"MS:1", "ASOS:K1"}, "untouched station was dropped from the map"
+    assert out["ASOS:K1"]["crpss_vs_raw"] == 0.5, "fresh entry did not win"
