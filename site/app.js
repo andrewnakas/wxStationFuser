@@ -84,22 +84,52 @@ function initMap() {
   let pending = null;
   const redraw = () => {
     clearTimeout(pending);
-    pending = setTimeout(renderCatalogueMarkers, 150);
+    pending = setTimeout(() => {
+      // Enrolled markers are viewport-filtered too when there are many, so they need
+      // redrawing on pan; `false` keeps the map from re-fitting and fighting the user.
+      if (state.stations.length > 200) renderMap(false);
+      else renderCatalogueMarkers();
+    }, 150);
   };
   map.on('moveend zoomend', redraw);
 }
 
+/* A station's state, kept in one place because "no measurement yet" and "measured and
+ * worse" are different claims and must never be drawn the same way. An earlier version
+ * tested `crpss_vs_raw > 0`, which is false for null, so every station still accumulating
+ * history was coloured as though it had been measured and lost to the raw model. */
+function stationState(st) {
+  if (st.status !== 'ok') return 'unavailable';
+  if (st.crpss_vs_raw === null || st.crpss_vs_raw === undefined) return 'warming';
+  if (st.beats_raw) return 'beats';
+  if (st.crpss_vs_raw > 0) return 'inconclusive';
+  return 'worse';
+}
+
+const STATE_COLOR = {
+  beats: '#3fb950',        // measured, conclusively better
+  inconclusive: '#d29922', // measured, better but the interval includes zero
+  worse: '#f85149',        // measured, not better
+  warming: '#39c5cf',      // enrolled, still accumulating history (distinct from
+                           // the blue used for clickable un-enrolled stations)
+  unavailable: '#8b949e',  // no observations or no forecast
+};
+
+const STATE_PILL = {
+  beats: 'good', inconclusive: 'warn', worse: 'bad',
+  warming: 'mute', unavailable: 'mute',
+};
+
 function markerColor(st) {
-  if (st.status !== 'ok') return '#8b949e';
-  if (st.beats_raw) return '#3fb950';
-  if (st.crpss_vs_raw > 0) return '#d29922';
-  return '#f85149';
+  return STATE_COLOR[stationState(st)];
 }
 
 // Above this zoom the map also draws un-enrolled catalogue stations. Below it there would
 // be thousands in view, which is both unreadable and slow to render.
 const CATALOGUE_MIN_ZOOM = 7;
 const CATALOGUE_MAX_MARKERS = 600;
+// Rows rendered in the sidebar before it summarises the remainder.
+const ENROLLED_LIST_LIMIT = 60;
 
 function canInstant(st) {
   return Boolean(st.nws_id) || String(st.id).startsWith('NWS:') ||
@@ -109,10 +139,15 @@ function canInstant(st) {
 function renderMap(fit = true) {
   markerLayer.clearLayers();
 
-  // Enrolled stations first: larger, coloured by measured skill, always drawn.
+  // Enrolled stations: larger, coloured by measured skill. Once the registry runs to
+  // hundreds these are viewport-filtered like the catalogue, or every pan redraws the
+  // whole set.
+  const bounds = map.getBounds();
+  const filterToView = state.stations.length > 200;
   const pts = [];
   state.stations.forEach((st) => {
     if (st.lat == null || st.lon == null) return;
+    if (filterToView && !bounds.contains([st.lat, st.lon])) return;
     pts.push([st.lat, st.lon]);
     const m = L.circleMarker([st.lat, st.lon], {
       radius: 7,
@@ -182,6 +217,21 @@ function setMapHint(text) {
   if (el) el.textContent = text || '';
 }
 
+/* The map now encodes five states; without a key the colours are just decoration. */
+function renderMapLegend() {
+  const el = $('mapLegend');
+  if (!el) return;
+  const swatch = (c, label) =>
+    `<span class="lg"><i style="background:${c}"></i>${label}</span>`;
+  el.innerHTML =
+    swatch(STATE_COLOR.beats, 'beats raw') +
+    swatch(STATE_COLOR.inconclusive, 'better, not conclusive') +
+    swatch(STATE_COLOR.worse, 'no gain') +
+    swatch(STATE_COLOR.warming, 'building history') +
+    swatch('#58a6ff', 'click to calibrate') +
+    swatch('#6e7681', 'needs enrolling');
+}
+
 /* The full catalogue is only needed once someone searches beyond the enrolled list,
  * so it is fetched on demand rather than on page load. */
 async function ensureCatalogue() {
@@ -238,8 +288,28 @@ function renderList() {
   );
 
   if (enrolledMatches.length) {
-    if (q) ul.insertAdjacentHTML('beforeend', '<li class="meta">Enrolled</li>');
-    enrolledMatches.forEach((st) => ul.appendChild(enrolledRow(st)));
+    // Verified stations first: with hundreds enrolled, the ones with a measured result
+    // are what a reader wants, and rendering every row would stall the page.
+    const ranked = [...enrolledMatches].sort((a, b) => {
+      const av = a.crpss_vs_raw ?? -Infinity;
+      const bv = b.crpss_vs_raw ?? -Infinity;
+      return bv - av;
+    });
+    const shown = ranked.slice(0, ENROLLED_LIST_LIMIT);
+    const verified = enrolledMatches.filter((s) => s.crpss_vs_raw != null).length;
+    ul.insertAdjacentHTML(
+      'beforeend',
+      `<li class="meta">Enrolled: ${enrolledMatches.length.toLocaleString()} · ` +
+        `${verified.toLocaleString()} with a measured result</li>`
+    );
+    shown.forEach((st) => ul.appendChild(enrolledRow(st)));
+    if (ranked.length > shown.length) {
+      ul.insertAdjacentHTML(
+        'beforeend',
+        `<li class="meta">…and ${(ranked.length - shown.length).toLocaleString()} more — ` +
+          'search by name, or click one on the map</li>'
+      );
+    }
   }
 
   if (q && q.length >= 2) {
@@ -269,16 +339,23 @@ function renderList() {
   }
 }
 
+const STATE_LABEL = {
+  warming: 'building history',
+  unavailable: 'no data',
+  worse: 'no gain',
+};
+
 function enrolledRow(st) {
   const li = document.createElement('li');
   if (state.selected === st.id) li.className = 'active';
-  const cls = st.status !== 'ok' ? 'mute' : st.beats_raw ? 'good' : st.crpss_vs_raw > 0 ? 'warn' : 'bad';
-  const skill =
-    st.status === 'ok' && st.crpss_vs_raw != null
-      ? `<span class="pill ${cls}">${(st.crpss_vs_raw * 100).toFixed(0)}%</span>`
-      : `<span class="pill mute">${st.status === 'ok' ? 'unverified' : st.status}</span>`;
-  li.innerHTML = `<div class="name">${st.name} ${skill}</div>
-                  <div class="meta">${st.id}</div>`;
+  const s = stationState(st);
+  const pill =
+    s === 'beats' || s === 'inconclusive' || s === 'worse'
+      ? `<span class="pill ${STATE_PILL[s]}">${(st.crpss_vs_raw * 100).toFixed(0)}%</span>`
+      : `<span class="pill ${STATE_PILL[s]}">${STATE_LABEL[s]}</span>`;
+  const elev = st.elev_m ? ` · ${Math.round(st.elev_m)} m` : '';
+  li.innerHTML = `<div class="name">${st.name} ${pill}</div>
+                  <div class="meta">${st.id}${elev}</div>`;
   li.onclick = () => selectStation(st.id);
   return li;
 }
@@ -852,9 +929,17 @@ async function boot() {
     : '';
   renderMap();
   renderList();
+  renderMapLegend();
 
   const wanted = new URLSearchParams(location.search).get('station');
-  const first = state.stations.find((s) => s.status === 'ok');
+  // Open on a station that actually has a measured result. Landing on one that is still
+  // building history shows a provisional forecast and no skill number, which is the least
+  // informative first impression the site can give.
+  const first =
+    [...state.stations]
+      .filter((s) => s.status === 'ok' && s.crpss_vs_raw != null)
+      .sort((a, b) => (b.crpss_vs_raw ?? 0) - (a.crpss_vs_raw ?? 0))[0] ||
+    state.stations.find((s) => s.status === 'ok');
   if (wanted && state.stations.some((s) => s.id === wanted)) selectStation(wanted);
   else if (first) selectStation(first.id);
   else render();
