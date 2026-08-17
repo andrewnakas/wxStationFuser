@@ -10,6 +10,10 @@
  * is what the verification found.
  */
 
+// Above this, a station's calibration is history rather than current conditions and the
+// page says so. Set well past a normal refresh gap so ordinary lateness stays quiet.
+const STALE_OBS_DAYS = 7;
+
 const VARIABLE_LABELS = {
   air_temp_c: { name: 'Temperature', unit: '°C', short: 'Temp' },
   rh_pct: { name: 'Relative humidity', unit: '%', short: 'RH' },
@@ -651,9 +655,21 @@ function renderForecast() {
        reliable uncertainty bands, so only the central estimate is shown.</div>`
     : '';
 
+  // Some networks publish in arrears. Such a station still gets a calibrated forecast —
+  // its archive is real — but the correction was fitted to observations that stop weeks
+  // or months ago, which is a weaker claim than one fitted to last night's. Saying so is
+  // the price of publishing it at all.
+  const age = f.obs_age_days;
+  const staleNote = (age != null && age > STALE_OBS_DAYS)
+    ? `<div class="notice">The newest observation from this station is
+       ${Math.round(age)} days old, so the correction is fitted to history rather than to
+       current conditions. Its network publishes on a delay.</div>`
+    : '';
+
   return `
     ${headlineHTML(sk, method, state.instant)}
     ${state.instant ? enrollLinkHTML(f.station) : ''}
+    ${staleNote}
     ${rawNote}
     <div class="chart-wrap">
       <canvas id="fcChart"></canvas>
