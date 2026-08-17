@@ -170,6 +170,29 @@ explicitly excludes personal and hobbyist use. `SYN:` stations therefore need a 
 and `SYNOPTIC_API_TOKEN`. Nothing depends on it — Synoptic's unique contribution was some
 US mesonet coverage (RAWS, state networks), and the other five sources cover the rest.
 
+## What limits the number of stations
+
+Three ceilings, measured rather than assumed.
+
+**Open-Meteo throttling** is the one felt during a run. The API prices a request by
+locations x models x variables rather than by request count, and refuses with a 429 above a
+per-minute budget. Measured against the previous-runs endpoint: 10 locations x 4 models
+returns in about 4 s, while 25 x 4 and 53 x 1 are both refused and clear roughly a minute
+later. That is why the history endpoints batch 10 locations where the plain forecast
+endpoint batches 100, and why a shard's wall clock is dominated by one sequential pass per
+model. Adding stations costs time, not accuracy.
+
+**Observation freshness** decides whether a station can be verified at all. A forecast can
+only be scored where recent observations exist, so a network that publishes on a delay
+yields stations that train but cannot be checked. Meteostat's bulk archive is the live
+example: as of August 2026 its year-partitioned files stop at 2026-03-29, its full record
+at 2025-08, and its `full/` variant at 2022. Those stations need a deep bootstrap rather
+than an incremental refresh, and they publish `obs_age_days` so the staleness is legible
+instead of inferred.
+
+**GitHub Pages** is the loosest of the three. At roughly 83 KB per station against a ~1 GB
+soft limit, the site holds on the order of 12,000 stations.
+
 ## References
 
 Glahn & Lowry (1972), *Model Output Statistics*, J. Appl. Meteor. ·
