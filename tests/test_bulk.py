@@ -133,3 +133,45 @@ def test_every_registry_station_reaches_a_batched_fetcher():
     batched = {"ASOS", "SNOTEL", "MS"}
     stragglers = [s.id for s in load_registry() if _source_of(s.id) not in batched]
     assert len(stragglers) <= 1, f"{len(stragglers)} stations on the slow path: {stragglers[:5]}"
+
+
+# ------------------------------------------------- publishing through a lagging source
+
+def _station():
+    from wxfuser.data.registry import Station
+
+    return Station(id="MS:10637", name="Test", lat=50.0, lon=8.0, elev_m=100.0)
+
+
+def test_stale_source_still_publishes_from_stored_history(monkeypatch, tmp_path):
+    """An empty refresh window must not discard a station that already has an archive.
+
+    Meteostat's bulk archive trails by months, so its stations routinely return nothing for
+    a ten-day window. Bailing on that dropped 4,000 stations from the site while their
+    paired history sat on disk, perfectly usable for training.
+    """
+    from wxfuser.pipeline import bulk_run, core
+
+    archive = pd.DataFrame({"valid_time": pd.to_datetime(["2026-03-29 12:00"])})
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(core, "update_archive", lambda st, built: archive)
+    monkeypatch.setattr(core, "train_variable", lambda *a, **k: {"status": "no"})
+
+    live = pd.DataFrame({"valid_time": pd.to_datetime(["2026-08-17 00:00"]), "lead_h": [1]})
+    out = bulk_run._finish_station(
+        _station(), None, None, live, ["air_temp_c"], evaluate=False
+    )
+    assert out["status"] == "warming_up", out
+
+
+def test_a_station_with_neither_window_nor_archive_is_reported_honestly(monkeypatch, tmp_path):
+    from wxfuser.pipeline import bulk_run, core
+
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(core, "update_archive", lambda st, built: pd.DataFrame())
+
+    live = pd.DataFrame({"valid_time": pd.to_datetime(["2026-08-17 00:00"]), "lead_h": [1]})
+    out = bulk_run._finish_station(
+        _station(), None, None, live, ["air_temp_c"], evaluate=False
+    )
+    assert out["status"] == "no_observations"

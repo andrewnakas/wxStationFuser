@@ -251,18 +251,28 @@ def _finish_station(
     from wxfuser.verify import rolling
 
     base = {"id": station.id, "name": station.name, "lat": station.lat, "lon": station.lon}
-    if observations is None or observations.empty:
-        return {**base, "status": "no_observations"}
-    if forecasts is None or forecasts.empty:
-        return {**base, "status": "no_forecasts"}
     if live is None or live.empty:
         return {**base, "status": "no_forecast"}
 
-    core.merge_obs_history(station, observations)
-    built = pairs_mod.build_pairs(forecasts, observations, station.id, variables)
+    # An empty refresh window is not the same as having no data. Several networks publish
+    # on a delay — the Meteostat bulk archive currently trails by months — so a station
+    # whose window came back empty may still hold years of paired history. Treating that
+    # as fatal drops the station from the site entirely and discards an archive that is
+    # perfectly good to train on; the only thing genuinely required to publish is a live
+    # forecast and something to calibrate it with.
+    fresh_obs = observations is not None and not observations.empty
+    fresh_fc = forecasts is not None and not forecasts.empty
+
+    if fresh_obs:
+        core.merge_obs_history(station, observations)
+    built = (
+        pairs_mod.build_pairs(forecasts, observations, station.id, variables)
+        if fresh_obs and fresh_fc
+        else pd.DataFrame()
+    )
     archive = core.update_archive(station, built)
     if archive.empty:
-        return {**base, "status": "no_data"}
+        return {**base, "status": "no_observations" if not fresh_obs else "no_data"}
 
     stored = state_mod.load(core.STATE_DIR, station.slug)
     obs_path = core.obs_path(station)
@@ -316,9 +326,17 @@ def _finish_station(
     if not predictions:
         return {**base, "status": "warming_up"}
 
+    # How old the newest calibrating observation is. A station on a lagging network still
+    # publishes, but a forecast calibrated against months-old data is not the same claim as
+    # one calibrated against last night's, and the difference should be legible rather than
+    # inferred from a silence.
+    latest_obs = pd.to_datetime(archive["valid_time"]).max()
+    obs_age_days = round((pd.Timestamp.utcnow().tz_localize(None) - latest_obs).total_seconds() / 86400.0, 1)
+
     payload = emit.forecast_json(
         station.public_dict(), models, live, predictions, methods, skill
     )
+    payload["obs_age_days"] = obs_age_days
     emit.write_json(payload, core.SITE_DIR / "stations" / station.slug / "forecast.json")
     emit.write_json(
         {"schema_version": emit.SCHEMA_VERSION, "station": station.public_dict(),
@@ -338,4 +356,5 @@ def _finish_station(
         "beats_raw": headline.get("beats_raw", False),
         "method": methods.get("air_temp_c", {}).get("label"),
         "train_days": methods.get("air_temp_c", {}).get("train_days"),
+        "obs_age_days": obs_age_days,
     }
