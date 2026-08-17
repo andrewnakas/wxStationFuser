@@ -92,17 +92,53 @@ def cmd_refresh(args) -> int:
         emit.write_json(emit.index_json([]), _index_path(args.shard, args.of))
         return 0
 
-    entries = bulk_run.run_stations(
-        stations,
-        bootstrap=args.bootstrap,
-        evaluate=args.evaluate or args.bootstrap,
-        years=args.years,
-    )
+    # Work in batches and checkpoint between them. A bootstrap shard runs for hours, and
+    # a job that hits its timeout is killed outright — its final upload step never runs,
+    # so everything it built dies with the runner. Checkpointing means an interrupted
+    # shard loses one batch rather than an afternoon, and re-running resumes from there.
+    checkpoint = args.checkpoint_every or len(stations)
+    entries: list[dict] = []
+    for i in range(0, len(stations), checkpoint):
+        chunk = stations[i : i + checkpoint]
+        entries.extend(
+            bulk_run.run_stations(
+                chunk,
+                bootstrap=args.bootstrap,
+                evaluate=args.evaluate or args.bootstrap,
+                years=args.years,
+            )
+        )
+        if checkpoint < len(stations):
+            done = min(i + checkpoint, len(stations))
+            ok_so_far = sum(1 for e in entries if e.get("status") == "ok")
+            print(f"--- checkpoint: {done}/{len(stations)} stations, {ok_so_far} published",
+                  flush=True)
+            _checkpoint_state()
+
     emit.write_json(emit.index_json(entries), _index_path(args.shard, args.of))
     ok = sum(1 for e in entries if e.get("status") == "ok")
     print(f"refresh complete: {ok}/{len(entries)} stations published")
     # A partial refresh still deploys: a stale station beats an empty site.
     return 0
+
+
+def _checkpoint_state() -> None:
+    """Push state to the hub mid-run, if one is configured.
+
+    Best-effort by design: a failed checkpoint should slow the run down, not end it.
+    """
+    import os
+    import subprocess
+
+    if not os.environ.get("HF_TOKEN"):
+        return
+    script = Path(__file__).resolve().parents[2] / "scripts" / "sync_state.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run([sys.executable, str(script), "upload"], check=False, timeout=900)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  WARN: checkpoint upload failed ({exc})", flush=True)
 
 
 def cmd_merge_index(args) -> int:
@@ -351,6 +387,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--years", type=float, default=2.0, help="years to backfill when bootstrapping")
     p.add_argument("--shard", type=int, help="0-based index of this worker")
     p.add_argument("--of", type=int, help="total number of workers")
+    p.add_argument("--checkpoint-every", type=int,
+                   help="push state to the hub every N stations, so a killed job loses "
+                        "one batch rather than the whole run")
     p.set_defaults(func=cmd_refresh)
 
     p = sub.add_parser("merge-index", help="combine per-shard index fragments")

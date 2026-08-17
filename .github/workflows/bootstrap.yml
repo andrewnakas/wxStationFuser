@@ -17,7 +17,7 @@ on:
       shards:
         description: 'Number of parallel workers'
         required: false
-        default: '10'
+        default: '20'
       years:
         description: 'Years of history to backfill'
         required: false
@@ -39,7 +39,7 @@ jobs:
     steps:
       - id: plan
         env:
-          SHARDS: ${{ inputs.shards || '10' }}
+          SHARDS: ${{ inputs.shards || '20' }}
         run: |
           python -c "
           import json, os
@@ -79,6 +79,7 @@ jobs:
         run: |
           wxfuser refresh --bootstrap \
             --years ${{ inputs.years || '2' }} \
+            --checkpoint-every 15 \
             --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
       - name: Save state
