@@ -52,7 +52,7 @@ jobs:
 
       - name: Publish to Hugging Face
         if: env.HF_TOKEN != ''
-        run: python scripts/sync_state.py upload
+        run: python scripts/sync_state.py upload --paths catalogue
 
       - name: Trigger a refresh so the site picks up the new catalogue
         env:

@@ -73,7 +73,7 @@ jobs:
 
       - name: Restore state
         if: env.HF_TOKEN != ''
-        run: python scripts/sync_state.py download || echo "no hub state yet"
+        run: python scripts/sync_state.py download
 
       - name: Refresh shard
         run: wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}

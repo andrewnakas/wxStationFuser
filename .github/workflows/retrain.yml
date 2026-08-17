@@ -77,7 +77,7 @@ jobs:
 
       - name: Restore state (Hugging Face)
         if: env.HF_TOKEN != ''
-        run: python scripts/sync_state.py download || echo "no hub state yet"
+        run: python scripts/sync_state.py download
 
       - name: Retrain and re-verify
         run: |

@@ -25,19 +25,53 @@ def _api():
     return HfApi(token=token), token
 
 
+# Written when a restore succeeds. Its absence tells the upload step that this runner
+# never saw the existing state, and therefore must not overwrite it.
+RESTORE_MARKER = ".restored"
+
+
+def _repo_exists() -> bool:
+
+    api, token = _api(required=False)
+    try:
+        api.repo_info(repo_id=hf_state_repo(), repo_type="dataset", token=token)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def download() -> int:
+    """Restore state, and fail loudly if state exists but could not be fetched.
+
+    Swallowing a failed restore is what turns a transient network problem into data loss:
+    the run continues with an empty state directory, rebuilds a shallow ten-day archive
+    for every station, and uploads that over the deep history it never managed to read.
+    A missing repository is fine — that is a genuine cold start.
+    """
     from huggingface_hub import snapshot_download
 
     repo = hf_state_repo()
-    _, token = _api()
+    _, token = _api(required=False)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
-    path = snapshot_download(
-        repo_id=repo,
-        repo_type="dataset",
-        local_dir=str(STATE_DIR),
-        token=token,  # public repos read without one
-    )
+
+    if not _repo_exists():
+        print(f"{repo} does not exist yet; starting cold")
+        return 0
+
+    try:
+        path = snapshot_download(
+            repo_id=repo,
+            repo_type="dataset",
+            local_dir=str(STATE_DIR),
+            token=token,  # public repos read without one
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"ERROR: {repo} exists but could not be restored ({exc}).")
+        print("Refusing to continue: proceeding would overwrite it with shallow archives.")
+        return 1
+
     n = sum(1 for _ in Path(path).rglob("*") if _.is_file())
+    (STATE_DIR / RESTORE_MARKER).write_text(repo)
     print(f"restored {n} state files from {repo}")
     return 0
 
@@ -74,7 +108,7 @@ def _shard_patterns(shard: int, of: int) -> list[str] | None:
     return patterns
 
 
-def upload(shard: int | None = None, of: int | None = None) -> int:
+def upload(shard: int | None = None, of: int | None = None, paths: str | None = None) -> int:
     repo = hf_state_repo()
     api, token = _api()
     if not token:
@@ -84,8 +118,21 @@ def upload(shard: int | None = None, of: int | None = None) -> int:
         print("no local state to upload")
         return 0
 
-    allow = _shard_patterns(shard, of) if (shard is not None and of) else None
-    if allow:
+    # If the hub already holds state that this runner never restored, anything local is a
+    # partial rebuild and publishing it would destroy the real thing.
+    if _repo_exists() and not (STATE_DIR / RESTORE_MARKER).exists():
+        print("refusing to upload: hub state exists but was never restored here")
+        return 1
+
+    # Each writer publishes only what it owns: a shard its stations, the catalogue job
+    # its catalogue. Whole-folder uploads from concurrent jobs collide on the underlying
+    # ref, which is what took the catalogue build down.
+    if paths:
+        allow = [f"{p.strip().rstrip('/')}/**" for p in paths.split(",") if p.strip()]
+        print(f"uploading only: {', '.join(allow)}")
+    else:
+        allow = _shard_patterns(shard, of) if (shard is not None and of) else None
+    if allow and not paths:
         print(f"uploading only shard {shard + 1}/{of}: {len(allow) // 4} stations")
 
     api.create_repo(repo_id=repo, repo_type="dataset", exist_ok=True, token=token)
@@ -100,7 +147,10 @@ def upload(shard: int | None = None, of: int | None = None) -> int:
         allow_patterns=allow,
         # Filesystem and interpreter debris would otherwise be published alongside the
         # data and downloaded by every subsequent run.
-        ignore_patterns=[".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp"],
+        ignore_patterns=[
+            ".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp",
+            RESTORE_MARKER,
+        ],
     )
     print(f"uploaded {STATE_DIR} to {repo}")
     return 0
@@ -113,12 +163,13 @@ def main() -> int:
     ap.add_argument("action", nargs="?", default="download", choices=["download", "upload"])
     ap.add_argument("--shard", type=int, help="0-based worker index; scopes an upload")
     ap.add_argument("--of", type=int, help="total workers")
+    ap.add_argument("--paths", help="comma-separated state subdirectories to upload")
     args = ap.parse_args()
 
     if args.action == "download":
         return download()
     if args.action == "upload":
-        return upload(args.shard, args.of)
+        return upload(args.shard, args.of, args.paths)
     return 2
 
 
