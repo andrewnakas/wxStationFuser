@@ -191,12 +191,12 @@ than an incremental refresh, and they publish `obs_age_days` so the staleness is
 instead of inferred.
 
 **Hugging Face request limits** shape how the fleet starts rather than how large it gets.
-The hub allows 1000 API requests per five minutes, and a snapshot download spends one per
-file, so restoring ~2,800 archive files exceeds the window on its own. Each worker
-therefore restores only the stations its shard owns, and the workers stagger their starts;
-restoring the whole archive on every runner is what took a twenty-shard run down at its
-first step, with each shard correctly refusing to continue rather than overwrite deep
-history with a shallow rebuild.
+The hub allows 1000 API requests per five minutes. Twenty workers each restoring the whole
+archive exceeded that, and every one of them failed on its first step — correctly refusing
+to continue rather than overwrite deep history with a shallow rebuild. Each worker now
+restores only the stations its shard owns (measured: 14 MB rather than 141 MB) and the
+fleet staggers its starts. The quota tracks metadata calls rather than file volume: three
+back-to-back scoped restores, 2,142 files in 78 seconds, drew no limit at all.
 
 **GitHub Pages** is the loosest of the three. At roughly 83 KB per station against a ~1 GB
 soft limit, the site holds on the order of 12,000 stations.

@@ -77,12 +77,18 @@ jobs:
       - name: Install
         run: pip install -e ".[train]"
 
-      # Hugging Face allows 1000 API requests per 5 minutes and snapshot_download spends
-      # one per file, so a fleet that all restores at once bursts straight through the
-      # quota and every shard fails on its first step. Staggering keeps roughly two
-      # workers downloading at a time, which stays comfortably inside the window.
+      # Hugging Face allows 1000 API requests per 5 minutes, and twenty shards restoring
+      # the whole archive at once blew through it — every worker then failed on its first
+      # step. Scoping each restore to one shard's stations is most of the fix; this spreads
+      # the remaining burst of metadata calls that a simultaneous fleet start produces.
+      #
+      # Measured rather than assumed: three back-to-back scoped restores, 2,142 files in
+      # 78 seconds, drew no limit at all. So the quota tracks metadata calls, not file
+      # volume, and a few minutes of spread is enough — an earlier version of this slept
+      # four minutes per shard on the theory that every file cost a request, which the
+      # measurement contradicts.
       - name: Stagger the restore
-        run: sleep $(( ${{ matrix.shard }} * 25 ))
+        run: sleep $(( ${{ matrix.shard }} * 45 ))
 
       - name: Restore state
         if: env.HF_TOKEN != ''
