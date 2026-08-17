@@ -17,6 +17,10 @@ on:
         description: 'Number of parallel workers'
         required: false
         default: '8'
+      sources:
+        description: 'Networks to refresh (e.g. ASOS,SNOTEL). Blank means all.'
+        required: false
+        default: ''
   push:
     branches: [main]
     paths:
@@ -76,7 +80,11 @@ jobs:
         run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
       - name: Refresh shard
-        run: wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
+        env:
+          SOURCES: ${{ inputs.sources }}
+        run: |
+          wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
+            ${SOURCES:+--sources "$SOURCES"}
 
       # Each shard writes only its own stations, so uploading in parallel touches
       # disjoint paths. Conflicts are still possible on the underlying ref, hence retries.
