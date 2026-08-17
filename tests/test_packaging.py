@@ -187,3 +187,78 @@ def test_shard_assignment_is_balanced_and_covers_everything():
     assert len(counts) == of, "some worker would get no stations at all"
     # Hashing will not be perfectly even, but it must not be badly lopsided.
     assert max(counts.values()) < 2 * min(counts.values())
+
+
+def _dev_environment_distributions() -> set[str]:
+    """What `pip install -e .[dev]` actually puts in the environment.
+
+    Distinct from _declared_dependencies, which unions every extra and so answers only
+    "is this named somewhere in pyproject". Installing the package brings the base
+    dependencies; the dev extra brings its own, and a `wxfuser[x]` self-reference brings
+    that extra too.
+    """
+    import re
+    import tomllib
+
+    with open(REPO_ROOT / "pyproject.toml", "rb") as fh:
+        cfg = tomllib.load(fh)
+    project = cfg.get("project", {})
+    extras = project.get("optional-dependencies") or {}
+
+    def name_of(spec: str) -> str:
+        return re.split(r"[<>=!~\[; ]", spec, maxsplit=1)[0].strip().lower().replace("-", "_")
+
+    specs = list(project.get("dependencies", []))
+    pending, seen = ["dev"], set()
+    while pending:
+        extra = pending.pop()
+        if extra in seen:
+            continue
+        seen.add(extra)
+        for spec in extras.get(extra, []):
+            ref = re.match(r"^wxfuser\[([^\]]+)\]", spec.strip())
+            if ref:
+                pending.extend(p.strip() for p in ref.group(1).split(","))
+            else:
+                specs.append(spec)
+    return {name_of(s) for s in specs if s.strip()}
+
+
+@pytest.mark.skipif(not _is_git_repo(), reason="not a git checkout")
+def test_the_test_suite_runs_in_the_environment_ci_builds():
+    """Tests may only import what `.[dev]` installs.
+
+    A test importing something CI does not install passes locally and errors there. That
+    happened with huggingface_hub: it was declared, but only under the train extra, so the
+    sync-state tests errored on CI while passing on a developer machine — and those are
+    precisely the tests guarding the bug that killed every data job for days.
+    """
+    import ast
+    import sys
+
+    PROVIDED_BY = {"yaml": "pyyaml", "sklearn": "scikit_learn", "dateutil": "python_dateutil"}
+    stdlib = set(sys.stdlib_module_names)
+    local = {"wxfuser", "sync_state", "validate_enrollment", "conftest"}
+    available = _dev_environment_distributions()
+
+    missing: dict[str, set[str]] = {}
+    for folder in ("tests", "scripts"):
+        for path in (REPO_ROOT / folder).rglob("*.py"):
+            if "__pycache__" in path.parts:
+                continue
+            for node in ast.walk(ast.parse(path.read_text())):
+                mods = []
+                if isinstance(node, ast.Import):
+                    mods = [a.name.split(".")[0] for a in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    mods = [node.module.split(".")[0]]
+                for m in mods:
+                    if m in stdlib or m in local:
+                        continue
+                    if PROVIDED_BY.get(m, m).lower().replace("-", "_") not in available:
+                        missing.setdefault(path.name, set()).add(m)
+
+    assert not missing, (
+        "these are imported by tests/scripts but not installed by `.[dev]`, so they pass "
+        f"locally and error on CI: { {k: sorted(v) for k, v in missing.items()} }"
+    )

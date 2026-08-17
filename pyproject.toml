@@ -31,7 +31,13 @@ train = [
 ]
 # Ruff is pinned to a minor series: its import-sorting rules change between releases,
 # and an unpinned range meant CI could fail a lint that passed locally on the same commit.
-dev = ["pytest>=7.4", "ruff~=0.16.3"]
+#
+# dev pulls in train deliberately. Without it CI installed neither huggingface_hub nor
+# duckdb, so every test touching the hub or the ASOS archive was skipped there while
+# passing on a developer machine that happened to have them — and the sync bug that killed
+# every data job for days lived in exactly that blind spot. A slower install is worth
+# testing the code paths production actually runs.
+dev = ["pytest>=7.4", "ruff~=0.16.3", "wxfuser[train]"]
 
 [project.scripts]
 wxfuser = "wxfuser.cli:main"
