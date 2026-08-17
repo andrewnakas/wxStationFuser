@@ -13,10 +13,15 @@ on:
     - cron: '17 */6 * * *'
   workflow_dispatch:
     inputs:
+      # More workers is not faster past a point. Open-Meteo prices requests by
+      # locations x models and throttles on a per-minute budget shared by the whole fleet,
+      # so the shards end up waiting on each other rather than on the work. A twelve-shard
+      # run over 4,760 stations spent four hours without a single shard finishing, against
+      # a measured ~1.5 hours of actual work per shard. Six or fewer is the useful range.
       shards:
-        description: 'Number of parallel workers'
+        description: 'Number of parallel workers (>6 mostly buys API contention)'
         required: false
-        default: '8'
+        default: '6'
       sources:
         description: 'Networks to refresh (e.g. ASOS,SNOTEL). Blank means all.'
         required: false
@@ -53,7 +58,7 @@ jobs:
     steps:
       - id: plan
         env:
-          SHARDS: ${{ inputs.shards || '8' }}
+          SHARDS: ${{ inputs.shards || '6' }}
         run: |
           python -c "
           import json, os
