@@ -23,6 +23,10 @@ on:
         description: 'Number of parallel workers'
         required: false
         default: '16'
+      sources:
+        description: 'Networks to bootstrap (e.g. MS). Blank means all.'
+        required: false
+        default: ''
       years:
         description: 'Years of history to backfill'
         required: false
@@ -95,11 +99,14 @@ jobs:
         run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
       - name: Bootstrap shard
+        env:
+          SOURCES: ${{ inputs.sources }}
         run: |
           wxfuser refresh --bootstrap \
             --years ${{ inputs.years || '2' }} \
             --checkpoint-every 15 \
-            --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
+            --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
+            ${SOURCES:+--sources "$SOURCES"}
 
       - name: Save state
         if: always() && env.HF_TOKEN != ''
