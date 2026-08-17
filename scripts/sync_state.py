@@ -18,10 +18,17 @@ from wxfuser.config import hf_state_repo
 STATE_DIR = Path(os.environ.get("WXFUSER_STATE_DIR", "state"))
 
 
-def _api():
+def _api(*, required: bool = False):
+    """The hub client and the token it resolved, if any.
+
+    Read paths pass ``required=False``: the state repo is public, so a restore must still
+    work on a runner with no secret — a fork's CI, or a local checkout.
+    """
     from huggingface_hub import HfApi, get_token
 
     token = os.environ.get("HF_TOKEN") or get_token()
+    if required and not token:
+        raise RuntimeError("HF_TOKEN is not set; this operation needs write access")
     return HfApi(token=token), token
 
 
@@ -31,12 +38,19 @@ RESTORE_MARKER = ".restored"
 
 
 def _repo_exists() -> bool:
+    """Whether the state repo is already there.
 
-    api, token = _api(required=False)
+    Only a genuine absence answers False. Every other failure propagates, because the
+    upload guard reads this as "nothing to protect" — so treating a timeout or a bad
+    token as absence would license the shallow-overwrite this is here to prevent.
+    """
+    from huggingface_hub.errors import RepositoryNotFoundError
+
+    api, token = _api()
     try:
         api.repo_info(repo_id=hf_state_repo(), repo_type="dataset", token=token)
         return True
-    except Exception:  # noqa: BLE001
+    except RepositoryNotFoundError:
         return False
 
 
@@ -51,7 +65,7 @@ def download() -> int:
     from huggingface_hub import snapshot_download
 
     repo = hf_state_repo()
-    _, token = _api(required=False)
+    _, token = _api()
     STATE_DIR.mkdir(parents=True, exist_ok=True)
 
     if not _repo_exists():
