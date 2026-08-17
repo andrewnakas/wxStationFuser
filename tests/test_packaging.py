@@ -79,3 +79,76 @@ def test_configs_are_shipped():
     """The package reads its constants from configs/, so they must exist in a clone."""
     for name in ("models.yaml", "tiers.yaml", "hub.yaml"):
         assert (REPO_ROOT / "configs" / name).exists(), f"configs/{name} is missing"
+
+
+def _declared_dependencies() -> set[str]:
+    """Every distribution named in pyproject, across the base and all extras."""
+    import re
+    import tomllib
+
+    with open(REPO_ROOT / "pyproject.toml", "rb") as fh:
+        cfg = tomllib.load(fh)
+    project = cfg.get("project", {})
+    specs = list(project.get("dependencies", []))
+    for extra in (project.get("optional-dependencies") or {}).values():
+        specs.extend(extra)
+    # "huggingface-hub>=0.23" -> "huggingface_hub"
+    return {
+        re.split(r"[<>=!~\[; ]", s, 1)[0].strip().lower().replace("-", "_")
+        for s in specs
+        if s.strip()
+    }
+
+
+def _imported_top_level_modules() -> set[str]:
+    """Top-level modules the package imports, including inside functions."""
+    import ast
+
+    found: set[str] = set()
+    for path in PACKAGE_ROOT.rglob("*.py"):
+        if "__pycache__" in path.parts:
+            continue
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    found.add(alias.name.split(".")[0])
+            elif isinstance(node, ast.ImportFrom):
+                if node.level == 0 and node.module:
+                    found.add(node.module.split(".")[0])
+    return found
+
+
+@pytest.mark.skipif(not _is_git_repo(), reason="not a git checkout")
+def test_every_third_party_import_is_declared():
+    """An undeclared dependency works locally and breaks every fresh environment.
+
+    duckdb was imported by the ASOS bulk reader but named nowhere in pyproject. It ran
+    fine on a machine where it had been pip-installed by hand, and on CI every airport
+    station failed while the other networks succeeded — a partial, confusing failure
+    rather than an obvious import error at startup.
+    """
+    import sys
+
+    # Import name -> distribution that provides it, for the packages where they differ.
+    PROVIDED_BY = {
+        "yaml": "pyyaml",
+        "sklearn": "scikit_learn",
+        "dateutil": "python_dateutil",
+    }
+
+    stdlib = set(sys.stdlib_module_names)
+    first_party = {"wxfuser"}
+    declared = _declared_dependencies()
+
+    undeclared = set()
+    for m in _imported_top_level_modules():
+        if m in stdlib or m in first_party:
+            continue
+        dist = PROVIDED_BY.get(m, m).lower().replace("-", "_")
+        if dist not in declared:
+            undeclared.add(m)
+    assert not undeclared, (
+        f"these are imported but not declared in pyproject.toml, so a fresh install "
+        f"would fail at runtime: {sorted(undeclared)}"
+    )
