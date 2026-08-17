@@ -94,7 +94,7 @@ def _declared_dependencies() -> set[str]:
         specs.extend(extra)
     # "huggingface-hub>=0.23" -> "huggingface_hub"
     return {
-        re.split(r"[<>=!~\[; ]", s, 1)[0].strip().lower().replace("-", "_")
+        re.split(r"[<>=!~\[; ]", s, maxsplit=1)[0].strip().lower().replace("-", "_")
         for s in specs
         if s.strip()
     }
