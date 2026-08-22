@@ -395,6 +395,7 @@ def cmd_enroll_bulk(args) -> int:
         ),
         min_elevation_m=args.min_elevation,
         countries=args.countries.split(",") if args.countries else None,
+        asos_min_obs=args.asos_min_obs,
     )
     if universe.empty:
         print("no stations matched")
@@ -483,6 +484,13 @@ def cmd_enroll_bulk(args) -> int:
         print(f"  cumulative published: {total_ok}")
     print(f"\nbulk enroll complete: {total_ok}/{len(added)} published")
     return 0
+
+
+def bulk_defaults() -> dict:
+    """Defaults that live with the data source rather than with the argument parser."""
+    from wxfuser.data import bulk
+
+    return {"asos_min_obs": bulk.MIN_OBS_IN_WINDOW}
 
 
 def pd_notna(v) -> bool:
@@ -619,6 +627,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="only stations at or above this elevation in metres")
     p.add_argument("--countries", help="comma-separated ISO country codes")
     p.add_argument("--no-asos", action="store_true", help="skip the ASOS airport archive")
+    p.add_argument("--asos-min-obs", type=int, default=bulk_defaults()["asos_min_obs"],
+                   help="observations in the trailing year an airport needs to be "
+                        "enrolled; the default takes every station that is still alive")
     p.add_argument("--no-snotel", action="store_true", help="skip SNOTEL mountain sites")
     p.add_argument("--meteostat", action="store_true",
                    help="include Meteostat, which supplies most non-US coverage")

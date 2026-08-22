@@ -151,6 +151,7 @@ wxfuser refresh --bootstrap --only-untrained \
 
 | Prefix | Network | Example |
 |---|---|---|
+| `ASOS:` | Global airport observations, in bulk from dynamical.org (~4,100 stations) | `ASOS:DEN` |
 | `IEM:` | Airport/ASOS via Iowa Environmental Mesonet (needs `iem_network`) | `IEM:DEN` |
 | `NWS:` | US National Weather Service | `NWS:KDEN` |
 | `GHCNH:` | GHCN-hourly (deep history) | `GHCNH:USW00003017` |
@@ -189,7 +190,7 @@ US mesonet coverage (RAWS, state networks), and the other five sources cover the
 ## How the fleet fills itself
 
 The registry can be grown faster than it can be trained, and for a long time it was: as of
-this writing 8,761 stations are registered and 1,326 have a paired archive. Backfilling two
+this writing 9,040 stations are registered and 1,326 have a paired archive. Backfilling two
 years of model history is the expensive step, so the useful question is not how many
 stations exist but **which** ones get the budget. Registry order answers that badly — it is
 alphabetical by station id, so it spends the night on whichever ICAO code sorts first.
@@ -223,16 +224,41 @@ and it is one of the most valuable stations in the fleet, since a model's idea o
 terrain is most wrong exactly there. Population decides which *populated* station comes
 first; among the unpopulated ones the mountains still win.
 
-`grow` also declines to outrun the rest of the system. `--max-backlog` counts the
-registered stations with no archive yet and adds only enough to top that number up, so
-enrollment tracks what the nightly bootstrap can actually train. Registering ten thousand
-stations that never get trained does not grow the site — it grows the backlog, and the site
-shows exactly what it showed before.
-
 Served population is a proxy and behaves like one. It knows nothing about whether a station
 reports reliably, whether its observations arrive fresh enough to verify against, or whether
 the models are already good there. Those are answered downstream, by the verification that
 can say no.
+
+### Airports are taken whole
+
+Pacing applies to the sources that are effectively unbounded. The airport network is not
+one of them, so `grow` enrolls **every** station in dynamical.org's archive that has
+reported in the last year — 4,062 of them — and keeps doing so.
+
+That is affordable because the archive answers in bulk: one DuckDB query covers every
+airport in a shard, so a thousand stations cost what ten do. The observation side of an
+airport is free; only its forecasts are rationed, and that rationing is what the ordering
+above is for.
+
+Which stations count as reporting used to be decided on the *previous calendar year* — a
+test that judges a 2026 station on its 2025 record. It was hiding 279 live stations,
+including the airports at Tokyo, Delhi, Seoul and Johannesburg, plus sites like Ship Shoal
+and Pipestone that now report more often than hourly and simply had a quiet 2025. The
+window is now a rolling year, so a station commissioned in March is enrolled that week
+rather than the following January, and one that has been silent for a year drops out.
+
+The bar for "reporting" is now a single observation in that year. A sparse reporter is not
+a silent failure here — it trains on what it has, publishes `obs_age_days`, and reports
+itself unmeasured until verification says otherwise — and excluding the weakest few dozen
+was costing 279 good stations to save a forecast budget they barely move.
+
+### Everything else is paced
+
+`grow` declines to outrun the rest of the system. `--max-backlog` counts the registered
+stations with no archive yet and adds only enough to top that number up, so enrollment
+tracks what the nightly bootstrap can actually train. Registering ten thousand stations
+that never get trained does not grow the site — it grows the backlog, and the site shows
+exactly what it showed before.
 
 ## What limits the number of stations
 

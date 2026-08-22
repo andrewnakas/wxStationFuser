@@ -6803,6 +6803,13 @@ stations:
   elev_m: 914.23517
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:01M
+  name: Belmont
+  lat: 34.4917
+  lon: -88.2011
+  elev_m: 173.01176
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:04V
   name: SAGUACHE MUNI
   lat: 38.1
@@ -7125,6 +7132,20 @@ stations:
   elev_m: 1319.7548
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:1L8
+  name: Hurricane
+  lat: 37.1402
+  lon: -113.306
+  elev_m: 1021.0
+  country: US
+  enrolled_at: '2026-08-22'
+- id: ASOS:1LM
+  name: Lima
+  lat: 46.7
+  lon: -109.7333
+  elev_m: 1402.601
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:1LN
   name: Lima
   lat: 48.79
@@ -7181,6 +7202,13 @@ stations:
   elev_m: 72.02543
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:1S3
+  name: Forsyth Tillitt Field
+  lat: 46.2712
+  lon: -106.6239
+  elev_m: 831.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:1S5
   name: Sunnyside
   lat: 46.3271
@@ -7825,6 +7853,13 @@ stations:
   elev_m: 74.3404
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:68S
+  name: Davenport
+  lat: 47.6536
+  lon: -118.1689
+  elev_m: 739.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:6A1
   name: Butler
   lat: 32.5674
@@ -7909,6 +7944,13 @@ stations:
   elev_m: 15.5
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:6S8
+  name: Laurel
+  lat: 45.7031
+  lon: -108.7611
+  elev_m: 1057.7766
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:74V
   name: Roosevelt
   lat: 40.2783
@@ -8441,6 +8483,13 @@ stations:
   elev_m: 95.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:AGR
+  name: MacGill AFB
+  lat: 27.6478
+  lon: -81.3415
+  elev_m: 20.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:AGS
   name: AUGUSTA/BUSH FIELD
   lat: 33.3699
@@ -8734,6 +8783,13 @@ stations:
   elev_m: 406.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:ANYN
+  name: Nauru
+  lat: -0.5475
+  lon: 166.9191
+  elev_m: 7.0
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:AOH
   name: LIMA
   lat: 40.7069
@@ -8769,6 +8825,13 @@ stations:
   elev_m: 3.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:APG
+  name: PHILLIPS AAF/ABERDN
+  lat: 39.4662
+  lon: -76.1688
+  elev_m: 18.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:APN
   name: ALPENA
   lat: 45.0717
@@ -8951,6 +9014,13 @@ stations:
   elev_m: 249.22482
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:ATA
+  name: Atlanta
+  lat: 33.1018
+  lon: -94.1953
+  elev_m: 81.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:ATL
   name: ATLANTA INTL ARPT
   lat: 33.6301
@@ -9342,6 +9412,13 @@ stations:
   elev_m: 1054.6
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:BDQ
+  name: Morrilton
+  lat: 35.1362
+  lon: -92.7137
+  elev_m: 98.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:BDR
   name: Bridgeport/Sikorsky
   lat: 41.1583
@@ -10139,6 +10216,13 @@ stations:
   elev_m: 178.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:C24
+  name: Creede
+  lat: 37.8222
+  lon: -106.9299
+  elev_m: 2635.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:C29
   name: Middleton
   lat: 43.1143
@@ -10244,6 +10328,13 @@ stations:
   elev_m: 350.2
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:CBAR
+  name: Nicholson Penisula
+  lat: 69.92
+  lon: -128.97
+  elev_m: 69.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CBBC
   name: BELLA BELLA CAMPBELL
   lat: 52.185
@@ -10874,6 +10965,13 @@ stations:
   elev_m: 3.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:COI
+  name: Merritt Island
+  lat: 28.3416
+  lon: -80.6855
+  elev_m: 1.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:COM
   name: Coleman
   lat: 31.8411
@@ -11119,6 +11217,13 @@ stations:
   elev_m: 81.245674
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CTH
+  name: Eugene Island 338K
+  lat: 39.979
+  lon: -75.8655
+  elev_m: 44.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:CTJ
   name: Carrollton
   lat: 33.6317
@@ -11581,6 +11686,13 @@ stations:
   elev_m: 707.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CWGZ
+  name: GRISE FIORD AIRPORT
+  lat: 76.4228
+  lon: -82.9022
+  elev_m: 45.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CWHL
   name: HOLLAND ROCK  BC
   lat: 54.1725
@@ -11791,6 +11903,13 @@ stations:
   elev_m: 260.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CWKM
+  name: KOMAKUK BEACH
+  lat: 69.5948
+  lon: -140.1737
+  elev_m: 13.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CWKO
   name: ROCKGLEN (AUT)  SASK
   lat: 49.1678
@@ -11826,6 +11945,13 @@ stations:
   elev_m: 665.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CWLI
+  name: LIVERPOOL BAY
+  lat: 69.6042
+  lon: -130.9106
+  elev_m: 102.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CWLM
   name: Victoria Gonzales CS
   lat: 48.4133
@@ -12834,6 +12960,13 @@ stations:
   elev_m: 52.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYAB
+  name: Arctic Bay Airport
+  lat: 73.0064
+  lon: -85.0473
+  elev_m: 45.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYAH
   name: LA GRANDE IV ARP
   lat: 53.7547
@@ -12848,6 +12981,13 @@ stations:
   elev_m: 192.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYAS
+  name: KANGIRSUK A
+  lat: 60.0272
+  lon: -69.9992
+  elev_m: 117.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYAT
   name: Attawapiskat
   lat: 52.9275
@@ -12855,6 +12995,13 @@ stations:
   elev_m: 5.4982204
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYAW
+  name: SHEARWATER
+  lat: 44.6397
+  lon: -63.4994
+  elev_m: 51.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYAZ
   name: Tofino / Long Beach
   lat: 49.0796
@@ -12862,6 +13009,13 @@ stations:
   elev_m: 32.059155
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYBB
+  name: KUGAARUK
+  lat: 68.5344
+  lon: -89.8081
+  elev_m: 15.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYBC
   name: BAIE COMEAU
   lat: 49.1325
@@ -12918,6 +13072,13 @@ stations:
   elev_m: 374.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYBV
+  name: Berens River Airport
+  lat: 52.3589
+  lon: -97.0183
+  elev_m: 222.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYBW
   name: SPRINGBANK A
   lat: 51.1031
@@ -12981,6 +13142,13 @@ stations:
   elev_m: 609.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYCS
+  name: CHESTERFIELD INLET
+  lat: 63.3333
+  lon: -90.7167
+  elev_m: 11.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYCX
   name: GAGETOWN  (CAN-MIL)
   lat: 45.8377
@@ -13044,6 +13212,13 @@ stations:
   elev_m: 655.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYED
+  name: EDMONTON/NAMAO(MIL)
+  lat: 53.6679
+  lon: -113.4725
+  elev_m: 688.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYEG
   name: EDMONTON INTL
   lat: 53.3097
@@ -13107,6 +13282,13 @@ stations:
   elev_m: 304.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYFR
+  name: FORT RESOLUTION
+  lat: 61.1808
+  lon: -113.6897
+  elev_m: 164.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYFS
   name: FORT SIMPSON
   lat: 61.7603
@@ -13121,6 +13303,13 @@ stations:
   elev_m: 785.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYGH
+  name: FORT GOOD HOPE
+  lat: 66.2408
+  lon: -128.6508
+  elev_m: 66.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYGK
   name: KINGSTON
   lat: 44.2253
@@ -13149,6 +13338,13 @@ stations:
   elev_m: 10.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYGT
+  name: IGLOOLIK AIRPORT
+  lat: 69.3667
+  lon: -81.8167
+  elev_m: 51.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYGV
   name: HAVRE ST PIERRE
   lat: 50.2819
@@ -13170,6 +13366,13 @@ stations:
   elev_m: 145.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYHA
+  name: QUAQTAQ
+  lat: 61.046
+  lon: -69.6177
+  elev_m: 30.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYHD
   name: DRYDEN RGNL
   lat: 49.8317
@@ -13184,6 +13387,13 @@ stations:
   elev_m: 39.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYHI
+  name: HOLMAN
+  lat: 70.7628
+  lon: -117.8061
+  elev_m: 36.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYHK
   name: GJOA HAVEN
   lat: 68.6356
@@ -13219,6 +13429,13 @@ stations:
   elev_m: 145.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYIK
+  name: IVUJIVIK
+  lat: 62.4173
+  lon: -77.9253
+  elev_m: 42.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYIN
   name: Clinton / Bleibler Ranch
   lat: 51.2645
@@ -13240,6 +13457,13 @@ stations:
   elev_m: 237.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYJF
+  name: FORT LIARD
+  lat: 60.2356
+  lon: -123.47
+  elev_m: 215.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYKA
   name: KAMLOOPS
   lat: 50.7022
@@ -13247,6 +13471,13 @@ stations:
   elev_m: 346.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYKD
+  name: AKLAVIK
+  lat: 68.2233
+  lon: -135.0058
+  elev_m: 7.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYKF
   name: WATERLOO
   lat: 43.4616
@@ -13254,6 +13485,13 @@ stations:
   elev_m: 317.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYKG
+  name: KANGIQSUJUAQ
+  lat: 61.5885
+  lon: -71.9295
+  elev_m: 151.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYKJ
   name: Key Lake Airstrip
   lat: 57.2564
@@ -13268,6 +13506,13 @@ stations:
   elev_m: 521.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYKO
+  name: AKULIVIK
+  lat: 60.8167
+  lon: -78.15
+  elev_m: 9.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYKP
   name: Ogoki Post
   lat: 51.6587
@@ -13275,6 +13520,13 @@ stations:
   elev_m: 180.1815
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYKQ
+  name: WASKAGANISH AIRPORT
+  lat: 51.4733
+  lon: -78.7584
+  elev_m: 23.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYKY
   name: KINDERSLEY
   lat: 51.5175
@@ -13282,6 +13534,20 @@ stations:
   elev_m: 694.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYLA
+  name: AUPALUKA
+  lat: 59.2967
+  lon: -69.5997
+  elev_m: 35.0
+  country: CA
+  enrolled_at: '2026-08-22'
+- id: ASOS:CYLC
+  name: KIMMIRUT A NWT
+  lat: 62.85
+  lon: -69.8833
+  elev_m: 53.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYLD
   name: CHAPLEAU
   lat: 47.82
@@ -13303,6 +13569,13 @@ stations:
   elev_m: 480.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYLK
+  name: LUTSEL KE
+  lat: 62.4182
+  lon: -110.6822
+  elev_m: 179.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYLL
   name: LLOYDMINSTER
   lat: 53.3121
@@ -13310,6 +13583,20 @@ stations:
   elev_m: 669.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYLT
+  name: ALERT
+  lat: 82.5178
+  lon: -62.2806
+  elev_m: 31.0
+  country: CA
+  enrolled_at: '2026-08-22'
+- id: ASOS:CYLU
+  name: KANGIKSUALUJJUAQ
+  lat: 58.7114
+  lon: -65.9928
+  elev_m: 60.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYLW
   name: KELOWNA
   lat: 49.9535
@@ -13324,6 +13611,13 @@ stations:
   elev_m: 504.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYMJ
+  name: MOOSE JAW AIR VICE MARSHAL C
+  lat: 50.3303
+  lon: -105.5592
+  elev_m: 577.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYMM
   name: Fort Mcmurray
   lat: 56.6533
@@ -13345,6 +13639,13 @@ stations:
   elev_m: 387.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYMU
+  name: UMIUJAQ
+  lat: 56.5362
+  lon: -76.5182
+  elev_m: 71.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYMX
   name: MONTREAL INTL MIRABEL
   lat: 45.6795
@@ -13359,6 +13660,13 @@ stations:
   elev_m: 11.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYNC
+  name: DE WEMINDJI
+  lat: 53.0106
+  lon: -78.8311
+  elev_m: 14.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYND
   name: GATINEAU
   lat: 45.5217
@@ -13380,6 +13688,13 @@ stations:
   elev_m: 281.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYOC
+  name: OLD CROW
+  lat: 67.5706
+  lon: -139.8392
+  elev_m: 251.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYOD
   name: COLD LAKE
   lat: 54.4072
@@ -13408,6 +13723,13 @@ stations:
   elev_m: 114.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYOY
+  name: VALCARTIER AIRPORT
+  lat: 46.9003
+  lon: -71.5033
+  elev_m: 168.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYPA
   name: PRINCE ALBERT GLASS FIELD
   lat: 53.2142
@@ -13415,6 +13737,13 @@ stations:
   elev_m: 428.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYPC
+  name: PAULATUK
+  lat: 69.3667
+  lon: -124.0667
+  elev_m: 6.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYPD
   name: PORT HAWKESBURY
   lat: 45.6567
@@ -13429,6 +13758,13 @@ stations:
   elev_m: 571.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYPG
+  name: SOUTHPORT
+  lat: 49.9031
+  lon: -98.2739
+  elev_m: 269.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYPH
   name: INUKJUAK ARPT
   lat: 58.4719
@@ -13611,6 +13947,13 @@ stations:
   elev_m: 545.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYRA
+  name: RAE LAKES
+  lat: 64.1161
+  lon: -117.3097
+  elev_m: 213.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYRB
   name: RESOLUTE BAY
   lat: 74.7167
@@ -13688,6 +14031,13 @@ stations:
   elev_m: 109.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYSK
+  name: SANIKILUAQ AIRPO
+  lat: 56.5361
+  lon: -79.2463
+  elev_m: 26.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYSM
   name: FORT SMITH
   lat: 60.0264
@@ -13702,6 +14052,20 @@ stations:
   elev_m: 98.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYSP
+  name: MARATHON
+  lat: 48.7553
+  lon: -86.3444
+  elev_m: 315.0
+  country: CA
+  enrolled_at: '2026-08-22'
+- id: ASOS:CYSY
+  name: SACHS HARBOUR
+  lat: 72.0
+  lon: -125.2667
+  elev_m: 86.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYTE
   name: CAPE DORSET AIRP
   lat: 64.23
@@ -13723,6 +14087,13 @@ stations:
   elev_m: 224.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYTQ
+  name: TASIUJAQ A
+  lat: 58.6678
+  lon: -69.9558
+  elev_m: 31.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYTR
   name: TRENTON
   lat: 44.1189
@@ -13744,6 +14115,13 @@ stations:
   elev_m: 77.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYUA
+  name: SHINGLE POINT
+  lat: 68.95
+  lon: -137.2167
+  elev_m: 38.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYUB
   name: TUKTOYAKTUK
   lat: 69.4333
@@ -13758,6 +14136,13 @@ stations:
   elev_m: 36.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYUT
+  name: REPULSE BAY
+  lat: 66.5214
+  lon: -86.2247
+  elev_m: 24.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYUX
   name: HALL BEACH
   lat: 68.7761
@@ -13835,6 +14220,13 @@ stations:
   elev_m: 222.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYWA
+  name: PETAWAWA
+  lat: 45.9476
+  lon: -77.3112
+  elev_m: 130.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYWE
   name: Wekweeti
   lat: 64.1908
@@ -13856,6 +14248,13 @@ stations:
   elev_m: 10.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYWJ
+  name: DELINE
+  lat: 65.2112
+  lon: -123.4365
+  elev_m: 176.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYWL
   name: WILLIAMS LAKE
   lat: 52.1863
@@ -13863,6 +14262,13 @@ stations:
   elev_m: 940.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYWY
+  name: WRIGLEY
+  lat: 63.2094
+  lon: -123.4367
+  elev_m: 150.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYXC
   name: CRANBROOK A
   lat: 49.6122
@@ -13898,6 +14304,27 @@ stations:
   elev_m: 390.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYXN
+  name: WHALE COVE AIRPORT
+  lat: 62.24
+  lon: -92.5981
+  elev_m: 20.0
+  country: CA
+  enrolled_at: '2026-08-22'
+- id: ASOS:CYXP
+  name: PANGNIRTUNG
+  lat: 66.145
+  lon: -65.7136
+  elev_m: 23.0
+  country: CA
+  enrolled_at: '2026-08-22'
+- id: ASOS:CYXQ
+  name: BEAVER CREEK ARPT
+  lat: 62.4103
+  lon: -140.8675
+  elev_m: 649.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYXR
   name: TIMISKAMING RGNL / EARLTON
   lat: 47.695
@@ -14066,6 +14493,13 @@ stations:
   elev_m: 206.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYZG
+  name: SALLUIT
+  lat: 62.1794
+  lon: -75.6672
+  elev_m: 226.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYZH
   name: SLAVE LAKE
   lat: 55.2931
@@ -14115,6 +14549,13 @@ stations:
   elev_m: 55.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CYZW
+  name: TESLIN
+  lat: 60.1728
+  lon: -132.7428
+  elev_m: 705.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CYZX
   name: GREENWOOD
   lat: 44.9846
@@ -14157,6 +14598,13 @@ stations:
   elev_m: 376.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CZEM
+  name: EASTMAIN RIVER
+  lat: 52.2264
+  lon: -78.5225
+  elev_m: 7.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CZEV
   name: INUVIK CLIMATE  NWT
   lat: 68.3167
@@ -14171,6 +14619,20 @@ stations:
   elev_m: 717.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CZFM
+  name: FORT MCPHERSON
+  lat: 67.4
+  lon: -134.85
+  elev_m: 43.0
+  country: CA
+  enrolled_at: '2026-08-22'
+- id: ASOS:CZFN
+  name: FORT NORMAN AIRPORT
+  lat: 64.9086
+  lon: -125.5683
+  elev_m: 98.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CZFS
   name: FORT SIMPSON CLIMATE  NWT
   lat: 61.7603
@@ -14213,6 +14675,13 @@ stations:
   elev_m: 577.0
   country: CA
   enrolled_at: '2026-08-17'
+- id: ASOS:CZMT
+  name: MASSET AIRPORT
+  lat: 54.0275
+  lon: -132.1253
+  elev_m: 8.0
+  country: CA
+  enrolled_at: '2026-08-22'
 - id: ASOS:CZPC
   name: PINCHER CREEK
   lat: 49.5206
@@ -14556,6 +15025,13 @@ stations:
   elev_m: 789.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:DJT
+  name: WEST PALM BEACH
+  lat: 26.6847
+  lon: -80.0994
+  elev_m: 6.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:DKB
   name: DE KALB
   lat: 41.9338
@@ -14717,6 +15193,13 @@ stations:
   elev_m: 231.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:DPG
+  name: DUGWAY PRVG GROUND
+  lat: 40.1974
+  lon: -112.9351
+  elev_m: 1326.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:DPL
   name: KENANSVILLE/DUPLIN_COUNTY
   lat: 35.0
@@ -15045,6 +15528,13 @@ stations:
   elev_m: 86.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:E35
+  name: Fabens
+  lat: 31.5172
+  lon: -106.1471
+  elev_m: 1114.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:E38
   name: ALPINE
   lat: 30.384
@@ -15857,6 +16347,13 @@ stations:
   elev_m: 11.0
   country: GB
   enrolled_at: '2026-08-17'
+- id: ASOS:EGOW
+  name: Woodvale
+  lat: 53.5816
+  lon: -3.0555
+  elev_m: 12.0
+  country: GB
+  enrolled_at: '2026-08-22'
 - id: ASOS:EGPA
   name: Kirkwall
   lat: 58.9536
@@ -16102,6 +16599,13 @@ stations:
   elev_m: 91.0
   country: GB
   enrolled_at: '2026-08-17'
+- id: ASOS:EGWC
+  name: Cosford
+  lat: 52.64
+  lon: -2.3056
+  elev_m: 83.0
+  country: GB
+  enrolled_at: '2026-08-22'
 - id: ASOS:EGWU
   name: Northolt
   lat: 51.5522
@@ -16389,6 +16893,13 @@ stations:
   elev_m: 219.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:EOD
+  name: Fort Campbell
+  lat: 36.5677
+  lon: -87.4814
+  elev_m: 178.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:EOE
   name: Newberry
   lat: 34.3093
@@ -16403,6 +16914,13 @@ stations:
   elev_m: 204.5
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:EOP
+  name: Waverly
+  lat: 39.167
+  lon: -82.9283
+  elev_m: 201.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:EPH
   name: EPHRATA MUNICIPAL
   lat: 47.3081
@@ -16508,6 +17026,13 @@ stations:
   elev_m: 467.0
   country: DE
   enrolled_at: '2026-08-17'
+- id: ASOS:ETEK
+  name: Bamholder
+  lat: 49.651
+  lon: 7.3053
+  elev_m: 435.0
+  country: DE
+  enrolled_at: '2026-08-22'
 - id: ASOS:ETGG
   name: MEIERWIK
   lat: 54.8489
@@ -16606,6 +17131,13 @@ stations:
   elev_m: 444.62585
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:ETND
+  name: Diepholz
+  lat: 52.5903
+  lon: 8.3464
+  elev_m: 43.0
+  country: DE
+  enrolled_at: '2026-08-22'
 - id: ASOS:ETNG
   name: Geilenkirchen
   lat: 50.9638
@@ -16920,6 +17452,13 @@ stations:
   elev_m: 1348.0
   country: ZA
   enrolled_at: '2026-08-17'
+- id: ASOS:FABM
+  name: Bethlehem
+  lat: -28.2484
+  lon: 28.3361
+  elev_m: 1682.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FACT
   name: Cape Town
   lat: -33.9667
@@ -16927,6 +17466,20 @@ stations:
   elev_m: 42.0
   country: ZA
   enrolled_at: '2026-08-17'
+- id: ASOS:FACV
+  name: Calvinia
+  lat: -31.4822
+  lon: 19.7619
+  elev_m: 1000.0
+  country: ZA
+  enrolled_at: '2026-08-22'
+- id: ASOS:FADY
+  name: DEAAR(UA)
+  lat: -30.6747
+  lon: 23.9992
+  elev_m: 384.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FAEL
   name: East London
   lat: -33.0356
@@ -16934,6 +17487,13 @@ stations:
   elev_m: 125.0
   country: ZA
   enrolled_at: '2026-08-17'
+- id: ASOS:FAEO
+  name: Ermelo
+  lat: -26.4956
+  lon: 29.9798
+  elev_m: 1737.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FAF
   name: FORT EUSTIS/FELKER
   lat: 37.1325
@@ -16948,6 +17508,13 @@ stations:
   elev_m: 193.0
   country: ZA
   enrolled_at: '2026-08-17'
+- id: ASOS:FAGM
+  name: Johannesburg
+  lat: -26.2425
+  lon: 28.1512
+  elev_m: 1672.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FAHS
   name: Hoedspruit
   lat: -24.3667
@@ -16955,6 +17522,13 @@ stations:
   elev_m: 500.0
   country: ZA
   enrolled_at: '2026-08-17'
+- id: ASOS:FAIR
+  name: PRETORIA/IRENE
+  lat: -25.91
+  lon: 28.2111
+  elev_m: 1500.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FAJB
   name: Johannesburg
   lat: -26.1683
@@ -17039,6 +17613,13 @@ stations:
   elev_m: 1242.0
   country: ZA
   enrolled_at: '2026-08-17'
+- id: ASOS:FAPR
+  name: PRETORIA(MET)
+  lat: -25.7422
+  lon: 28.1833
+  elev_m: 1322.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FAR
   name: FARGO
   lat: 46.9253
@@ -17046,6 +17627,20 @@ stations:
   elev_m: 274.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:FARB
+  name: Richard's Bay
+  lat: -28.741
+  lon: 32.0921
+  elev_m: 27.913082
+  country: ZA
+  enrolled_at: '2026-08-22'
+- id: ASOS:FASB
+  name: Springbok
+  lat: -29.6719
+  lon: 17.8875
+  elev_m: 990.0
+  country: ZA
+  enrolled_at: '2026-08-22'
 - id: ASOS:FASI
   name: Springs
   lat: -26.25
@@ -17892,6 +18487,13 @@ stations:
   elev_m: 749.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:GDW
+  name: Gladwin
+  lat: 43.9706
+  lon: -84.475
+  elev_m: 234.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:GED
   name: GEORGETOWN/SUSSEX
   lat: 38.6892
@@ -18066,6 +18668,13 @@ stations:
   elev_m: 1111.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:GLE
+  name: GAINESVILLE
+  lat: 33.6514
+  lon: -97.1969
+  elev_m: 256.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:GLH
   name: GREENVILLE MUNI
   lat: 33.4829
@@ -18553,6 +19162,13 @@ stations:
   elev_m: 200.87474
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:H71
+  name: Pryor
+  lat: 36.2254
+  lon: -95.3301
+  elev_m: 187.54639
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:HAE
   name: Hannibal
   lat: 39.7252
@@ -19154,6 +19770,13 @@ stations:
   elev_m: 255.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:HUA
+  name: REDSTONE ARSENAL
+  lat: 34.6786
+  lon: -86.6848
+  elev_m: 209.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:HUF
   name: TERRE HAUTE
   lat: 39.4515
@@ -19679,6 +20302,13 @@ stations:
   elev_m: 209.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:INK
+  name: WINK/WINKLER CO.
+  lat: 31.78
+  lon: -103.2
+  elev_m: 859.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:INL
   name: International Falls
   lat: 48.5595
@@ -20237,6 +20867,13 @@ stations:
   elev_m: 457.98755
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:K24
+  name: Jamestown
+  lat: 37.0097
+  lon: -85.1027
+  elev_m: 303.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:K62
   name: Falmouth
   lat: 38.7041
@@ -20279,6 +20916,13 @@ stations:
   elev_m: 5.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:KNB
+  name: Kanab
+  lat: 37.0111
+  lon: -112.5312
+  elev_m: 1475.7844
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:KY8
   name: Hancock
   lat: 37.953
@@ -21364,6 +22008,13 @@ stations:
   elev_m: 14.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:LHX
+  name: LA JUNTA MUNICIPAL
+  lat: 38.0494
+  lon: -103.5122
+  elev_m: 1292.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:LHZ
   name: LOUISBURG/FRANKLIN_CNTY_ARPT
   lat: 36.0233
@@ -21595,6 +22246,13 @@ stations:
   elev_m: 308.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:LQR
+  name: Larned
+  lat: 38.209
+  lon: -99.086
+  elev_m: 613.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:LRD
   name: LAREDO INTL AIRPORT
   lat: 27.5438
@@ -22239,6 +22897,13 @@ stations:
   elev_m: 87.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:MER
+  name: MERCED/CASTLE AF
+  lat: 37.3805
+  lon: -120.5682
+  elev_m: 57.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:MEV
   name: Miden - Tahoe
   lat: 38.9963
@@ -22553,6 +23218,13 @@ stations:
   elev_m: 23.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:MKY
+  name: Marco Island
+  lat: 25.995
+  lon: -81.6725
+  elev_m: 4.515613
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:MLB
   name: MELBOURNE REGIONAL
   lat: 28.1028
@@ -22700,6 +23372,13 @@ stations:
   elev_m: 1171.0
   country: MX
   enrolled_at: '2026-08-17'
+- id: ASOS:MMCT
+  name: Chichen Itza
+  lat: 20.6413
+  lon: -88.4462
+  elev_m: 28.0
+  country: MX
+  enrolled_at: '2026-08-22'
 - id: ASOS:MMCU
   name: Chihuahua
   lat: 28.7029
@@ -22861,6 +23540,13 @@ stations:
   elev_m: 40.0
   country: MX
   enrolled_at: '2026-08-17'
+- id: ASOS:MMMV
+  name: Monclova
+  lat: 26.9
+  lon: -101.4333
+  elev_m: 615.0
+  country: MX
+  enrolled_at: '2026-08-22'
 - id: ASOS:MMMX
   name: Mexico City
   lat: 19.4363
@@ -22910,6 +23596,20 @@ stations:
   elev_m: 2244.0
   country: MX
   enrolled_at: '2026-08-16'
+- id: ASOS:MMPE
+  name: Punta Penasco
+  lat: 31.353
+  lon: -113.5196
+  elev_m: 12.444733
+  country: MX
+  enrolled_at: '2026-08-22'
+- id: ASOS:MMPG
+  name: Piedras Negras
+  lat: 28.7
+  lon: -100.5167
+  elev_m: 250.0
+  country: MX
+  enrolled_at: '2026-08-22'
 - id: ASOS:MMPN
   name: Uruapan
   lat: 19.3967
@@ -23183,6 +23883,13 @@ stations:
   elev_m: 344.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:MPE
+  name: Philadelphia
+  lat: 32.799
+  lon: -89.126
+  elev_m: 137.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:MPO
   name: MT POCONO
   lat: 41.1389
@@ -23239,6 +23946,13 @@ stations:
   elev_m: 201.2
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:MQW
+  name: Mc Rae
+  lat: 32.0969
+  lon: -82.8794
+  elev_m: 60.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:MQY
   name: SMYRNA
   lat: 36.009
@@ -23260,6 +23974,13 @@ stations:
   elev_m: 200.75005
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:MRF
+  name: Marfa
+  lat: 30.37
+  lon: -104.02
+  elev_m: 1481.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:MRH
   name: SMITH_FIELD/BEAUFORT_(ASOS)
   lat: 34.7336
@@ -23330,6 +24051,13 @@ stations:
   elev_m: 61.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:MSV
+  name: Monticello
+  lat: 41.7016
+  lon: -74.795
+  elev_m: 428.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:MSY
   name: NEW ORLEANS/MOISANT
   lat: 29.9933
@@ -23638,6 +24366,13 @@ stations:
   elev_m: 572.8793
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:N40
+  name: Pittstown
+  lat: 40.5765
+  lon: -74.9877
+  elev_m: 147.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:N60
   name: GARRISON
   lat: 47.6458
@@ -23673,6 +24408,13 @@ stations:
   elev_m: -6.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:NBJ
+  name: Foley
+  lat: 30.3891
+  lon: -87.6353
+  elev_m: 15.187012
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:NBT
   name: Piney Island
   lat: 35.0222
@@ -23729,6 +24471,13 @@ stations:
   elev_m: 24.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:NFJ
+  name: Choctaw
+  lat: 30.5069
+  lon: -86.9597
+  elev_m: 30.99748
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:NFL
   name: FALLON NAS
   lat: 39.4166
@@ -23757,6 +24506,13 @@ stations:
   elev_m: 5.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:NGW
+  name: Corpus Christi - Cabaniss Field
+  lat: 27.7024
+  lon: -97.4388
+  elev_m: 8.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:NHK
   name: PATUXENT RIVER NAS
   lat: 38.286
@@ -23827,6 +24583,13 @@ stations:
   elev_m: 97.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:NMT
+  name: McMullen
+  lat: 28.2361
+  lon: -98.7242
+  elev_m: 89.30641
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:NOG
   name: ORANGE GROVE
   lat: 27.9011
@@ -23960,6 +24723,13 @@ stations:
   elev_m: 14.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:NWL
+  name: Corpus Christi - Waldron Field
+  lat: 27.6358
+  lon: -97.3134
+  elev_m: 7.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:NXP
   name: TWENTYNINE PALMS
   lat: 34.2962
@@ -24247,6 +25017,13 @@ stations:
   elev_m: 397.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:OKH
+  name: Oak Harbor
+  lat: 48.2515
+  lon: -122.6737
+  elev_m: 58.8
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:OKK
   name: KOKOMO
   lat: 40.5282
@@ -24877,6 +25654,13 @@ stations:
   elev_m: 24.05756
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PACM
+  name: SCAMMON BAY
+  lat: 61.8445
+  lon: -165.5737
+  elev_m: 4.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PACV
   name: CORDOVA/MILE 13
   lat: 60.4889
@@ -24898,6 +25682,20 @@ stations:
   elev_m: 146.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PADE
+  name: DEERING AIRPORT (ASOS)
+  lat: 66.0696
+  lon: -162.7664
+  elev_m: 4.0
+  country: US
+  enrolled_at: '2026-08-22'
+- id: ASOS:PADG
+  name: Red Dog
+  lat: 68.0321
+  lon: -162.8992
+  elev_m: 295.4
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PADK
   name: ADAK NAS/MITCHELL
   lat: 51.878
@@ -24968,6 +25766,13 @@ stations:
   elev_m: 167.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAEL
+  name: ELFIN COVE SEAPLANE
+  lat: 58.1952
+  lon: -136.3474
+  elev_m: 9.02062
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAEM
   name: EMMONAK
   lat: 62.7861
@@ -25003,6 +25808,13 @@ stations:
   elev_m: 42.077408
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAFM
+  name: AMBLER
+  lat: 67.1063
+  lon: -157.8575
+  elev_m: 88.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAFR
   name: Ft. Richardson
   lat: 61.2664
@@ -25024,6 +25836,13 @@ stations:
   elev_m: 46.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAGB
+  name: GALBRAITH LAKE
+  lat: 68.4797
+  lon: -149.4899
+  elev_m: 814.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAGH
   name: Shungnak
   lat: 66.8881
@@ -25108,6 +25927,13 @@ stations:
   elev_m: 22.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAHP
+  name: HOOPER BAY (AWOS)
+  lat: 61.5239
+  lon: -166.1466
+  elev_m: 5.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAHX
   name: Shageluk
   lat: 62.6923
@@ -25520,6 +26346,20 @@ stations:
   elev_m: 4.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAPR
+  name: PROSPECT CREEK
+  lat: 66.8141
+  lon: -150.6436
+  elev_m: 335.0
+  country: US
+  enrolled_at: '2026-08-22'
+- id: ASOS:PAPT
+  name: PUNTILLA (LAKE)
+  lat: 62.1
+  lon: -152.75
+  elev_m: 560.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAQH
   name: Quinhagak
   lat: 59.7551
@@ -25653,6 +26493,13 @@ stations:
   elev_m: 68.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PATC
+  name: TIN CITY AFS (AWOS)
+  lat: 65.564
+  lon: -167.9225
+  elev_m: 83.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PATE
   name: Teller
   lat: 65.2404
@@ -25702,6 +26549,13 @@ stations:
   elev_m: 6.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAUT
+  name: Akun
+  lat: 54.1446
+  lon: -165.6041
+  elev_m: 20.6849
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAVA
   name: Chevak
   lat: 61.5408
@@ -25744,6 +26598,13 @@ stations:
   elev_m: 13.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PAWI
+  name: WAINWRIGHT AIRPORT (ASOS)
+  lat: 70.638
+  lon: -159.9948
+  elev_m: 27.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PAWM
   name: White Mountain
   lat: 64.6892
@@ -26471,6 +27332,13 @@ stations:
   elev_m: 5.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:PQN
+  name: PIPESTONE
+  lat: 43.9821
+  lon: -96.3004
+  elev_m: 529.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:PRB
   name: Paso Robles
   lat: 35.6694
@@ -27122,6 +27990,13 @@ stations:
   elev_m: 345.13165
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:RIF
+  name: Richfield
+  lat: 38.7341
+  lon: -112.1
+  elev_m: 1611.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:RIL
   name: RIFLE/GARFIELD RGNL
   lat: 39.5263
@@ -27164,6 +28039,34 @@ stations:
   elev_m: 35.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJAI
+  name: ICHIGAYA
+  lat: 35.7333
+  lon: 139.9167
+  elev_m: 31.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJAK
+  name: KASUMIGAURA (JASDF)
+  lat: 36.0347
+  lon: 140.1928
+  elev_m: 29.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJAO
+  name: CHICHIJIMA ISLAND
+  lat: 27.0917
+  lon: 142.19
+  elev_m: 8.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJAT
+  name: FUJI (JASDF)
+  lat: 35.315
+  lon: 138.8764
+  elev_m: 683.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJAW
   name: Iwojima
   lat: 24.784
@@ -27192,6 +28095,20 @@ stations:
   elev_m: 5.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJBT
+  name: Toyooka
+  lat: 35.5128
+  lon: 134.7869
+  elev_m: 210.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJCA
+  name: ASAHIKAWA
+  lat: 43.7944
+  lon: 142.365
+  elev_m: 118.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJCB
   name: Obihiro
   lat: 42.7333
@@ -27241,6 +28158,13 @@ stations:
   elev_m: 11.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJCT
+  name: Tokachi
+  lat: 42.8905
+  lon: 143.1585
+  elev_m: 84.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJCW
   name: Wakkanai
   lat: 45.4044
@@ -27262,6 +28186,13 @@ stations:
   elev_m: 8.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJDM
+  name: METABARU (JASDF)
+  lat: 33.3253
+  lon: 130.4136
+  elev_m: 19.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJDT
   name: Tsushima
   lat: 34.285
@@ -27269,6 +28200,13 @@ stations:
   elev_m: 66.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJEB
+  name: Monbetsu
+  lat: 44.3039
+  lon: 143.404
+  elev_m: 25.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJEC
   name: Asahikawa
   lat: 43.6708
@@ -27276,6 +28214,13 @@ stations:
   elev_m: 211.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJFC
+  name: Yakushina
+  lat: 30.3855
+  lon: 130.66
+  elev_m: 35.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJFE
   name: Fukue
   lat: 32.6664
@@ -27346,6 +28291,13 @@ stations:
   elev_m: 5.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJFY
+  name: Kanoya
+  lat: 31.3681
+  lon: 130.8381
+  elev_m: 68.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJGG
   name: Nagoya
   lat: 34.8584
@@ -27374,6 +28326,20 @@ stations:
   elev_m: 6.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJKN
+  name: Tokunoshima
+  lat: 27.8364
+  lon: 128.8813
+  elev_m: 3.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJNG
+  name: Gifu
+  lat: 35.3944
+  lon: 136.8694
+  elev_m: 42.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJNK
   name: Kanazawa
   lat: 36.3939
@@ -27395,6 +28361,20 @@ stations:
   elev_m: 27.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJNW
+  name: Wajima
+  lat: 37.2931
+  lon: 136.9618
+  elev_m: 219.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJNY
+  name: Yaizu
+  lat: 34.8128
+  lon: 138.2981
+  elev_m: 10.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJOA
   name: Hiroshima
   lat: 34.4361
@@ -27416,6 +28396,20 @@ stations:
   elev_m: 5.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJOE
+  name: Akeno
+  lat: 34.5333
+  lon: 136.6722
+  elev_m: 9.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJOF
+  name: Hofu
+  lat: 34.0344
+  lon: 131.5464
+  elev_m: 5.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJOH
   name: Miho
   lat: 35.4933
@@ -27451,6 +28445,13 @@ stations:
   elev_m: 15.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJOP
+  name: KOMATSUJIMA (JASDF)
+  lat: 34.0053
+  lon: 134.6264
+  elev_m: 6.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJOR
   name: Tottori
   lat: 35.53
@@ -27486,6 +28487,13 @@ stations:
   elev_m: 13.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJOZ
+  name: Ozuki
+  lat: 34.0469
+  lon: 131.0522
+  elev_m: 7.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJSA
   name: Aomori
   lat: 40.7333
@@ -27507,6 +28515,13 @@ stations:
   elev_m: 375.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJSH
+  name: Hachinoe
+  lat: 40.5519
+  lon: 141.4672
+  elev_m: 49.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJSI
   name: Hanamaki
   lat: 39.4286
@@ -27535,6 +28550,13 @@ stations:
   elev_m: 4.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJSO
+  name: OMINATO (JASDF)
+  lat: 41.2328
+  lon: 141.1322
+  elev_m: 10.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJSR
   name: Odate Noshiro
   lat: 40.1919
@@ -27549,6 +28571,13 @@ stations:
   elev_m: 5.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJSU
+  name: KASUMINOME (JASDF)
+  lat: 38.2356
+  lon: 140.9231
+  elev_m: 10.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJSY
   name: Shonai
   lat: 38.8122
@@ -27556,6 +28585,55 @@ stations:
   elev_m: 22.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJTC
+  name: TACHIKAWA (JASDF)
+  lat: 35.7108
+  lon: 139.4031
+  elev_m: 98.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJTE
+  name: Tateyama
+  lat: 34.9875
+  lon: 139.8319
+  elev_m: 6.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJTF
+  name: Tokyo
+  lat: 35.6717
+  lon: 139.5281
+  elev_m: 44.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJTI
+  name: TOKYO HELIPORT
+  lat: 35.63
+  lon: 139.85
+  elev_m: 8.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJTK
+  name: Kisarazu
+  lat: 35.3983
+  lon: 139.9097
+  elev_m: 6.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJTL
+  name: Shimofusa
+  lat: 35.7989
+  lon: 140.0122
+  elev_m: 33.0
+  country: JP
+  enrolled_at: '2026-08-22'
+- id: ASOS:RJTO
+  name: Oshima
+  lat: 34.7819
+  lon: 139.3603
+  elev_m: 41.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJTR
   name: Zama
   lat: 35.5138
@@ -27570,6 +28648,13 @@ stations:
   elev_m: 8.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:RJTU
+  name: UTSUNOMIYA
+  lat: 36.5144
+  lon: 139.8708
+  elev_m: 105.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RJTY
   name: Yokota
   lat: 35.7485
@@ -27591,6 +28676,13 @@ stations:
   elev_m: 2.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKJJ
+  name: Kwangju
+  lat: 35.1264
+  lon: 126.8089
+  elev_m: 13.0
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKJK
   name: Kunsan
   lat: 35.8994
@@ -27598,6 +28690,41 @@ stations:
   elev_m: 9.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKNF
+  name: Whang Ryeong
+  lat: 37.75
+  lon: 128.6667
+  elev_m: 1216.9772
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKNN
+  name: Kangnung
+  lat: 37.7536
+  lon: 128.9436
+  elev_m: 3.017337
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKNO
+  name: Keo Jin
+  lat: 38.4667
+  lon: 128.4667
+  elev_m: -11.411632
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKNR
+  name: Kotar Range
+  lat: 37.1
+  lon: 128.9
+  elev_m: 1155.6082
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKNW
+  name: Wonju
+  lat: 37.3375
+  lon: 127.9467
+  elev_m: 147.49242
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKNY
   name: Sokcho / Gangneung
   lat: 38.0613
@@ -27626,6 +28753,20 @@ stations:
   elev_m: 15.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKPM
+  name: Mosulpo Ab
+  lat: 33.2939
+  lon: 126.1628
+  elev_m: 59.284367
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKPS
+  name: Sacheon
+  lat: 35.0885
+  lon: 128.0704
+  elev_m: 8.0
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKR
   name: ROBERT S KERR AIRPORT/POTEAU
   lat: 35.02
@@ -27640,6 +28781,20 @@ stations:
   elev_m: 2060.0
   country: US
   enrolled_at: '2026-08-16'
+- id: ASOS:RKSD
+  name: Maesanri
+  lat: 37.35
+  lon: 127.2667
+  elev_m: 135.72069
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKSF
+  name: Seoul - Yongdungp
+  lat: 37.5333
+  lon: 126.9667
+  elev_m: 17.56393
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKSG
   name: Pyongtaek
   lat: 36.9622
@@ -27668,6 +28823,20 @@ stations:
   elev_m: 12.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKSP
+  name: Paengnyongdo Ab
+  lat: 37.9667
+  lon: 124.6667
+  elev_m: 79.28091
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKSQ
+  name: Yeonpyeong-Myeon Heliport
+  lat: 37.6641
+  lon: 125.6979
+  elev_m: 49.0
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKSS
   name: Seoul
   lat: 37.5583
@@ -27675,6 +28844,62 @@ stations:
   elev_m: 19.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKSU
+  name: Yeoju Range
+  lat: 37.4369
+  lon: 127.6329
+  elev_m: 174.50996
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKSV
+  name: Pyoripsan
+  lat: 37.7786
+  lon: 126.3817
+  elev_m: 219.12607
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKSW
+  name: Suwon
+  lat: 37.2394
+  lon: 127.0071
+  elev_m: 24.957533
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTB
+  name: Paekado
+  lat: 37.0167
+  lon: 126.05
+  elev_m: -63.367786
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTE
+  name: Songmu Ab
+  lat: 36.5682
+  lon: 127.5001
+  elev_m: 77.489044
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTF
+  name: Taejon
+  lat: 36.372
+  lon: 127.372
+  elev_m: 57.937878
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTH
+  name: Pohang
+  lat: 35.9879
+  lon: 129.4205
+  elev_m: 20.0
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTI
+  name: Jung Won Rok-Ab
+  lat: 37.03
+  lon: 127.8853
+  elev_m: 12.104
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKTN
   name: Taegu
   lat: 35.8941
@@ -27682,6 +28907,20 @@ stations:
   elev_m: 35.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKTP
+  name: Seosan
+  lat: 36.7041
+  lon: 126.4862
+  elev_m: 13.582559
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTS
+  name: Sangju
+  lat: 36.4083
+  lon: 128.1572
+  elev_m: 89.70956
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKTU
   name: Chongju
   lat: 36.7166
@@ -27689,6 +28928,20 @@ stations:
   elev_m: 66.0
   country: KR
   enrolled_at: '2026-08-17'
+- id: ASOS:RKTW
+  name: Woong Cheon
+  lat: 36.2
+  lon: 126.55
+  elev_m: 108.6827
+  country: KR
+  enrolled_at: '2026-08-22'
+- id: ASOS:RKTY
+  name: Yechon
+  lat: 36.6319
+  lon: 128.3548
+  elev_m: 107.924644
+  country: KR
+  enrolled_at: '2026-08-22'
 - id: ASOS:RKW
   name: Rockwood
   lat: 35.9223
@@ -27808,6 +29061,13 @@ stations:
   elev_m: 169.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:RODE
+  name: Iejima Auxiliary
+  lat: 26.7167
+  lon: 127.7833
+  elev_m: 62.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:RODN
   name: Kadena
   lat: 26.3556
@@ -27829,6 +29089,13 @@ stations:
   elev_m: 7.0
   country: JP
   enrolled_at: '2026-08-17'
+- id: ASOS:ROKJ
+  name: Kumejima
+  lat: 26.3636
+  lon: 126.7139
+  elev_m: 6.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:ROMD
   name: Minami Daito
   lat: 25.8289
@@ -27878,6 +29145,13 @@ stations:
   elev_m: 281.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:ROTM
+  name: Futema
+  lat: 26.2743
+  lon: 127.7565
+  elev_m: 75.0
+  country: JP
+  enrolled_at: '2026-08-22'
 - id: ASOS:ROW
   name: ROSWELL/INDUSTRIAL
   lat: 33.3
@@ -28333,6 +29607,20 @@ stations:
   elev_m: 9.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBAT
+  name: Alta Floresta
+  lat: -9.8661
+  lon: -56.1062
+  elev_m: 288.0
+  country: BR
+  enrolled_at: '2026-08-22'
+- id: ASOS:SBAU
+  name: Aracatuba
+  lat: -21.1413
+  lon: -50.4247
+  elev_m: 415.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBAX
   name: Araxa
   lat: -19.5632
@@ -28368,6 +29656,13 @@ stations:
   elev_m: 926.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBBQ
+  name: Barbacena
+  lat: -21.25
+  lon: -43.7667
+  elev_m: 1171.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBBR
   name: Brasilia
   lat: -15.8667
@@ -28389,6 +29684,13 @@ stations:
   elev_m: 140.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBBW
+  name: Barra Do Garcas
+  lat: -15.8613
+  lon: -52.3889
+  elev_m: 350.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBCA
   name: Cascavel
   lat: -25.0
@@ -28466,6 +29768,13 @@ stations:
   elev_m: 908.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBCX
+  name: Caxias Do Sul
+  lat: -29.1667
+  lon: -51.2
+  elev_m: 754.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBCY
   name: Cuiaba
   lat: -15.65
@@ -28550,6 +29859,13 @@ stations:
   elev_m: 6.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBGM
+  name: Guajara-mirim
+  lat: -10.7864
+  lon: -65.2848
+  elev_m: 146.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBGO
   name: Goiania
   lat: -16.632
@@ -28606,6 +29922,13 @@ stations:
   elev_m: 123.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBJE
+  name: Jericoacoara
+  lat: -2.9067
+  lon: -40.3581
+  elev_m: 25.93841
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBJP
   name: Joao Pessoa
   lat: -7.1
@@ -28711,6 +30034,13 @@ stations:
   elev_m: 646.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBML
+  name: Marília
+  lat: -22.1969
+  lon: -49.9264
+  elev_m: 647.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBMN
   name: Manaus
   lat: -3.146
@@ -28760,6 +30090,13 @@ stations:
   elev_m: 5.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBNM
+  name: Santo Angelo
+  lat: -28.2817
+  lon: -54.1691
+  elev_m: 322.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBNT
   name: Natal
   lat: -5.9114
@@ -28795,6 +30132,13 @@ stations:
   elev_m: 3.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBPB
+  name: Parnaiba
+  lat: -2.9167
+  lon: -41.75
+  elev_m: 5.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBPF
   name: Passo Fundo
   lat: -28.25
@@ -28802,6 +30146,13 @@ stations:
   elev_m: 684.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBPG
+  name: PARANAGUA
+  lat: -25.5167
+  lon: -48.5167
+  elev_m: 4.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBPJ
   name: Palmas
   lat: -10.2915
@@ -28935,6 +30286,13 @@ stations:
   elev_m: 543.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBST
+  name: Santos
+  lat: -23.9252
+  lon: -46.2875
+  elev_m: 3.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBSV
   name: Salvador
   lat: -12.911
@@ -28949,6 +30307,20 @@ stations:
   elev_m: 586.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBTC
+  name: Una
+  lat: -15.35
+  lon: -38.98
+  elev_m: 6.0
+  country: BR
+  enrolled_at: '2026-08-22'
+- id: ASOS:SBTD
+  name: Toledo
+  lat: -24.6853
+  lon: -53.6964
+  elev_m: 557.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBTE
   name: Teresina
   lat: -5.0599
@@ -28970,6 +30342,20 @@ stations:
   elev_m: 85.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBTU
+  name: Tucurui
+  lat: -3.7167
+  lon: -49.7167
+  elev_m: 40.0
+  country: BR
+  enrolled_at: '2026-08-22'
+- id: ASOS:SBUA
+  name: Sao Gabriel
+  lat: -0.1333
+  lon: -67.0833
+  elev_m: 79.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBUF
   name: Paulo Alfonso
   lat: -9.4
@@ -28977,6 +30363,13 @@ stations:
   elev_m: 252.0
   country: BR
   enrolled_at: '2026-08-17'
+- id: ASOS:SBUG
+  name: Uruguaiana
+  lat: -29.7822
+  lon: -57.0382
+  elev_m: 74.0
+  country: BR
+  enrolled_at: '2026-08-22'
 - id: ASOS:SBUL
   name: Uberlandia
   lat: -18.8828
@@ -29040,6 +30433,13 @@ stations:
   elev_m: 170.50438
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:SCH
+  name: SCHENECTADY AIRPORT
+  lat: 42.85
+  lon: -73.93
+  elev_m: 115.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:SCK
   name: STOCKTON METRO
   lat: 37.8942
@@ -29208,6 +30608,13 @@ stations:
   elev_m: 22.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:SFY
+  name: Savanna
+  lat: 42.0458
+  lon: -90.1079
+  elev_m: 188.0
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:SFZ
   name: PAWTUCKET (AWOS)
   lat: 41.9208
@@ -29292,6 +30699,13 @@ stations:
   elev_m: 85.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:SHP
+  name: Sheppard AFB
+  lat: 33.9667
+  lon: -98.4833
+  elev_m: 305.97263
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:SHR
   name: SHERIDAN CO. ARPT
   lat: 44.77
@@ -29635,6 +31049,12 @@ stations:
   elev_m: 1380.7367
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:SPR
+  name: Ship Shoal (GoM)
+  lat: 28.599
+  lon: -91.206
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:SPS
   name: WICHITA FALLS/SHEP
   lat: 33.9786
@@ -30384,6 +31804,13 @@ stations:
   elev_m: 3.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:TPF
+  name: Tampa/Knight
+  lat: 27.9156
+  lon: -82.4493
+  elev_m: 2.4
+  country: US
+  enrolled_at: '2026-08-22'
 - id: ASOS:TPH
   name: TONOPAH AIRPORT
   lat: 38.0505
@@ -31490,6 +32917,13 @@ stations:
   elev_m: 8.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VABJ
+  name: Bhuj
+  lat: 23.2862
+  lon: 69.6719
+  elev_m: 79.05006
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VABO
   name: Baroda
   lat: 22.3333
@@ -31504,6 +32938,13 @@ stations:
   elev_m: 522.6981
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VABV
+  name: Bhaunagar
+  lat: 21.7522
+  lon: 72.1852
+  elev_m: 11.294035
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VAD
   name: MOODY AFB/VALDOSTA
   lat: 30.9678
@@ -31511,6 +32952,13 @@ stations:
   elev_m: 71.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VADU
+  name: Diu
+  lat: 20.714
+  lon: 70.923
+  elev_m: 9.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VAF
   name: Boomvang
   lat: 27.3536
@@ -31559,6 +33007,13 @@ stations:
   elev_m: 254.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VAJM
+  name: Jamnagar AFS
+  lat: 22.45
+  lon: 70.0833
+  elev_m: 18.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VAKP
   name: Kolhapur
   lat: 16.7
@@ -31566,6 +33021,20 @@ stations:
   elev_m: 552.74554
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VAKS
+  name: Keshod
+  lat: 21.3169
+  lon: 70.2703
+  elev_m: 51.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VAMA
+  name: Mundra
+  lat: 22.8342
+  lon: 69.7644
+  elev_m: 9.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VANP
   name: Nagpur
   lat: 21.0922
@@ -31580,6 +33049,20 @@ stations:
   elev_m: 597.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VAPO
+  name: Pune
+  lat: 18.5814
+  lon: 73.9048
+  elev_m: 582.7832
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VAPR
+  name: Porbandar
+  lat: 21.6487
+  lon: 69.6572
+  elev_m: 7.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VASD
   name: Shirdi
   lat: 19.6886
@@ -31664,6 +33147,20 @@ stations:
   elev_m: 84.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VEAB
+  name: Allahabad Bamrauli AFS
+  lat: 25.44
+  lon: 81.734
+  elev_m: 100.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VEAH
+  name: Azamgarh
+  lat: 26.1533
+  lon: 83.1183
+  elev_m: 75.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEAT
   name: Agartala
   lat: 23.887
@@ -31671,6 +33168,13 @@ stations:
   elev_m: 16.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VEBD
+  name: Baghdogra
+  lat: 26.6333
+  lon: 88.3167
+  elev_m: 126.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEBI
   name: Shillong
   lat: 25.7036
@@ -31706,6 +33210,27 @@ stations:
   elev_m: 6.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VECO
+  name: Cooch-behar
+  lat: 26.3305
+  lon: 89.4672
+  elev_m: 46.597187
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VECT
+  name: Chitrakoot
+  lat: 25.1677
+  lon: 80.9358
+  elev_m: 299.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VECX
+  name: Car Nicobar
+  lat: 9.15
+  lon: 92.8167
+  elev_m: 27.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEDG
   name: Durgapur
   lat: 25.1453
@@ -31720,6 +33245,20 @@ stations:
   elev_m: 242.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VEDX
+  name: Kalaikunda
+  lat: 22.3395
+  lon: 87.2145
+  elev_m: 63.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VEGK
+  name: Gorakhpur
+  lat: 26.75
+  lon: 83.3667
+  elev_m: 77.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEGT
   name: Guwahati
   lat: 26.1061
@@ -31734,6 +33273,20 @@ stations:
   elev_m: 116.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VEHO
+  name: Hollongi
+  lat: 26.97
+  lon: 93.6647
+  elev_m: 95.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VEHX
+  name: Hashimara
+  lat: 26.6983
+  lon: 89.3691
+  elev_m: 108.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEIM
   name: Imphal
   lat: 24.7599
@@ -31762,6 +33315,34 @@ stations:
   elev_m: 151.6529
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VEJT
+  name: Jorhat
+  lat: 26.7315
+  lon: 94.1755
+  elev_m: 94.11316
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VEKI
+  name: Kushinagar
+  lat: 26.776
+  lon: 83.889
+  elev_m: 80.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VEKO
+  name: Unknown
+  lat: 24.83
+  lon: 86.49
+  elev_m: 153.02863
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VEKU
+  name: Silchar Kumbhigram AFS
+  lat: 24.9129
+  lon: 92.9787
+  elev_m: 104.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEL
   name: VERNAL
   lat: 40.4409
@@ -31776,6 +33357,13 @@ stations:
   elev_m: 427.57922
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VELR
+  name: Lilabari
+  lat: 27.2955
+  lon: 94.0977
+  elev_m: 100.97606
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VEMN
   name: Mohanbari
   lat: 27.4839
@@ -31797,6 +33385,13 @@ stations:
   elev_m: 60.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VEPY
+  name: Pakyong
+  lat: 27.228
+  lon: 88.587
+  elev_m: 1415.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VER
   name: Booneville
   lat: 38.9467
@@ -31804,6 +33399,13 @@ stations:
   elev_m: 218.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VERB
+  name: Fursatganj
+  lat: 26.25
+  lon: 81.3667
+  elev_m: 113.50306
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VERC
   name: Ranchi
   lat: 23.3143
@@ -31811,6 +33413,13 @@ stations:
   elev_m: 652.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VERK
+  name: Rourkela
+  lat: 22.256
+  lon: 84.816
+  elev_m: 205.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VERP
   name: Raipur
   lat: 21.1811
@@ -31818,6 +33427,20 @@ stations:
   elev_m: 316.03088
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VERU
+  name: Rupsi
+  lat: 26.14
+  lon: 89.91
+  elev_m: 44.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VERW
+  name: Rewa
+  lat: 24.5035
+  lon: 81.223
+  elev_m: 327.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VES
   name: Versailles
   lat: 40.2044
@@ -31825,6 +33448,20 @@ stations:
   elev_m: 306.9
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VETJ
+  name: Tezu
+  lat: 27.941
+  lon: 96.134
+  elev_m: 224.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VETZ
+  name: Tezpur
+  lat: 26.7091
+  lon: 92.7847
+  elev_m: 81.88069
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VGC
   name: Hamilton
   lat: 42.8434
@@ -31853,6 +33490,13 @@ stations:
   elev_m: 1200.1992
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VIAG
+  name: Agra
+  lat: 27.1558
+  lon: 77.9609
+  elev_m: 169.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VIAR
   name: Amritsar
   lat: 31.6333
@@ -31860,6 +33504,41 @@ stations:
   elev_m: 234.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VIBR
+  name: Kulu
+  lat: 31.8333
+  lon: 77.1667
+  elev_m: 1080.6855
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIBY
+  name: Bareilly
+  lat: 28.3667
+  lon: 79.4
+  elev_m: 173.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VICG
+  name: Chandigarh
+  lat: 30.6766
+  lon: 76.7893
+  elev_m: 316.4138
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIDD
+  name: Delhi
+  lat: 28.5833
+  lon: 77.2107
+  elev_m: 215.1913
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIDN
+  name: Dehra Dun
+  lat: 30.1897
+  lon: 78.1803
+  elev_m: 547.8724
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VIDP
   name: Delhi
   lat: 28.5667
@@ -31867,6 +33546,20 @@ stations:
   elev_m: 233.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VIGG
+  name: Kangra
+  lat: 32.1651
+  lon: 76.2634
+  elev_m: 762.19714
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIGR
+  name: Gwalior
+  lat: 26.2333
+  lon: 78.25
+  elev_m: 207.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VIH
   name: VICHY/ROLLA
   lat: 38.13
@@ -31874,6 +33567,13 @@ stations:
   elev_m: 333.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VIJO
+  name: Jodhpur
+  lat: 26.3
+  lon: 73.0167
+  elev_m: 294.22726
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VIJP
   name: Jaipur
   lat: 26.8242
@@ -31881,6 +33581,48 @@ stations:
   elev_m: 390.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VIJR
+  name: Jaisalmer
+  lat: 26.8887
+  lon: 70.865
+  elev_m: 234.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIJU
+  name: Jammu
+  lat: 32.6891
+  lon: 74.8374
+  elev_m: 288.39224
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIKG
+  name: Kishangarh
+  lat: 26.6014
+  lon: 74.8142
+  elev_m: 440.9202
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIKO
+  name: Kota
+  lat: 25.1602
+  lon: 75.8456
+  elev_m: 285.65063
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VILD
+  name: Ludhiaha
+  lat: 30.8547
+  lon: 75.9526
+  elev_m: 255.66008
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VILH
+  name: Leh
+  lat: 34.1359
+  lon: 77.5465
+  elev_m: 3257.7793
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VILK
   name: Lucknow
   lat: 26.7606
@@ -31888,6 +33630,20 @@ stations:
   elev_m: 128.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VIMB
+  name: Moradabad
+  lat: 28.8194
+  lon: 78.9233
+  elev_m: 192.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIPT
+  name: Nainital
+  lat: 29.0334
+  lon: 79.4737
+  elev_m: 238.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VIS
   name: VISALIA MUNI (AWOS)
   lat: 36.3187
@@ -31895,6 +33651,41 @@ stations:
   elev_m: 89.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VISM
+  name: Shimla
+  lat: 31.0818
+  lon: 77.068
+  elev_m: 1535.4886
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VISP
+  name: Saharanpur Sarsawa AFS
+  lat: 29.9939
+  lon: 77.4253
+  elev_m: 273.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VISR
+  name: Srinagar
+  lat: 33.9871
+  lon: 74.7742
+  elev_m: 1666.0
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VITE
+  name: Thoise
+  lat: 34.6526
+  lon: 77.3757
+  elev_m: 3065.1782
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VIUT
+  name: 'Uttarlai '
+  lat: 25.813
+  lon: 71.4823
+  elev_m: 153.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VJI
   name: Abingdon
   lat: 36.6871
@@ -31957,6 +33748,13 @@ stations:
   lon: -87.781
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:VOAR
+  name: Arkonam
+  lat: 13.071
+  lon: 79.691
+  elev_m: 80.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VOAT
   name: Agatti Island
   lat: 10.8237
@@ -31999,6 +33797,13 @@ stations:
   elev_m: 399.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VOCC
+  name: Kochi Naval
+  lat: 9.941
+  lon: 76.275
+  elev_m: 1.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VOCI
   name: Kochi
   lat: 10.15
@@ -32062,6 +33867,13 @@ stations:
   elev_m: 545.0
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VOJV
+  name: Jindal Vijayanagar
+  lat: 15.175
+  lon: 76.635
+  elev_m: 507.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VOK
   name: VOLK/CAMP DOUGLA
   lat: 43.9392
@@ -32111,6 +33923,13 @@ stations:
   elev_m: 776.736
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VOND
+  name: Nanded
+  lat: 19.181
+  lon: 77.3225
+  elev_m: 375.19363
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VOPB
   name: Port Blair
   lat: 11.6412
@@ -32118,6 +33937,20 @@ stations:
   elev_m: 1.8823639
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VOPC
+  name: Pendicherry
+  lat: 11.9687
+  lon: 79.8101
+  elev_m: 40.975098
+  country: IN
+  enrolled_at: '2026-08-22'
+- id: ASOS:VORM
+  name: INS Parundu
+  lat: 9.3239
+  lon: 78.9728
+  elev_m: 9.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VORY
   name: Rajahmundry
   lat: 17.1104
@@ -32146,6 +33979,13 @@ stations:
   elev_m: 59.710327
   country: IN
   enrolled_at: '2026-08-17'
+- id: ASOS:VOTJ
+  name: Thanjavur
+  lat: 10.7225
+  lon: 79.1015
+  elev_m: 75.0
+  country: IN
+  enrolled_at: '2026-08-22'
 - id: ASOS:VOTK
   name: Tuticorin
   lat: 8.7223
@@ -32669,6 +34509,13 @@ stations:
   elev_m: 28.0
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YAYE
+  name: Uluru
+  lat: -25.1861
+  lon: 130.976
+  elev_m: 496.50107
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YBAS
   name: Alice Springs
   lat: -23.7951
@@ -32718,6 +34565,27 @@ stations:
   elev_m: 344.0
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YBMK
+  name: Mackay
+  lat: -21.1172
+  lon: 149.2169
+  elev_m: 28.180777
+  country: AU
+  enrolled_at: '2026-08-22'
+- id: ASOS:YBNA
+  name: Ballina Byron Bay
+  lat: -28.8353
+  lon: 153.5585
+  elev_m: 4.0701337
+  country: AU
+  enrolled_at: '2026-08-22'
+- id: ASOS:YBPN
+  name: Prosserpine
+  lat: -20.4925
+  lon: 148.555
+  elev_m: 20.765924
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YBRK
   name: Rockhampton
   lat: -23.3753
@@ -32767,6 +34635,13 @@ stations:
   elev_m: 91.0
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YESP
+  name: Esperance
+  lat: -33.6844
+  lon: 121.823
+  elev_m: 137.26839
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YFRT
   name: Forrest
   lat: -30.8381
@@ -32788,6 +34663,13 @@ stations:
   elev_m: 22.888252
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YHBA
+  name: Hervey Bay
+  lat: -25.3188
+  lon: 152.88
+  elev_m: 14.0
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YHID
   name: Horn Island
   lat: -10.5844
@@ -32816,6 +34698,13 @@ stations:
   elev_m: 389.5385
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:YKSC
+  name: Kingscote
+  lat: -35.71
+  lon: 137.52
+  elev_m: 9.0
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YLHI
   name: Lord Howe Island
   lat: -31.5383
@@ -32837,6 +34726,13 @@ stations:
   elev_m: 27.0
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YMIA
+  name: Mildura
+  lat: -34.2292
+  lon: 142.086
+  elev_m: 54.106075
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YMLT
   name: Launceston
   lat: -41.5453
@@ -32858,6 +34754,13 @@ stations:
   elev_m: 360.0
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:YNWN
+  name: Newman
+  lat: -23.4178
+  lon: 119.803
+  elev_m: 525.40076
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YPAD
   name: Adelaide
   lat: -34.9524
@@ -32900,6 +34803,13 @@ stations:
   elev_m: 30.0
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YPKA
+  name: Karratha
+  lat: -20.712
+  lon: 116.77
+  elev_m: 11.0
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YPKG
   name: Kalgoorlie
   lat: -30.7847
@@ -32998,6 +34908,13 @@ stations:
   elev_m: 410.0
   country: AU
   enrolled_at: '2026-08-17'
+- id: ASOS:YSWS
+  name: Western Sydney
+  lat: -33.888
+  lon: 150.7147
+  elev_m: 87.0
+  country: AU
+  enrolled_at: '2026-08-22'
 - id: ASOS:YWLM
   name: Newcastle
   lat: -32.795
@@ -33040,6 +34957,13 @@ stations:
   elev_m: 3.0
   country: CN
   enrolled_at: '2026-08-17'
+- id: ASOS:ZBYC
+  name: Yuncheng
+  lat: 35.1164
+  lon: 111.0314
+  elev_m: 378.0
+  country: CN
+  enrolled_at: '2026-08-22'
 - id: ASOS:ZBYN
   name: Taiyuan
   lat: 37.7833
@@ -33152,6 +35076,13 @@ stations:
   elev_m: 29.102571
   country: US
   enrolled_at: '2026-08-17'
+- id: ASOS:ZPLJ
+  name: Lijiang
+  lat: 26.6783
+  lon: 100.2467
+  elev_m: 2245.8638
+  country: CN
+  enrolled_at: '2026-08-22'
 - id: ASOS:ZPPP
   name: Kunming
   lat: 25.0167
@@ -33166,6 +35097,13 @@ stations:
   elev_m: 139.0
   country: CN
   enrolled_at: '2026-08-17'
+- id: ASOS:ZSCN
+  name: Nanchang
+  lat: 28.6
+  lon: 115.9167
+  elev_m: 50.0
+  country: CN
+  enrolled_at: '2026-08-22'
 - id: ASOS:ZSFZ
   name: Fuzhou
   lat: 26.0833
@@ -33180,6 +35118,13 @@ stations:
   elev_m: 43.0
   country: CN
   enrolled_at: '2026-08-17'
+- id: ASOS:ZSJN
+  name: Jinan
+  lat: 36.8555
+  lon: 117.206
+  elev_m: 23.125294
+  country: CN
+  enrolled_at: '2026-08-22'
 - id: ASOS:ZSNB
   name: Ninbo
   lat: 29.8267
@@ -33222,6 +35167,13 @@ stations:
   elev_m: 7.0
   country: CN
   enrolled_at: '2026-08-17'
+- id: ASOS:ZSWZ
+  name: Wenzhou
+  lat: 27.9122
+  lon: 120.852
+  elev_m: 7.0
+  country: CN
+  enrolled_at: '2026-08-22'
 - id: ASOS:ZUCK
   name: Chongqing
   lat: 29.52

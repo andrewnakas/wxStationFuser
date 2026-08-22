@@ -21,7 +21,7 @@ snow telemetry lacks, and SNOTEL gives mountains that airports mostly avoid.
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -35,9 +35,19 @@ AWDB = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1"
 
 FT_TO_M = 0.3048
 
-# A station present in the archive but barely reporting cannot be calibrated. 4,000 hourly
-# observations is roughly half a year of coverage.
-MIN_OBS_PER_YEAR = 4000
+# How far back "is this station alive" looks. A rolling year rather than the previous
+# calendar year, which is the whole of the fix: judging 2026 stations on their 2025 record
+# hides every station commissioned since January and every one that has since ramped up its
+# reporting. Measured on the live archive, that stale window was hiding 279 stations —
+# among them Ship Shoal, Pipestone and Creede, which now report *more* often than hourly.
+LOOKBACK_DAYS = 365
+
+# How much reporting earns enrollment. One observation in the trailing year, i.e. the
+# station is not dead. The old bar was 4,000 observations in a calendar year, which
+# excluded 279 live stations to spare the forecast budget of the weakest few dozen — and a
+# sparse reporter is not a silent failure here: it trains on what it has, publishes
+# `obs_age_days`, and reports itself unmeasured until verification can say otherwise.
+MIN_OBS_IN_WINDOW = 1
 
 
 def _duckdb():
@@ -63,15 +73,48 @@ def _year_urls(start_year: int, end_year: int) -> list[str]:
 # --------------------------------------------------------------------------- ASOS
 
 
-def asos_stations(year: int | None = None, min_obs: int = MIN_OBS_PER_YEAR) -> pd.DataFrame:
-    """Every ASOS station reporting reliably in ``year``.
+def _existing_year_urls(start_year: int, end_year: int) -> list[str]:
+    """The year partitions that are actually published.
 
-    Returns the catalogue columns the registry needs, filtered to stations with enough
-    observations to be worth calibrating.
+    A window spanning a year boundary asks for the current year's file, and in the first
+    hours of January that file does not exist yet — which fails the whole query rather
+    than the one partition. Two HEAD requests are cheaper than that outage.
     """
-    year = year or date.today().year - 1
+    urls = []
+    for url in _year_urls(start_year, end_year):
+        req = Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
+        try:
+            with urlopen(req, timeout=30) as resp:  # noqa: S310 - fixed https base
+                if resp.status < 400:
+                    urls.append(url)
+        except Exception:  # noqa: BLE001
+            print(f"  no partition at {url}", flush=True)
+    return urls
+
+
+def asos_stations(
+    min_obs: int = MIN_OBS_IN_WINDOW,
+    *,
+    days: int = LOOKBACK_DAYS,
+    end: date | None = None,
+) -> pd.DataFrame:
+    """Every ASOS station that has reported within the trailing window.
+
+    This is the whole enrollable airport universe, not a sample of it: the observations
+    are bulk-queryable, so a thousand stations cost the same handful of requests as ten,
+    and the only reason to leave one out is that it is dead.
+
+    Returns the catalogue columns the registry needs.
+    """
+    end = end or date.today()
+    start = end - timedelta(days=days)
     con = _duckdb()
-    url = f"{ASOS_BASE}/year={year}/data.parquet"
+    urls = _existing_year_urls(start.year, end.year)
+    if not urls:
+        return pd.DataFrame(
+            columns=["id", "station", "name", "lat", "lon", "elev_m", "country", "state", "n_obs"]
+        )
+    url_list = ", ".join(f"'{u}'" for u in urls)
     q = f"""
         SELECT station,
                any_value("name")      AS sname,
@@ -81,7 +124,8 @@ def asos_stations(year: int | None = None, min_obs: int = MIN_OBS_PER_YEAR) -> p
                any_value(country)     AS country,
                any_value(state)       AS state,
                count(*)               AS n_obs
-        FROM read_parquet('{url}')
+        FROM read_parquet([{url_list}])
+        WHERE valid >= TIMESTAMP '{start.isoformat()} 00:00:00'
         GROUP BY station
         HAVING count(*) >= {int(min_obs)}
     """
@@ -383,21 +427,25 @@ def enrollable_universe(
     meteostat_exclude_countries: list[str] | None = None,
     min_elevation_m: float | None = None,
     countries: list[str] | None = None,
-    year: int | None = None,
+    asos_min_obs: int = MIN_OBS_IN_WINDOW,
 ) -> pd.DataFrame:
     """The set of stations that can be enrolled, from both bulk sources.
 
     ``min_elevation_m`` is the mountain filter: SNOTEL sits above it almost by definition,
     and it selects the airports on plateaus and in mountain valleys where the model's
     terrain is furthest from the station's.
+
+    ``asos_min_obs`` is how much reporting earns an airport its place, counted over the
+    trailing year. The default takes every station that is alive.
     """
     frames = []
     if include_asos:
         print("querying dynamical.org ASOS archive…", flush=True)
-        a = asos_stations(year=year)
+        a = asos_stations(asos_min_obs)
         a["network"] = "ASOS"
         frames.append(a)
-        print(f"  {len(a)} ASOS stations reporting reliably", flush=True)
+        print(f"  {len(a)} ASOS stations reporting in the last {LOOKBACK_DAYS} days",
+              flush=True)
     if include_snotel:
         print("querying SNOTEL station list…", flush=True)
         s = snotel_stations()

@@ -100,6 +100,96 @@ def test_empty_station_list_returns_the_empty_schema():
     assert list(out.columns) == OBS_COLUMNS
 
 
+# ------------------------------------------------ which airports count as enrollable
+
+class _FakeCon:
+    """A DuckDB stand-in that records the SQL instead of running it."""
+
+    def __init__(self):
+        self.sql = None
+
+    def execute(self, q):
+        self.sql = q
+        return self
+
+    def fetchdf(self):
+        return pd.DataFrame(
+            {"station": ["DEN"], "sname": ["Denver"], "lat": [39.8], "lon": [-104.7],
+             "elev_m": [1656.0], "country": ["US"], "state": ["CO"], "n_obs": [1]}
+        )
+
+
+def _fake_archive(monkeypatch):
+    con = _FakeCon()
+    monkeypatch.setattr(bulk, "_duckdb", lambda: con)
+    monkeypatch.setattr(bulk, "_existing_year_urls",
+                        lambda a, b: [f"u{y}" for y in range(a, b + 1)])
+    return con
+
+
+def test_the_window_is_a_rolling_year_not_the_previous_calendar_one(monkeypatch):
+    """The bug this replaces: 2026 stations were being judged on their 2025 record.
+
+    Measured against the live archive, that hid 279 stations — Ship Shoal, Pipestone and
+    Creede among them, all of which now report more often than hourly. A station
+    commissioned in March was invisible until the following January.
+    """
+    from datetime import date
+
+    con = _fake_archive(monkeypatch)
+    bulk.asos_stations(end=date(2026, 8, 22), days=365)
+
+    assert "'u2025'" in con.sql and "'u2026'" in con.sql   # both partitions
+    assert "valid >= TIMESTAMP '2025-08-22" in con.sql     # and only the trailing year
+
+
+def test_a_station_reporting_at_all_is_enrollable(monkeypatch):
+    """Observations come in bulk, so the only reason to leave an airport out is that it
+    is dead. The old bar excluded live stations to save a forecast budget that a few
+    dozen sparse reporters barely move."""
+    con = _fake_archive(monkeypatch)
+    out = bulk.asos_stations()
+
+    assert "count(*) >= 1" in con.sql
+    assert list(out["id"]) == ["ASOS:DEN"]
+
+
+def test_a_stricter_bar_is_still_available(monkeypatch):
+    con = _fake_archive(monkeypatch)
+    bulk.asos_stations(4000)
+    assert "count(*) >= 4000" in con.sql
+
+
+def test_a_partition_that_does_not_exist_yet_is_skipped(monkeypatch):
+    """On 1 January the current year's file may not have been written.
+
+    Asking for it fails the whole query rather than the one partition, which would take
+    the weekly enrollment down for the hours the archive takes to catch up.
+    """
+    from urllib.error import HTTPError
+
+    def fake_urlopen(req, timeout=None):
+        if "year=2027" in req.full_url:
+            raise HTTPError(req.full_url, 404, "not found", None, None)
+        raise AssertionError("unreachable")  # pragma: no cover
+
+    class _Resp:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+    monkeypatch.setattr(
+        bulk, "urlopen",
+        lambda req, timeout=None: _Resp() if "year=2026" in req.full_url
+        else fake_urlopen(req, timeout),
+    )
+    assert bulk._existing_year_urls(2026, 2027) == [f"{bulk.ASOS_BASE}/year=2026/data.parquet"]
+
+
 # --------------------------------------------------- routing to the batched fetchers
 
 def test_snotel_triplets_group_under_snotel():

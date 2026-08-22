@@ -12,17 +12,20 @@ name: Grow the fleet
 # search for, rather than with whichever ICAO code sorts first. Elevation breaks ties,
 # which keeps the empty-mountain sites where post-processing has the most to fix.
 #
-# It also refuses to outrun the fleet. `--max-backlog` counts the registered stations that
-# have no paired archive yet and adds only enough to top that number up, so enrollment
-# tracks what the nightly bootstrap can actually train. Registering ten thousand stations
-# that never get trained does not grow the site; it grows the backlog and the site shows
-# the same stations it did before.
+# It runs in two steps because the networks are not alike. The airport archive is bounded
+# — about 4,100 stations, queryable in bulk, barely changing — so it is taken whole and
+# kept complete. Meteostat's 22,000 are not bounded in any useful sense, so they are paced:
+# `--max-backlog` counts the registered stations with no paired archive yet and adds only
+# enough to top that number up, so enrollment tracks what the nightly bootstrap can
+# actually train. Registering ten thousand stations that never get trained does not grow
+# the site; it grows the backlog and the site shows the same stations it did before.
 
 on:
   # Weekly, and the cadence is a consequence rather than a preference: the bootstrap
   # drains roughly a thousand stations a night at best, so a weekly top-up is already
-  # faster than the fleet can absorb. The backlog cap is what actually governs the rate —
-  # this schedule only decides how often the question gets asked.
+  # faster than the fleet can absorb. For everything but the airports the backlog cap is
+  # what actually governs the rate — this schedule only decides how often the question
+  # gets asked.
   schedule:
     - cron: '40 5 * * 2'
   workflow_dispatch:
@@ -73,10 +76,40 @@ jobs:
       - name: Install
         run: pip install -e ".[train]"
 
+      # The airport network is taken whole, and it is the one network where that is the
+      # right call. dynamical.org's archive answers for every station at once — a
+      # thousand airports cost the same handful of queries as ten — and the set is
+      # bounded at about 4,100 and barely moves. So there is nothing to pace: the backlog
+      # cap exists to stop unbounded enrollment, and this is not unbounded.
+      #
+      # It also catches what the fleet would otherwise miss for a year. Stations are
+      # judged on a rolling year rather than the previous calendar one, so an airport
+      # commissioned in March shows up in this run rather than the one next January.
+      - name: Enrol every reporting airport
+        env:
+          DRY: ${{ inputs.dry_run == true && '--dry-run' || '' }}
+        run: |
+          set -o pipefail
+          wxfuser enroll-bulk \
+            --no-snotel \
+            --order prominence \
+            --no-bootstrap \
+            ${DRY} | tee /tmp/asos.log
+          {
+            echo '### Airports'
+            echo '```'
+            tail -n 12 /tmp/asos.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Everything else is paced. Meteostat alone lists 22,000 stations — enrolling them
+      # faster than the nightly bootstrap can train them grows the backlog, not the site —
+      # so this adds only enough to top the backlog up, most-populated first.
+      #
       # No state is restored. The backlog count comes from the hub's file listing — one
       # API call — because the alternative is downloading a hundred megabytes of paired
       # archives to read their names.
-      - name: Select and register
+      - name: Top up the rest, paced by the backlog
         env:
           LIMIT: ${{ inputs.limit || '600' }}
           MAX_BACKLOG: ${{ inputs.max_backlog || '2000' }}
@@ -87,6 +120,7 @@ jobs:
           # so a run that matched nothing would look like a run that added nothing.
           set -o pipefail
           wxfuser enroll-bulk \
+            --no-asos \
             --meteostat \
             --order prominence \
             --limit "$LIMIT" \
@@ -94,10 +128,12 @@ jobs:
             --no-bootstrap \
             ${COUNTRIES:+--countries "$COUNTRIES"} \
             ${DRY} | tee /tmp/grow.log
-          echo '```' > /tmp/summary.md
-          tail -n 25 /tmp/grow.log >> /tmp/summary.md
-          echo '```' >> /tmp/summary.md
-          cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo '### Everything else'
+            echo '```'
+            tail -n 20 /tmp/grow.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # A run that adds nothing — because the backlog is already full — commits nothing
       # and triggers nothing. That is the expected outcome most weeks, and it should look
