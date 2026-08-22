@@ -119,8 +119,11 @@ block, where the hypothesis predicted the gain, comes in at +1.3%, −1.1% and �
 the three stations. Having last winter in the archive does not measurably help this winter.
 
 **Tier 2 is a different matter, and the finding is about the method rather than the data.**
-Given two years it degrades badly and repeatably: −48.8% at Boston in summer, −34.6% at
-Seattle, −15.1% on Boston's wind.
+It is worse in both experiments, and much worse in the seasonal one — up to −19% in the
+rolling-refit table above, and −48.8% at Boston in summer, −34.6% at Seattle and −15.1% on
+Boston's wind when a single fit has to cover a whole block. The gap between the two is
+itself the clue: a fit refitted every fortnight is repeatedly rescued from its own mistake,
+while one asked to cover six weeks is not.
 
 The cause is a gate that measures the wrong thing. Tier 2 adds annual and diurnal
 harmonics, and it already refuses the annual ones unless the training window spans enough
