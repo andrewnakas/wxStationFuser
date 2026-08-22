@@ -101,6 +101,59 @@ def filter_sources(stations: list, spec: str | None) -> list:
     return picked
 
 
+def order_stations(stations: list, order: str | None) -> list:
+    """Put the stations a run cares most about first.
+
+    Order matters because a run is not guaranteed to finish. Shards are capped at the
+    Actions job limit and the forecast API throttles, so the tail of a long shard is the
+    part most likely to be dropped — and with registry order that tail is an arbitrary
+    slice of the alphabet. Sorting by served population means an interrupted run has
+    spent its budget on the stations people actually look up.
+
+    Falls back to the given order if the gazetteer cannot be fetched. A ranking is an
+    optimisation; failing to fetch one is not a reason to refresh nothing.
+    """
+    if not order or order == "registry" or len(stations) < 2:
+        return stations
+    if order != "prominence":
+        raise SystemExit(f"unknown --order {order!r}")
+    from wxfuser.data import prominence
+
+    try:
+        ranked = prominence.sort_stations(stations)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  WARN: prominence ranking unavailable ({exc}); keeping registry order",
+              flush=True)
+        return stations
+    head = ", ".join(s.id for s in ranked[:3])
+    print(f"ordered by served population: {head} first", flush=True)
+    return ranked
+
+
+def only_untrained(stations: list, *, use_hub: bool = False) -> list:
+    """Drop stations that already have a paired archive.
+
+    What makes a scheduled bootstrap possible. The registry holds far more stations than
+    one run can backfill, so a nightly job has to be able to ask "what is still
+    outstanding" and work only on that; without it every run would start again at the
+    beginning of the registry and never reach the end of it.
+    """
+    trained = core.trained_slugs(use_hub=use_hub)
+    picked = [s for s in stations if s.slug not in trained]
+    print(f"untrained: {len(picked)} of {len(stations)} stations have no archive yet",
+          flush=True)
+    return picked
+
+
+def _untrained_count() -> int:
+    """How many registered stations are still waiting for their first backfill."""
+    trained = core.trained_slugs(use_hub=True)
+    stations = load_registry()
+    n = sum(1 for s in stations if s.slug not in trained)
+    print(f"registry: {len(stations)} stations, {n} not yet bootstrapped")
+    return n
+
+
 def _index_path(shard: int | None, of: int | None):
     """Where this worker writes its index entries.
 
@@ -126,6 +179,15 @@ def cmd_refresh(args) -> int:
         stations = [s for s in stations if s.id == args.station]
     stations = filter_sources(stations, getattr(args, "sources", None))
     stations = select_shard(stations, args.shard, args.of)
+    if getattr(args, "only_untrained", False):
+        stations = only_untrained(stations)
+    stations = order_stations(stations, getattr(args, "order", None))
+    if getattr(args, "limit", None):
+        # Applied last, so the cap keeps the head of the ranking rather than an
+        # arbitrary slice of it.
+        if len(stations) > args.limit:
+            print(f"capped at {args.limit} of {len(stations)} stations", flush=True)
+        stations = stations[: args.limit]
 
     if not stations:
         print("no stations to refresh")
@@ -338,11 +400,26 @@ def cmd_enroll_bulk(args) -> int:
         print("no stations matched")
         return 1
 
-    if args.limit:
-        # Highest first, so a capped run selects the complex terrain where the correction
-        # has the most to do rather than an arbitrary alphabetical slice.
+    if args.order == "prominence":
+        # Most-read first. The alternative — enrolling in whatever order the source
+        # archives happen to list stations in — spends a capped run on an arbitrary slice
+        # of the alphabet, which is how a fleet ends up holding four thousand stations
+        # and not the one the user searched for.
+        from wxfuser.data import prominence
+
+        try:
+            universe = prominence.rank(universe)
+        except Exception as exc:  # noqa: BLE001
+            # A refresh degrades to registry order when the gazetteer is unreachable,
+            # because publishing the same stations in a worse order still publishes them.
+            # Enrollment is not the same trade: it decides which stations exist at all,
+            # and adding a few hundred arbitrary ones is worse than adding none and
+            # trying again next week.
+            sys.exit(f"cannot rank by served population ({exc}); "
+                     f"declining to enroll an unranked selection")
+    elif args.order == "elevation":
+        # Highest first: the complex terrain where the correction has the most to do.
         universe = universe.sort_values("elev_m", ascending=False, na_position="last")
-        universe = universe.head(args.limit)
 
     existing = {s.id for s in load_registry()}
     today = __import__("datetime").date.today().isoformat()
@@ -362,7 +439,23 @@ def cmd_enroll_bulk(args) -> int:
             )
         )
 
+    # The cap applies to what is *new*, not to what was considered. Applying it to the
+    # universe instead means a run whose top hundred are already enrolled adds nothing
+    # and reports success, which is how an automated grow loop silently stalls.
+    limit = args.limit
+    if args.max_backlog is not None:
+        room = max(0, args.max_backlog - _untrained_count())
+        limit = min(limit, room) if limit else room
+        print(f"backlog cap: room for {room} more untrained stations "
+              f"(target backlog {args.max_backlog})")
+    if limit is not None:
+        added = added[:limit]
+
     print(f"\n{len(added)} new stations to enroll ({len(existing)} already registered)")
+    if not added:
+        # Not a failure. A scheduled grow run that finds the backlog already full has
+        # done its job by declining to add to it.
+        return 0
     if args.dry_run:
         for s in added[:10]:
             print(f"  {s.id:24s} {s.name[:40]:42s} {s.elev_m or 0:6.0f} m")
@@ -492,6 +585,15 @@ def main(argv: list[str] | None = None) -> int:
                    help="comma-separated networks to process (ASOS, SNOTEL, MS). Forecast "
                         "requests are the scarce resource, so an incremental run can skip "
                         "networks whose observations cannot arrive yet")
+    p.add_argument("--order", choices=["registry", "prominence"], default="registry",
+                   help="prominence puts the stations serving the most people first, so "
+                        "an interrupted run drops the least-read ones")
+    p.add_argument("--only-untrained", action="store_true",
+                   help="skip stations that already have a paired archive; what lets a "
+                        "scheduled bootstrap work through the backlog instead of "
+                        "restarting it")
+    p.add_argument("--limit", type=int,
+                   help="process at most this many stations (per shard), after ordering")
     p.set_defaults(func=cmd_refresh)
 
     p = sub.add_parser("merge-index", help="combine per-shard index fragments")
@@ -504,7 +606,15 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(func=cmd_retrain)
 
     p = sub.add_parser("enroll-bulk", help="enroll many stations from the bulk sources")
-    p.add_argument("--limit", type=int, help="cap the number enrolled, highest elevation first")
+    p.add_argument("--limit", type=int, help="cap how many new stations are added")
+    p.add_argument("--order", choices=["prominence", "elevation", "source"],
+                   default="prominence",
+                   help="which stations a capped run takes: prominence = the ones serving "
+                        "the most people, elevation = the hardest terrain")
+    p.add_argument("--max-backlog", type=int,
+                   help="add only enough to bring the count of not-yet-bootstrapped "
+                        "stations up to this number; the self-pacing that lets enrollment "
+                        "run unattended without outgrowing what the fleet can train")
     p.add_argument("--min-elevation", type=float,
                    help="only stations at or above this elevation in metres")
     p.add_argument("--countries", help="comma-separated ISO country codes")

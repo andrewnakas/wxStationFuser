@@ -113,12 +113,22 @@ jobs:
       # runs. A shard covering hundreds of stations is hours of network-bound work, and
       # without this the whole lot dies with the runner — bootstrap has always checkpointed
       # for exactly this reason, and refresh grew long enough to need it too.
+      # Ordered by served population, which decides what a run that does not finish
+      # leaves out. A shard holds well over a thousand stations and the API throttles, so
+      # the tail is the part at risk — in registry order that tail is an arbitrary slice
+      # of the alphabet, and it may well be the busiest airport in the fleet.
+      #
+      # It is not free: interleaving the networks means each 100-station batch issues its
+      # own bulk ASOS query rather than a handful covering contiguous ids. That costs
+      # minutes per shard. Publishing a stale forecast for a station nobody opens is the
+      # cheaper mistake.
       - name: Refresh shard
         env:
           SOURCES: ${{ inputs.sources }}
         run: |
           wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
             --checkpoint-every 100 \
+            --order prominence \
             ${SOURCES:+--sources "$SOURCES"}
 
       # Each shard writes only its own stations, so uploading in parallel touches

@@ -17,6 +17,18 @@ name: Bootstrap enrolled stations
 # unmeasured until the retrain reaches them.
 
 on:
+  # Nightly, because enrollment and training are deliberately separate and nothing else
+  # closes the gap between them. Registration is one commit; backfilling two years of
+  # paired history for what it registered is hours of throttled network work, and until
+  # this ran on a schedule it needed someone to press a button. A station enrolled on a
+  # Friday then sat unpublished until somebody noticed.
+  #
+  # Each run takes a capped slice of the outstanding stations rather than the whole
+  # backlog, so it finishes inside the job limit and the next night continues from where
+  # it stopped. Which slice is not arbitrary: `--order prominence` spends the night's
+  # budget on the stations serving the most people.
+  schedule:
+    - cron: '25 2 * * *'
   workflow_dispatch:
     inputs:
       shards:
@@ -31,6 +43,15 @@ on:
         description: 'Years of history to backfill'
         required: false
         default: '2'
+      limit:
+        description: 'Max stations per worker (blank = no cap)'
+        required: false
+        default: ''
+      all:
+        description: 'Include stations that already have an archive'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -98,14 +119,35 @@ jobs:
         if: env.HF_TOKEN != ''
         run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
 
+      # The scheduled run works the backlog: stations with no paired archive yet, most-
+      # read first, capped so the job ends before the runner kills it. A manual run can
+      # still ask for everything with `all: true`.
+      #
+      # The cap is per worker and deliberately conservative. Bootstrapping is the
+      # expensive path — two years of archived model output per station, fetched ten
+      # locations at a time against an API that throttles — so the useful question is not
+      # how many stations exist but how many can be banked before the 350-minute limit.
+      # Sixteen workers at 60 stations is roughly a thousand a night; the backlog drains
+      # in days rather than in one heroic run that times out and saves nothing.
       - name: Bootstrap shard
         env:
           SOURCES: ${{ inputs.sources }}
+          LIMIT: ${{ inputs.limit || (github.event_name == 'schedule' && '60' || '') }}
+          ALL: ${{ inputs.all }}
         run: |
+          # Decided in the shell rather than in an expression: `cond && '' || flag` reads
+          # like a ternary and is not one — an empty string is falsy, so that form always
+          # yields the fallback and the flag could never be turned off.
+          UNTRAINED=--only-untrained
+          if [ "$ALL" = "true" ]; then UNTRAINED=""; fi
+
           wxfuser refresh --bootstrap \
             --years ${{ inputs.years || '2' }} \
             --checkpoint-every 15 \
+            --order prominence \
             --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
+            ${UNTRAINED} \
+            ${LIMIT:+--limit "$LIMIT"} \
             ${SOURCES:+--sources "$SOURCES"}
 
       - name: Save state

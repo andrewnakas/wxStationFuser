@@ -209,6 +209,10 @@ def upload(shard: int | None = None, of: int | None = None, paths: str | None = 
         ignore_patterns=[
             ".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp",
             RESTORE_MARKER,
+            # Rebuildable downloads, not state. The city gazetteer the prominence
+            # ranking reads lands here; publishing it would have every runner pull a
+            # copy of a file it can fetch from the source in two seconds.
+            "cache/**",
         ],
     )
     print(f"uploaded {STATE_DIR} to {repo}")

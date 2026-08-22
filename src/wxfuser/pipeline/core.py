@@ -43,6 +43,40 @@ def obs_path(station: Station) -> Path:
     return STATE_DIR / "obs" / f"{station.slug}.parquet"
 
 
+def trained_slugs(*, use_hub: bool = False) -> set[str]:
+    """Slugs that already hold a paired archive — i.e. that have been bootstrapped.
+
+    Two callers with two different vantage points. A worker mid-run has its own slice
+    restored on disk, so the local directory is the truth for it. A job that is only
+    deciding *how much work is outstanding* has restored nothing, and downloading a
+    hundred megabytes of parquet to count filenames would be absurd — so it asks the hub
+    for its file list instead, which is one API call.
+
+    A hub listing that fails falls back to the local view rather than raising: the worst
+    outcome is re-bootstrapping a station that did not need it, which is slow, not wrong.
+    """
+    if use_hub:
+        try:
+            from huggingface_hub import HfApi, get_token
+
+            from wxfuser.config import hf_state_repo
+
+            api = HfApi(token=os.environ.get("HF_TOKEN") or get_token())
+            files = api.list_repo_files(repo_id=hf_state_repo(), repo_type="dataset")
+            return {
+                f.split("/", 1)[1][: -len(".parquet")]
+                for f in files
+                if f.startswith("pairs/") and f.endswith(".parquet")
+            }
+        except Exception as exc:  # noqa: BLE001
+            print(f"  WARN: could not list hub archives ({exc}); using local state", flush=True)
+
+    root = STATE_DIR / "pairs"
+    if not root.exists():
+        return set()
+    return {p.stem for p in root.glob("*.parquet")}
+
+
 # --------------------------------------------------------------------------- observations
 
 

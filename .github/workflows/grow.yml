@@ -1,0 +1,140 @@
+name: Grow the fleet
+
+# Enrolls new stations on its own, so the fleet grows without anyone opening an issue.
+#
+# The enrollment issue form stays the way a person asks for a *particular* station. This
+# is the other half: the bulk sources between them list tens of thousands of stations that
+# could be enrolled, and picking them by hand was the only thing standing between the
+# fleet and its actual limit.
+#
+# Which stations it takes is the whole design. Ranked by the population living near them,
+# decayed with distance — so the fleet fills up with the airports and city stations people
+# search for, rather than with whichever ICAO code sorts first. Elevation breaks ties,
+# which keeps the empty-mountain sites where post-processing has the most to fix.
+#
+# It also refuses to outrun the fleet. `--max-backlog` counts the registered stations that
+# have no paired archive yet and adds only enough to top that number up, so enrollment
+# tracks what the nightly bootstrap can actually train. Registering ten thousand stations
+# that never get trained does not grow the site; it grows the backlog and the site shows
+# the same stations it did before.
+
+on:
+  # Weekly, and the cadence is a consequence rather than a preference: the bootstrap
+  # drains roughly a thousand stations a night at best, so a weekly top-up is already
+  # faster than the fleet can absorb. The backlog cap is what actually governs the rate —
+  # this schedule only decides how often the question gets asked.
+  schedule:
+    - cron: '40 5 * * 2'
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Hard cap on how many stations to add'
+        required: false
+        default: '600'
+      max_backlog:
+        description: 'Stop adding once this many stations await bootstrap'
+        required: false
+        default: '2000'
+      countries:
+        description: 'Comma-separated ISO country codes (blank = worldwide)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Show what would be enrolled and stop'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: grow
+  cancel-in-progress: false
+
+jobs:
+  grow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[train]"
+
+      # No state is restored. The backlog count comes from the hub's file listing — one
+      # API call — because the alternative is downloading a hundred megabytes of paired
+      # archives to read their names.
+      - name: Select and register
+        env:
+          LIMIT: ${{ inputs.limit || '600' }}
+          MAX_BACKLOG: ${{ inputs.max_backlog || '2000' }}
+          COUNTRIES: ${{ inputs.countries }}
+          DRY: ${{ inputs.dry_run == true && '--dry-run' || '' }}
+        run: |
+          # tee would otherwise report the pipeline as successful whatever the CLI did,
+          # so a run that matched nothing would look like a run that added nothing.
+          set -o pipefail
+          wxfuser enroll-bulk \
+            --meteostat \
+            --order prominence \
+            --limit "$LIMIT" \
+            --max-backlog "$MAX_BACKLOG" \
+            --no-bootstrap \
+            ${COUNTRIES:+--countries "$COUNTRIES"} \
+            ${DRY} | tee /tmp/grow.log
+          echo '```' > /tmp/summary.md
+          tail -n 25 /tmp/grow.log >> /tmp/summary.md
+          echo '```' >> /tmp/summary.md
+          cat /tmp/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      # A run that adds nothing — because the backlog is already full — commits nothing
+      # and triggers nothing. That is the expected outcome most weeks, and it should look
+      # like a quiet success rather than a failure.
+      - name: Commit the new registry entries
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stations.yaml
+          if git diff --staged --quiet; then
+            echo "added=0" >> "$GITHUB_OUTPUT"
+            echo "no new stations this run"
+            exit 0
+          fi
+          ADDED=$(git diff --staged -U0 -- stations.yaml | grep -c '^+- id:' || true)
+          git commit -m "Enroll $ADDED stations by served population"
+
+          # `git push && break` inside a loop is the wrong shape under `bash -e`: the
+          # failing attempt makes the whole list fail and the step dies on the first
+          # retry it was written to survive.
+          pushed=0
+          for i in 1 2 3 4; do
+            if git push -u origin main; then pushed=1; break; fi
+            echo "push attempt $i failed; refetching and retrying"
+            sleep $((2 ** i))
+            git pull --rebase origin main || true
+          done
+          if [ "$pushed" != "1" ]; then
+            echo "could not push the registry; the stations were selected but not enrolled"
+            exit 1
+          fi
+          echo "added=$ADDED" >> "$GITHUB_OUTPUT"
+
+      # Registration alone publishes nothing. The nightly bootstrap would reach these
+      # eventually; kicking it here means a station enrolled this morning has history and
+      # a page by tomorrow rather than the day after.
+      - name: Bootstrap what was just added
+        if: steps.commit.outputs.added != '0'
+        run: gh workflow run bootstrap.yml -f limit=60 || true

@@ -126,6 +126,10 @@ Open an [enrollment issue](../../issues/new?template=enroll-station.yml) with th
 ID, name, and coordinates. An automated job validates it, pulls the history, trains the
 models, verifies them, and comments back with a link and the measured skill.
 
+You do not have to. The `grow` job enrolls stations on its own — see
+[How the fleet fills itself](#how-the-fleet-fills-itself) — so the form is for asking for a
+station sooner than the queue would reach it.
+
 ### Run it locally
 
 ```bash
@@ -136,6 +140,11 @@ wxfuser bootstrap IEM:DEN --years 2             # deep backfill + train
 wxfuser refresh                                 # update forecasts, write site JSON
 wxfuser retrain                                 # re-verify and re-choose methods
 python -m http.server -d site                   # view at localhost:8000
+
+# What the scheduled jobs do, if you want to watch them decide
+wxfuser enroll-bulk --meteostat --limit 20 --dry-run    # next 20 stations to enroll
+wxfuser refresh --bootstrap --only-untrained \
+                --order prominence --limit 20           # train 20 of the backlog
 ```
 
 ### Station IDs
@@ -153,11 +162,18 @@ python -m http.server -d site                   # view at localhost:8000
 
 | Workflow | Cadence | Does |
 |---|---|---|
-| `refresh` | every 3 h | New observations and model runs, refit the cheap tiers, republish |
+| `refresh` | every 6 h | New observations and model runs, refit the cheap tiers, republish |
+| `bootstrap` | nightly | Backfill and train the stations that are registered but have no archive yet |
+| `grow` | weekly | Enroll new stations from the bulk sources, most-populated first |
 | `retrain` | weekly | Walk-forward verification, re-choose the published method |
-| `enroll` | on issue | Validate, backfill, train, publish, comment back |
 | `catalogue` | weekly | Rebuild the searchable global station list |
+| `enroll` | on issue | Validate, backfill, train, publish, comment back |
 | `ci` | on push | Lint and tests |
+
+Nothing in that table needs a person. `grow` selects and registers stations, `bootstrap`
+gives them their history, `refresh` keeps their forecasts current, and `retrain` decides
+what each one publishes — so the fleet enrolls, trains, and verifies itself, and the issue
+form is how someone asks for one *particular* station rather than how stations get added.
 
 State that grows — paired archives, fitted coefficients, verification history — lives on a
 Hugging Face dataset repo rather than in git, so the repository history stays readable.
@@ -169,6 +185,54 @@ Open Access tier requires a `.edu` address from an accredited US institution and
 explicitly excludes personal and hobbyist use. `SYN:` stations therefore need a paid plan
 and `SYNOPTIC_API_TOKEN`. Nothing depends on it — Synoptic's unique contribution was some
 US mesonet coverage (RAWS, state networks), and the other five sources cover the rest.
+
+## How the fleet fills itself
+
+The registry can be grown faster than it can be trained, and for a long time it was: as of
+this writing 8,761 stations are registered and 1,326 have a paired archive. Backfilling two
+years of model history is the expensive step, so the useful question is not how many
+stations exist but **which** ones get the budget. Registry order answers that badly — it is
+alphabetical by station id, so it spends the night on whichever ICAO code sorts first.
+
+So every job that cannot finish everything now works in order of the population a station
+serves:
+
+```
+served_pop = sum over cities within 150 km of  population * exp(-distance / 30 km)
+```
+
+Cities come from the GeoNames `cities15000` gazetteer — every settlement above 15,000
+people, one 3 MB download, no API key. The decay is there because a city with its own
+station nearby has no use for a distant one, and the cutoff because a station 200 km away
+is a different forecast rather than a worse one. Ranking the whole registry takes 0.4 s.
+
+It puts São Paulo, Shanghai, Osaka, Rio de Janeiro and London at the front, which is the
+point: those are the stations somebody actually searches for. Three jobs use it.
+
+* **`grow`** picks what to enroll next, so the fleet fills with the stations people look up
+  rather than with an arbitrary slice of the alphabet.
+* **`bootstrap`** works the backlog most-populated first, capped per worker per night, so a
+  run that hits the 350-minute job limit has banked the stations that matter and the next
+  night continues where it stopped.
+* **`refresh`** publishes in the same order, so when the forecast API throttles it is the
+  least-read stations whose pages go stale.
+
+Elevation breaks ties rather than being replaced by population, because the two rank
+different things. A SNOTEL site in an empty mountain range serves nobody and scores zero —
+and it is one of the most valuable stations in the fleet, since a model's idea of the
+terrain is most wrong exactly there. Population decides which *populated* station comes
+first; among the unpopulated ones the mountains still win.
+
+`grow` also declines to outrun the rest of the system. `--max-backlog` counts the
+registered stations with no archive yet and adds only enough to top that number up, so
+enrollment tracks what the nightly bootstrap can actually train. Registering ten thousand
+stations that never get trained does not grow the site — it grows the backlog, and the site
+shows exactly what it showed before.
+
+Served population is a proxy and behaves like one. It knows nothing about whether a station
+reports reliably, whether its observations arrive fresh enough to verify against, or whether
+the models are already good there. Those are answered downstream, by the verification that
+can say no.
 
 ## What limits the number of stations
 
