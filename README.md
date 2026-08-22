@@ -71,6 +71,16 @@ ENS costs 5.7 TB. A true ensemble spread would be the better uncertainty predict
 is not affordable at this scale — so the spread still comes from disagreement between
 models.
 
+What it costs on the other side is storage, and the factor is about ten. A station's
+paired archive today averages 88 KB across all of its models; two years of grid history
+measures **465 KB per station per model** (39,949 paired rows at Denver), so a two-model
+station is roughly 930 KB and a fleet of 9,040 is about 8.6 GB. The dataset repo holds
+that comfortably; what it changes is the restore, which is per-shard traffic on every job
+— the 14 MB a worker currently pulls becomes closer to 500 MB. That is the price of the
+depth, and it is why the lead axis is thinned to every third hour: the published forecast
+buckets leads anyway, so storing every hour would triple the archive to sharpen an axis
+that is then averaged over.
+
 A station's models must all come from one provider. The training matrix is keyed on lead
 source as well as valid time, so a point row and a grid row for the same hour stay separate
 rows, and each would become a one-model ensemble with no spread at all. Nothing raises; the
