@@ -38,6 +38,17 @@ tier1:
   weight_cutoff_taus: 5
   max_rows_per_bucket: 6000  # subsample beyond this; the optimiser gains nothing more
 
+  # Seasonal weighting. Zero uses recency alone, which is the original scheme.
+  #
+  # Recency alone is why a deeper archive bought nothing: at a 30-60 day time constant,
+  # last winter carries weight e^-6 and cannot inform this winter's fit however much of it
+  # is stored. Weighting recency and calendar proximity separately lets a December fit see
+  # last December — the recency term becomes years, so an older year is discounted rather
+  # than erased, and the day-of-year kernel does the seasonal selection.
+  season_sigma_days: 0       # width of the day-of-year kernel; try 45
+  tau_days_seasonal: 730     # recency constant used when the kernel is on
+  max_train_days_seasonal: 1200
+
 tier2:
   min_days: 90
   harmonics_doy: 2

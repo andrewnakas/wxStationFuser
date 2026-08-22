@@ -95,9 +95,66 @@ def _tau_days(lead_h: int) -> float:
     )
 
 
+def _max_train_days(cfg: dict) -> int:
+    """How far back the fit may look at all.
+
+    Seasonal weighting needs whole years to have anything in season to weight, so the cap
+    that suits a six-week memory would delete the very rows it exists to use.
+    """
+    sigma = float(cfg.get("season_sigma_days", 0) or 0.0)
+    if sigma > 0:
+        return int(cfg.get("max_train_days_seasonal", 1200))
+    return int(cfg["max_train_days"])
+
+
+def season_settings() -> tuple[float, float, int]:
+    """(day-of-year sigma, recency tau, max training days) for seasonal weighting.
+
+    A sigma of zero means the fit weights by recency alone, which is what it has always
+    done.
+    """
+    cfg = load_configs()["tiers"]["tier1"]
+    sigma = float(cfg.get("season_sigma_days", 0) or 0.0)
+    return (
+        sigma,
+        float(cfg.get("tau_days_seasonal", 730.0)),
+        int(cfg.get("max_train_days_seasonal", 1200)),
+    )
+
+
+def _doy_distance(valid_time: pd.Series, ref: pd.Timestamp) -> np.ndarray:
+    """Days around the calendar between each row and the reference date.
+
+    Circular, so 28 December and 3 January are six days apart rather than 359.
+    """
+    doy = pd.to_datetime(valid_time).dt.dayofyear.to_numpy(dtype=float)
+    ref_doy = float(pd.Timestamp(ref).dayofyear)
+    raw = np.abs(doy - ref_doy)
+    return np.minimum(raw, 365.0 - raw)
+
+
 def _time_weights(valid_time: pd.Series, tau_days: float, ref: pd.Timestamp) -> np.ndarray:
+    """How much each training row counts.
+
+    Recency alone is the original scheme and the reason a deeper archive bought nothing:
+    with a 30-60 day time constant, last winter carries weight e^-6 and cannot inform this
+    winter's fit however much of it is stored.
+
+    Seasonal weighting separates the two questions a training row answers — *how recent*
+    is it, and *how close to this time of year* — and weights them independently. The
+    recency term becomes years rather than weeks, so a previous year is discounted but not
+    erased, and a day-of-year kernel then prefers rows from the same part of the calendar.
+    A December fit sees last December.
+    """
     age_days = (ref - pd.to_datetime(valid_time)).dt.total_seconds().to_numpy() / 86400.0
-    return np.exp(-np.maximum(age_days, 0.0) / tau_days)
+    age_days = np.maximum(age_days, 0.0)
+
+    sigma, tau_seasonal, _ = season_settings()
+    if sigma <= 0:
+        return np.exp(-age_days / tau_days)
+
+    distance = _doy_distance(valid_time, ref)
+    return np.exp(-age_days / tau_seasonal) * np.exp(-(distance**2) / (2.0 * sigma**2))
 
 
 def trim_to_weight(grp: pd.DataFrame, tau_days: float, ref: pd.Timestamp) -> pd.DataFrame:
@@ -110,6 +167,19 @@ def trim_to_weight(grp: pd.DataFrame, tau_days: float, ref: pd.Timestamp) -> pd.
     cfg = load_configs()["tiers"]["tier1"]
     cutoff = float(cfg.get("weight_cutoff_taus", 5)) * tau_days
     max_rows = int(cfg.get("max_rows_per_bucket", 6000))
+    sigma, _, _ = season_settings()
+
+    if sigma > 0:
+        # Trimming by age is exactly wrong here: the rows worth keeping are last year's
+        # in-season ones, which are also the oldest. Trim and subsample on the weight the
+        # fit will actually use.
+        w = _time_weights(grp["valid_time"], tau_days, ref)
+        keep = w >= np.exp(-float(cfg.get("weight_cutoff_taus", 5)))
+        out = grp[keep] if keep.sum() >= 40 else grp
+        if len(out) > max_rows:
+            order = np.argsort(_time_weights(out["valid_time"], tau_days, ref))[::-1]
+            out = out.iloc[np.sort(order[:max_rows])]
+        return out
 
     age = (ref - pd.to_datetime(grp["valid_time"])).dt.total_seconds() / 86400.0
     out = grp[age <= cutoff]
@@ -199,7 +269,7 @@ def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
         return fit_precip(pairs, models)
 
     cfg = load_configs()["tiers"]["tier1"]
-    max_days = int(cfg["max_train_days"])
+    max_days = _max_train_days(cfg)
     min_bucket = int(cfg["min_samples_per_bucket"])
     truncated = variable in NONNEGATIVE
 
@@ -348,7 +418,7 @@ def fit_precip(pairs: pd.DataFrame, models: list[str], threshold: float = 0.1) -
     A censored shifted gamma (Scheuerer & Hamill 2015) is the documented upgrade path.
     """
     cfg = load_configs()["tiers"]["tier1"]
-    max_days = int(cfg["max_train_days"])
+    max_days = _max_train_days(cfg)
     df = pairs.dropna(subset=["obs"]).copy()
     if df.empty:
         return {"variable": PRECIP, "models": models, "dist": "bernoulli_quantile_map",

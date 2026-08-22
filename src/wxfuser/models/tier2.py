@@ -117,7 +117,9 @@ def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
     if df.empty:
         return {"variable": variable, "models": models, "buckets": {}, "tier": "tier2"}
     ref = pd.to_datetime(df["valid_time"]).max()
-    df = df[pd.to_datetime(df["valid_time"]) >= ref - pd.Timedelta(days=int(t1["max_train_days"]))]
+    from wxfuser.models.tier1_emos import _max_train_days
+
+    df = df[pd.to_datetime(df["valid_time"]) >= ref - pd.Timedelta(days=_max_train_days(t1))]
     df["_bucket"] = df["lead_h"].map(bucket_for_lead)
 
     buckets: dict[str, dict] = {}
