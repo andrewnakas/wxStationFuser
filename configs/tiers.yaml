@@ -56,9 +56,11 @@ tier2:
   #              nearly every case, which is the honest consequence of weighting recent
   #              data that heavily.
   #
-  # Left on `calendar` because the evidence is three stations on one data source, and the
-  # walk-forward selection already rejects Tier 2 where it loses. Switch it if a station's
-  # archive gets deep enough for the question to bite.
+  # `weighted` removes the loss where it was measured — Boston summer goes from 48% worse
+  # than Tier 1 to 2% better, Seattle summer from 36% worse to 3% worse — so the diagnosis
+  # is not in doubt. It stays off because the case that decides the default is the 1-6 h
+  # bucket on the seamless archive, which passes the calendar gate in production today and
+  # has not been measured, and because Tier 2 is the published champion at some stations.
   harmonic_gate: calendar
 
 tier3:

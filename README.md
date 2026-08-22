@@ -139,14 +139,28 @@ So four annual coefficients per bucket are fitted from roughly one season of eff
 data and then applied across the rest of the year. Against a 92-day archive, where the gate
 correctly refuses them, that is the whole of the loss.
 
-Nothing published today is wrong: the walk-forward selection rejects Tier 2 wherever it
+Measuring the span on the weight instead removes almost all of it. Same blocks, same rows,
+Tier 1 on 92 days as the reference the selection would otherwise fall back to:
+
+| | Tier 1, 92 d | Tier 2, 2 y, calendar gate | Tier 2, 2 y, weighted gate |
+|---|---|---|---|
+| Boston, winter | 2.030 | 2.098 (−3.3%) | 2.014 (+0.8%) |
+| Boston, summer | 1.758 | 2.606 (−48.2%) | 1.716 (+2.4%) |
+| Seattle, winter | 1.131 | 1.254 (−10.9%) | 1.176 (−4.1%) |
+| Seattle, summer | 1.421 | 1.935 (−36.2%) | 1.464 (−3.1%) |
+
+Four cases out of four, and the residual few percent is the same "depth does not help"
+effect as everywhere else. So the diagnosis holds: the loss was the misgated annual
+harmonic and nothing else.
+
+Nothing published today is wrong — the walk-forward selection rejects Tier 2 wherever it
 loses, which is exactly what "verification that can say no" is for. But the latent version
-of this exists on the current data too — the seamless archive gives the 1-6 h bucket two
-years of hourly rows, so that bucket passes the calendar gate now. `configs/tiers.yaml`
-therefore carries `harmonic_gate`, which can measure the span on the weight instead. It is
-left on `calendar` deliberately: the evidence is three stations on one source, and the
-change would alter what existing stations publish at short leads. It is written down and
-switchable rather than quietly applied.
+of this exists on the current data too: the seamless archive gives the 1-6 h bucket two
+years of hourly rows, so that bucket passes the calendar gate in production now.
+`configs/tiers.yaml` therefore carries `harmonic_gate`, and it is left on `calendar` until
+that short-lead case is measured on the current data rather than the grid archive —
+switching it would change what enrolled stations publish, and Tier 2 is the published
+champion at some of them.
 
 So the case for reading these archives is **throughput, not skill**. What it buys is the
 ability to backfill a fleet at all: the Open-Meteo arm of this very experiment was killed
