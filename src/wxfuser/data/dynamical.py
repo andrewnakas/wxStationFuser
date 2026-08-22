@@ -284,6 +284,7 @@ def fetch_history_batch(
     max_lead_h: int = 168,
     lead_stride_h: int = DEFAULT_LEAD_STRIDE_H,
     init_batch: int = INIT_BATCH,
+    only_inits: list[int] | None = None,
 ) -> pd.DataFrame:
     """Lead-resolved archived forecasts for many stations, grouped by chunk tile.
 
@@ -298,15 +299,18 @@ def fetch_history_batch(
     inits = _init_times(model)
     leads = _lead_hours(model)
 
-    # The window is inclusive of the end *date*, not of midnight on it. Comparing against
-    # the bare timestamp drops every run initialised after 00:00 that day — which for a
-    # live fetch is the only run there is.
-    end_ts = pd.Timestamp(end) + pd.Timedelta(days=1)
-    keep_init = np.where(
-        (inits >= pd.Timestamp(start))
-        & (inits < end_ts)
-        & (inits.hour % max(1, init_stride_h) == 0)
-    )[0]
+    if only_inits is not None:
+        keep_init = np.asarray(only_inits, dtype=int)
+    else:
+        # The window is inclusive of the end *date*, not of midnight on it. Comparing
+        # against the bare timestamp drops every run initialised after 00:00 that day —
+        # which for a live fetch is the only run there is.
+        end_ts = pd.Timestamp(end) + pd.Timedelta(days=1)
+        keep_init = np.where(
+            (inits >= pd.Timestamp(start))
+            & (inits < end_ts)
+            & (inits.hour % max(1, init_stride_h) == 0)
+        )[0]
     if keep_init.size == 0:
         print(f"  dynamical {model}: no initialisations in {start}..{end}", flush=True)
         return pd.DataFrame()
@@ -404,25 +408,19 @@ def fetch_forecast_batch(
         if len(inits) == 0:
             continue
         latest = inits[-1].to_pydatetime()
+        # Exactly the newest run, addressed by index rather than filtered out of the
+        # day's runs afterwards. Asking for the day and discarding the rest downloaded
+        # three initialisations to publish one, every cycle, for every tile.
         frame = fetch_history_batch(
             coords,
             model,
             variables,
             start=latest.date(),
             end=latest.date(),
-            init_stride_h=1,
             max_lead_h=max_lead_h,
             lead_stride_h=lead_stride_h,
+            only_inits=[len(inits) - 1],
         )
-        if frame.empty:
-            continue
-        # Exactly the newest run, not every run of that day. Older runs for the same hours
-        # are worse forecasts, and averaging them in would quietly publish a blend of runs
-        # as though it were the current one.
-        implied = pd.to_datetime(frame["valid_time"]) - pd.to_timedelta(
-            frame["lead_h"], unit="h"
-        )
-        frame = frame[implied == pd.Timestamp(latest)]
         if frame.empty:
             continue
         frames.append(frame)

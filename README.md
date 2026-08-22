@@ -28,10 +28,54 @@ to *what the station actually measured*, hour by hour.
 
 Observations come from whichever sources cover the station — NWS, GHCN-hourly, the Iowa
 Environmental Mesonet, Meteostat, SNOTEL, and Synoptic where licensed — merged and quality-controlled
-(range, step, and stuck-sensor screens). Forecasts come from Open-Meteo, which archives
-what each model predicted on past dates. That archive is the reason a station enrolled
-today is useful today: it starts with a year or more of paired history instead of waiting
-months to accumulate one.
+(range, step, and stuck-sensor screens). Forecasts come from an archive of what each model
+predicted on past dates, which is the reason a station enrolled today is useful today: it
+starts with a year or more of paired history instead of waiting months to accumulate one.
+
+#### Where the archived forecasts come from, and why it matters
+
+There are two providers, and they are not interchangeable.
+
+**Open-Meteo** serves forecasts by point, and offers two archives. The *seamless* one
+reaches back years but stores the best-available forecast for each hour, so every row of
+it is short-lead by construction — the code tags those rows lead 3 h and they legitimately
+train the 1-6 h bucket and nothing longer. The *previous-runs* one is genuinely
+lead-resolved and is therefore the only honest basis for day-2-to-day-7 skill, and it
+reaches back **92 days**, at daily lead offsets. The coefficients for the 97-168 h bucket
+have been fitted on about 92 samples per station.
+
+**dynamical.org** publishes the raw model archives as Zarr — every run, every lead hour,
+on the native grid. GFS back to 2021-05, HRRR to 2018-07 (and the only archive here that
+carries gusts at every lead), ECMWF's AIFS to 2024-04, ICON-EU to 2026-02. Two years of
+daily initialisations gives roughly **730 samples per lead hour** instead of 92, and the
+lead axis is real rather than nominal.
+
+Reading a global 4-D array to get one station sounds absurd, and would be, done naively.
+The chunking is what makes it work: GFS is chunked (1 init, 105 leads, 121 lat, 121 lon),
+so one read covers a 30-degree tile — and 2,422 of the enrolled stations sit inside the
+busiest one. Grouping stations by tile and indexing them out of the slab in memory turns
+one request per station into one request per tile. Measured against the live archive:
+
+| | measured |
+|---|---|
+| per initialisation, variable and tile | 0.23 s, 3.1 MB |
+| tiles occupied by 9,040 stations | 59 (busiest holds 2,422) |
+| two-year backfill, daily inits, five variables | ~14 h of transfer, 0.67 TB — under an hour per worker across 16 shards |
+
+Read it per station instead and the same backfill is 50,000 times the traffic for the same
+numbers.
+
+The ensembles were measured too and deliberately left out. GEFS carries 31 members but
+chunks 17x16 cells, so the fleet spans 811 tiles and the same backfill costs 4.3 TB; IFS
+ENS costs 5.7 TB. A true ensemble spread would be the better uncertainty predictor, and it
+is not affordable at this scale — so the spread still comes from disagreement between
+models.
+
+A station's models must all come from one provider. The training matrix is keyed on lead
+source as well as valid time, so a point row and a grid row for the same hour stay separate
+rows, and each would become a one-model ensemble with no spread at all. Nothing raises; the
+station simply calibrates on half the evidence. The default sets are provider-homogeneous
+and a test keeps them that way.
 
 ### 2. A tiered correction, chosen by measurement
 
@@ -277,6 +321,13 @@ Sustained use exhausts it. After a night of refreshing, a single worker running 
 still throttled 26 times in a row and could not complete one chunk. Refreshing 4,760
 stations across four models is not something the free tier will do quickly, and no amount
 of sharding changes that — the quota is the ceiling, not the parallelism.
+
+This ceiling is the one dynamical.org's grid archives sidestep: they are read from object
+storage rather than from a metered API, and the cost scales with the number of *tiles* a
+fleet occupies rather than the number of stations in it. See
+[Where the archived forecasts come from](#where-the-archived-forecasts-come-from-and-why-it-matters).
+The models available there are a different set, so it is a change of ingredients and not
+only of plumbing.
 
 **Observation freshness** decides whether a station can be verified at all. A forecast can
 only be scored where recent observations exist, so a network that publishes on a delay
