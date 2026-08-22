@@ -239,10 +239,39 @@ def test_tier2_drops_annual_harmonics_it_cannot_identify():
         assert par["harmonics"]["hod"] > 0, "diurnal harmonic needs only a day of data"
 
 
-def test_tier2_keeps_annual_harmonics_with_a_long_window():
+def test_tier2_keeps_annual_harmonics_when_the_weighting_can_see_the_year():
+    """Rewritten, and the reason matters.
+
+    This test used to assert that 400 days of history keeps the annual harmonics, on the
+    reasoning that a long window identifies an annual cycle. It does not: with a 30-day
+    time constant, 90% of the fitting weight in that same 400-day fixture sits inside 88
+    days. The harmonics it asserted were being fitted from a season and extrapolated over
+    the year, and measured on production data that cost up to 24% of the CRPS — the
+    numbers are in the README and in configs/tiers.yaml.
+
+    So the rule is no longer "a long window" but "a window the weighting can actually
+    see", and the mechanism is still here: lengthen the time constant and the annual
+    terms come back.
+    """
     long = synthetic_pairs(n_days=400, slope=1.0, spread_effect=0.0)
+
     state = tier2.fit(long, "air_temp_c", MODELS)
-    assert any(p["harmonics"]["doy"] > 0 for p in state["buckets"].values())
+    assert all(p["harmonics"]["doy"] == 0 for p in state["buckets"].values()), (
+        "a 30-day time constant cannot support an annual cycle"
+    )
+
+    from wxfuser.config import load_configs
+
+    cfg = load_configs()["tiers"]["tier1"]
+    before = (cfg["tau_days_short"], cfg["tau_days_long"])
+    cfg["tau_days_short"], cfg["tau_days_long"] = 400.0, 400.0
+    try:
+        state = tier2.fit(long, "air_temp_c", MODELS)
+        assert any(p["harmonics"]["doy"] > 0 for p in state["buckets"].values()), (
+            "with the weighting spread over the whole window they are identifiable again"
+        )
+    finally:
+        cfg["tau_days_short"], cfg["tau_days_long"] = before
 
 
 def test_tier2_never_collapses_against_tier1_on_short_history():
@@ -285,7 +314,13 @@ def test_the_weighted_gate_sees_through_a_deep_archive():
     assert weighted_span_days(times, np.ones(len(times))) > 350
 
 
-def test_the_gate_choice_is_configurable_and_defaults_to_todays_behaviour():
+def test_the_annual_harmonic_gate_defaults_to_the_measured_choice():
+    """`weighted` won 17 of 18 comparisons on production short-lead data.
+
+    Pinned because the alternative is not a preference: `calendar` cost up to 24% of the
+    CRPS on Seattle's winter wind and 18% on its summer temperature, and a silent revert
+    would put that back without anything failing.
+    """
     from wxfuser.config import load_configs
 
-    assert load_configs()["tiers"]["tier2"].get("harmonic_gate", "calendar") == "calendar"
+    assert load_configs()["tiers"]["tier2"]["harmonic_gate"] == "weighted"

@@ -56,12 +56,17 @@ tier2:
   #              nearly every case, which is the honest consequence of weighting recent
   #              data that heavily.
   #
-  # `weighted` removes the loss where it was measured — Boston summer goes from 48% worse
-  # than Tier 1 to 2% better, Seattle summer from 36% worse to 3% worse — so the diagnosis
-  # is not in doubt. It stays off because the case that decides the default is the 1-6 h
-  # bucket on the seamless archive, which passes the calendar gate in production today and
-  # has not been measured, and because Tier 2 is the published champion at some stations.
-  harmonic_gate: calendar
+  # `weighted` is what production measured better. Three stations, two variables, three
+  # seasons on the seamless archive — the 1-6 h bucket that passes the calendar gate today
+  # — and it wins 17 of 18 comparisons, the exception a 0.3-point tie. The calendar gate's
+  # losses are not small: -24% on Seattle's winter wind, -22% on Boston's summer wind,
+  # -18% on Seattle's summer temperature, where the weighted gate gives +17%.
+  #
+  # The mechanism is in the README. Four annual coefficients per bucket were being fitted
+  # from a season of effective data and applied across the year; refusing them is strictly
+  # more conservative and restores Tier 2 to EMOS plus diurnal harmonics, which is where
+  # its gains were coming from anyway.
+  harmonic_gate: weighted
 
 tier3:
   min_days: 365

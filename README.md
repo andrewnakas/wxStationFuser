@@ -156,14 +156,32 @@ Four cases out of four, and the residual few percent is the same "depth does not
 effect as everywhere else. So the diagnosis holds: the loss was the misgated annual
 harmonic and nothing else.
 
-Nothing published today is wrong — the walk-forward selection rejects Tier 2 wherever it
-loses, which is exactly what "verification that can say no" is for. But the latent version
-of this exists on the current data too: the seamless archive gives the 1-6 h bucket two
-years of hourly rows, so that bucket passes the calendar gate in production now.
-`configs/tiers.yaml` therefore carries `harmonic_gate`, and it is left on `calendar` until
-that short-lead case is measured on the current data rather than the grid archive —
-switching it would change what enrolled stations publish, and Tier 2 is the published
-champion at some of them.
+**And it was not confined to the grid archives.** The seamless archive gives the 1-6 h
+bucket two years of hourly rows, so that bucket has been passing the calendar gate in
+production all along. Measured the same way on that data — three stations, two variables,
+winter, spring and summer, Tier 2 against Tier 1:
+
+| | calendar gate | weighted gate |
+|---|---|---|
+| Denver, temperature | +15.8%, +11.1%, +28.7% | +20.2%, +16.6%, +30.1% |
+| Denver, wind | −2.3%, −10.2%, +0.6% | −0.1%, −0.0%, +1.5% |
+| Boston, wind | −7.3%, −10.6%, −21.8% | +0.7%, −0.3%, +0.5% |
+| Seattle, temperature | +0.2%, −1.7%, −18.1% | +5.7%, +6.7%, **+17.2%** |
+| Seattle, wind | −24.2%, −10.6%, −15.0% | −0.5%, −0.2%, +1.4% |
+
+Seventeen of eighteen comparisons favour the weighted gate; the exception is a 0.3-point
+tie. The calendar gate was not merely failing to help — it was costing up to 24% of the
+CRPS on Seattle's winter wind, and turning what should be a 17% gain on Seattle's summer
+temperature into an 18% loss. Twenty-two of twenty-three comparisons across both data
+sources point the same way.
+
+So `harmonic_gate` now defaults to `weighted`, and this is a change to what the site
+publishes rather than a note about a hypothetical. It is strictly conservative — it only
+ever declines to fit four coefficients per bucket that the weighting could not support —
+and it restores Tier 2 to EMOS plus diurnal harmonics, which is where its gains were coming
+from. The weekly retrain re-verifies and re-chooses every station's method, so the change
+reaches the published pages through the same walk-forward evidence as everything else, and
+the 2% challenger margin keeps stations from flipping method on noise.
 
 So the case for reading these archives is **throughput, not skill**. What it buys is the
 ability to backfill a fleet at all: the Open-Meteo arm of this very experiment was killed
