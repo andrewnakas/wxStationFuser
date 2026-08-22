@@ -166,8 +166,11 @@ variables:
 # fusing across them does not, and a station that tried would publish something that
 # looks fine and calibrates on half the evidence.
 #
-# The grid sets are opt-in per station (`models:` in stations.yaml) until the measured
-# comparison says they should be the default.
+# The grid sets are opt-in per station (`wxfuser set-models` writes `models:` in
+# stations.yaml), and the measured comparison says they should stay that way: eight times
+# the lead-resolved history calibrates no better, and tier 2 calibrates worse. They exist
+# for throughput — the point API cannot backfill a fleet this size — not for skill. The
+# numbers are in the README under "The depth does not improve the forecast".
 defaults:
   models: [gfs_seamless, ecmwf_ifs025, icon_seamless]
   models_conus: [gfs_seamless, ecmwf_ifs025, icon_seamless, ncep_hrrr_conus]

@@ -87,6 +87,58 @@ rows, and each would become a one-model ensemble with no spread at all. Nothing 
 station simply calibrates on half the evidence. The default sets are provider-homogeneous
 and a test keeps them that way.
 
+#### The depth does not improve the forecast, and that is worth saying
+
+The grid archives were added on the expectation that eight times the samples per lead
+would calibrate better. Measured, they do not.
+
+Three stations (Denver, Boston, Seattle), leads beyond 48 h, `dyn_gfs` on both sides,
+walked forward with the same block length and scored **only on the rows both arms
+predicted** — so the method, the station and the hours are identical and the sole
+difference is how much history each fit could see:
+
+| | tier 1 | tier 2 |
+|---|---|---|
+| temperature | −1.1% to −3.1% | −0.5% to −19.0% |
+| wind speed | −0.8% to +1.7% | −0.3% to +1.5% |
+
+Negative means two years of history scored *worse* than 92 days. Wind is noise; temperature
+is consistently a little worse. That direction is not a surprise on reflection — the tiers
+are exponentially time-weighted precisely because old data dilutes a fit (Lang et al. 2020,
+in the references below), and EMOS has about four parameters per lead bucket against
+thousands of samples per bucket already. It was not short of data.
+
+The obvious follow-up hypothesis was seasonal: a station enrolled in July has an archive
+that has never seen a winter, and the walk-forward can never expose that because it always
+trains on the block immediately before the one it scores. So: fix an evaluation block, fit
+once, and vary only whether the training window reaches back to the same season a year
+earlier. Winter, spring and summer blocks, identical test rows.
+
+That is negative too. Tier 1 moves between −3.0% and +1.4% with no pattern — the winter
+block, where the hypothesis predicted the gain, comes in at +1.3%, −1.1% and −1.6% across
+the three stations. Having last winter in the archive does not measurably help this winter.
+
+**Tier 2 is a different matter and the finding is about the method, not the data.** Given
+two years it degrades badly and repeatably: −48.8% at Boston in summer, −34.6% at Seattle,
+−15.1% on Boston's wind. Tier 2 is EMOS plus seasonal and diurnal harmonics, and over a
+92-day window the annual harmonic is nearly collinear with a constant and is effectively
+ignored; over two years it becomes identifiable, gets fitted under exponential time
+weighting that emphasises the recent season, and then extrapolates poorly across the block.
+Nothing published is wrong today — the walk-forward selection would reject tier 2 at such a
+station, which is exactly what "verification that can say no" is for — but it means the
+harmonic fit does not currently earn a deeper archive, and would need revisiting before one
+was fed to it.
+
+So the case for reading these archives is **throughput, not skill**. What it buys is the
+ability to backfill a fleet at all: the Open-Meteo arm of this very experiment was killed
+by its own 40-minute timeout having banked nothing for three stations, and the reduced
+version only completed after two rate-limit waits, while the grid archive delivered three
+stations of two-year lead-resolved history in 23 minutes. Reading the grid cell instead of
+an interpolated point costs nothing measurable — six comparisons on the same window split
+three each way within ±4 points — so the switch is available whenever throughput is the
+binding constraint. It is opt-in per station (`wxfuser set-models`) and no station uses it
+by default.
+
 ### 2. A tiered correction, chosen by measurement
 
 Different amounts of history support different methods, so the system fits several and
