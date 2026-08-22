@@ -42,6 +42,24 @@ tier2:
   min_days: 90
   harmonics_doy: 2
   harmonics_hod: 2
+  # How the annual harmonic decides it has enough of the year to be identifiable.
+  #
+  #   calendar — the span from the oldest retained row to the newest. What has always
+  #              been used, and what a deep archive fools: measured on two years of grid
+  #              history, buckets spanned 253-412 days and passed, while 90% of the
+  #              exponential time weight sat inside the most recent 68-135 days. Four
+  #              annual coefficients per bucket were then fitted from about one season of
+  #              effective data and applied across the rest of the year, costing up to
+  #              49% of the CRPS at Boston in summer against a 92-day archive.
+  #   weighted — the span actually carrying 90% of the fitting weight. Strictly more
+  #              conservative, and with tau at 30-60 days it refuses the annual terms in
+  #              nearly every case, which is the honest consequence of weighting recent
+  #              data that heavily.
+  #
+  # Left on `calendar` because the evidence is three stations on one data source, and the
+  # walk-forward selection already rejects Tier 2 where it loses. Switch it if a station's
+  # archive gets deep enough for the question to bite.
+  harmonic_gate: calendar
 
 tier3:
   min_days: 365

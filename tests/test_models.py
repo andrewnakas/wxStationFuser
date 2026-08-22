@@ -257,3 +257,35 @@ def test_tier2_never_collapses_against_tier1_on_short_history():
         y, tier2.predict(tier2.fit(train, "air_temp_c", MODELS), test, MODELS)
     ).mean()
     assert c2 < c1 * 1.5
+
+
+def test_the_weighted_gate_sees_through_a_deep_archive():
+    """Calendar span says a year; the weights say one season.
+
+    Measured on two years of grid history: buckets spanned 253-412 days and passed the
+    calendar gate, while 90% of the exponential weight sat inside the most recent 68-135
+    days. Four annual coefficients per bucket were fitted from that and extrapolated
+    across the rest of the year, costing up to 49% of the CRPS.
+    """
+    import numpy as np
+    import pandas as pd
+
+    from wxfuser.models.tier2 import weighted_span_days
+
+    times = pd.Series(pd.date_range("2025-01-01", periods=400, freq="D"))
+    ref = times.max()
+    age = (ref - times).dt.total_seconds() / 86400.0
+    weights = np.exp(-age / 60.0)
+
+    assert (times.max() - times.min()).days == 399
+    span = weighted_span_days(times, weights)
+    assert span < 200, f"weighted span {span:.0f} d should not look like a year"
+
+    # Flat weights are the degenerate case, and there the two agree.
+    assert weighted_span_days(times, np.ones(len(times))) > 350
+
+
+def test_the_gate_choice_is_configurable_and_defaults_to_todays_behaviour():
+    from wxfuser.config import load_configs
+
+    assert load_configs()["tiers"]["tier2"].get("harmonic_gate", "calendar") == "calendar"

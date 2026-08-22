@@ -118,16 +118,35 @@ That is negative too. Tier 1 moves between −3.0% and +1.4% with no pattern —
 block, where the hypothesis predicted the gain, comes in at +1.3%, −1.1% and −1.6% across
 the three stations. Having last winter in the archive does not measurably help this winter.
 
-**Tier 2 is a different matter and the finding is about the method, not the data.** Given
-two years it degrades badly and repeatably: −48.8% at Boston in summer, −34.6% at Seattle,
-−15.1% on Boston's wind. Tier 2 is EMOS plus seasonal and diurnal harmonics, and over a
-92-day window the annual harmonic is nearly collinear with a constant and is effectively
-ignored; over two years it becomes identifiable, gets fitted under exponential time
-weighting that emphasises the recent season, and then extrapolates poorly across the block.
-Nothing published is wrong today — the walk-forward selection would reject tier 2 at such a
-station, which is exactly what "verification that can say no" is for — but it means the
-harmonic fit does not currently earn a deeper archive, and would need revisiting before one
-was fed to it.
+**Tier 2 is a different matter, and the finding is about the method rather than the data.**
+Given two years it degrades badly and repeatably: −48.8% at Boston in summer, −34.6% at
+Seattle, −15.1% on Boston's wind.
+
+The cause is a gate that measures the wrong thing. Tier 2 adds annual and diurnal
+harmonics, and it already refuses the annual ones unless the training window spans enough
+of the year to identify them — 180 days, measured as the calendar distance from the oldest
+retained row to the newest. A deep archive passes that test while the exponential time
+weighting quietly ignores most of what it counted. Measured per lead bucket at Boston and
+Seattle:
+
+| lead bucket | calendar span | span holding 90% of the weight | annual harmonic |
+|---|---|---|---|
+| 25-48 h | 299 d | 69 d | on |
+| 49-96 h | 406-412 d | 132-135 d | on |
+| 97-168 h | 253-281 d | 128-131 d | on |
+
+So four annual coefficients per bucket are fitted from roughly one season of effective
+data and then applied across the rest of the year. Against a 92-day archive, where the gate
+correctly refuses them, that is the whole of the loss.
+
+Nothing published today is wrong: the walk-forward selection rejects Tier 2 wherever it
+loses, which is exactly what "verification that can say no" is for. But the latent version
+of this exists on the current data too — the seamless archive gives the 1-6 h bucket two
+years of hourly rows, so that bucket passes the calendar gate now. `configs/tiers.yaml`
+therefore carries `harmonic_gate`, which can measure the span on the weight instead. It is
+left on `calendar` deliberately: the evidence is three stations on one source, and the
+change would alter what existing stations publish at short leads. It is written down and
+switchable rather than quietly applied.
 
 So the case for reading these archives is **throughput, not skill**. What it buys is the
 ability to backfill a fleet at all: the Open-Meteo arm of this very experiment was killed
