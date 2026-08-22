@@ -270,3 +270,31 @@ def test_the_live_fetch_takes_only_the_newest_run(monkeypatch):
     assert not out.empty
     implied = pd.to_datetime(out["valid_time"]) - pd.to_timedelta(out["lead_h"], unit="h")
     assert set(implied.unique()) == {INITS[-1]}
+
+
+def test_two_runs_predicting_the_same_hour_stay_two_training_rows(monkeypatch):
+    """The shape the grid archives produce that the point API never did.
+
+    Every valid hour is predicted by many initialisations at many different leads — that
+    is the whole point of reading them. If the pairing or the pivot collapsed those onto
+    one row per hour, the extra depth would be silently discarded and the long-lead
+    buckets would be no better off than the 92 days they replaced.
+    """
+    from wxfuser.data import pairs as pairs_mod
+
+    out = _fetch(monkeypatch, FakeStore(GLOBAL_NAMES), ["air_temp_c"])
+    implied_init = pd.to_datetime(out["valid_time"]) - pd.to_timedelta(
+        out["lead_h"], unit="h"
+    )
+    shared = out[out["valid_time"] == INITS[-1]]      # reachable from all four runs
+    assert implied_init[shared.index].nunique() > 1, "fixture should overlap"
+
+    hours = pd.to_datetime(out["valid_time"]).unique()
+    obs = pd.DataFrame(
+        {"station_id": "S1", "valid_time": hours, "air_temp_c": 10.0, "source": "TEST"}
+    )
+    built = pairs_mod.build_pairs(out, obs, "S1", ["air_temp_c"])
+    wide = pairs_mod.to_wide(built, "air_temp_c", ["dyn_gfs"])
+
+    same_hour = wide[wide["valid_time"] == INITS[-1]]
+    assert len(same_hour) == same_hour["lead_h"].nunique() > 1
