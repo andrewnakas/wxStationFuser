@@ -298,3 +298,63 @@ def test_two_runs_predicting_the_same_hour_stay_two_training_rows(monkeypatch):
 
     same_hour = wide[wide["valid_time"] == INITS[-1]]
     assert len(same_hour) == same_hour["lead_h"].nunique() > 1
+
+
+# ------------------------------------------------------- assigning a provider per station
+
+@pytest.fixture
+def registry(monkeypatch, tmp_path):
+    from wxfuser.data import registry as reg
+    from wxfuser.data.registry import Station as S
+
+    monkeypatch.setattr(reg, "REGISTRY_PATH", tmp_path / "stations.yaml")
+    reg.save_registry([
+        S(id="ASOS:DEN", name="Denver", lat=39.83, lon=-104.66),
+        S(id="ASOS:BOS", name="Boston", lat=42.36, lon=-71.01),
+        S(id="MS:10637", name="Frankfurt", lat=50.0, lon=8.0),
+    ])
+    return reg
+
+
+def test_a_mixed_model_set_is_refused_before_it_reaches_the_registry(registry):
+    """Recorded in stations.yaml it would be honoured by every later run, and every one
+    of those runs would publish a one-model forecast with no spread."""
+    from wxfuser import cli
+
+    with pytest.raises(SystemExit) as exc:
+        cli.main(["set-models", "--models", "dyn_gfs,gfs_seamless"])
+    assert "mixes providers" in str(exc.value)
+    assert all(not s.models for s in registry.load_registry())
+
+
+def test_an_unknown_model_is_refused(registry):
+    from wxfuser import cli
+
+    with pytest.raises(SystemExit) as exc:
+        cli.main(["set-models", "--models", "dyn_gfs,not_a_model"])
+    assert "unknown models" in str(exc.value)
+
+
+def test_only_the_selected_stations_change_provider(registry, monkeypatch):
+    """A station already calibrated against one provider must not be switched under it."""
+    from wxfuser import cli
+    from wxfuser.pipeline import core
+
+    monkeypatch.setattr(core, "trained_slugs", lambda **_k: {"ASOS_BOS"})
+    assert cli.main(["set-models", "--models", "dyn_gfs,dyn_aifs",
+                     "--only-untrained", "--order", "registry"]) == 0
+
+    got = {s.id: s.models for s in registry.load_registry()}
+    assert got["ASOS:DEN"] == ["dyn_gfs", "dyn_aifs"]
+    assert got["MS:10637"] == ["dyn_gfs", "dyn_aifs"]
+    assert got["ASOS:BOS"] == []          # already has an archive, left alone
+
+
+def test_a_dry_run_writes_nothing(registry, monkeypatch):
+    from wxfuser import cli
+    from wxfuser.pipeline import core
+
+    monkeypatch.setattr(core, "trained_slugs", lambda **_k: set())
+    assert cli.main(["set-models", "--models", "dyn_gfs", "--dry-run",
+                     "--order", "registry"]) == 0
+    assert all(not s.models for s in registry.load_registry())

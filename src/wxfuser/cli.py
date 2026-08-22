@@ -499,6 +499,70 @@ def pd_notna(v) -> bool:
     return v is not None and not pd.isna(v)
 
 
+def cmd_set_models(args) -> int:
+    """Assign a model set to stations, in one commit, so the fleet can change provider.
+
+    The provider a station is calibrated against is not a runtime choice. Coefficients
+    fitted on dynamical.org's grid cell do not transfer to Open-Meteo's interpolation of
+    the same model, so the decision has to be recorded per station and honoured by every
+    later run — which is what ``models:`` in stations.yaml already does.
+
+    Written as a separate command rather than a flag on bootstrap because a worker must
+    not edit the registry: sixteen of them committing the same file is the collision the
+    two-step enrollment exists to avoid.
+    """
+    from wxfuser.config import model_catalogue
+    from wxfuser.data.registry import load_registry, save_registry
+
+    models = [m.strip() for m in args.models.split(",") if m.strip()]
+    catalogue = model_catalogue()
+    unknown = [m for m in models if m not in catalogue]
+    if unknown:
+        sys.exit(f"unknown models: {unknown}. Known: {sorted(catalogue)}")
+
+    point, grid = None, None
+    from wxfuser.pipeline.bulk_run import split_by_provider
+
+    point, grid = split_by_provider(models)
+    if point and grid:
+        sys.exit(
+            f"{models} mixes providers (point={point}, grid={grid}). They cannot be "
+            "fused: the training matrix keys on lead source, so each would end up a "
+            "one-model forecast with no spread."
+        )
+
+    stations = load_registry()
+    picked = filter_sources(stations, args.sources)
+    if args.only_untrained:
+        picked = only_untrained(picked, use_hub=True)
+    if args.conus_only:
+        picked = [s for s in picked
+                  if 24.0 <= s.lat <= 50.0 and -125.0 <= s.lon <= -66.0]
+        print(f"in CONUS: {len(picked)}")
+    picked = order_stations(picked, args.order)
+    if args.limit:
+        picked = picked[: args.limit]
+
+    # A model set is only worth assigning where the archives actually cover the station.
+    # A European station given HRRR would train on nothing and report itself unmeasured.
+    wanted = {s.id for s in picked}
+    changed = 0
+    for station in stations:
+        if station.id not in wanted or station.models == models:
+            continue
+        station.models = list(models)
+        changed += 1
+
+    print(f"{changed} of {len(picked)} selected stations reassigned to {models}")
+    if args.dry_run or not changed:
+        for s in picked[:10]:
+            print(f"  {s.id:24s} {s.name[:36]:38s} {s.models}")
+        return 0
+    save_registry(stations)
+    print(f"registry rewritten: {len(stations)} stations")
+    return 0
+
+
 def cmd_catalogue(args) -> int:
     """Rebuild the global station catalogue the site's search box reads."""
     import json
@@ -651,6 +715,20 @@ def main(argv: list[str] | None = None) -> int:
         help="keep NWS river/precip gauges that do not serve hourly weather observations",
     )
     p.set_defaults(func=cmd_catalogue)
+
+    p = sub.add_parser("set-models", help="assign a model set to stations")
+    p.add_argument("--models", required=True,
+                   help="comma-separated model ids, all from one provider")
+    p.add_argument("--only-untrained", action="store_true",
+                   help="only stations with no paired archive yet, so nothing already "
+                        "calibrated against one provider is switched to another")
+    p.add_argument("--sources", help="limit to these networks (ASOS, SNOTEL, MS)")
+    p.add_argument("--conus-only", action="store_true",
+                   help="only stations inside the CONUS box, for the regional archives")
+    p.add_argument("--order", choices=["registry", "prominence"], default="prominence")
+    p.add_argument("--limit", type=int, help="cap how many stations are reassigned")
+    p.add_argument("--dry-run", action="store_true")
+    p.set_defaults(func=cmd_set_models)
 
     p = sub.add_parser("list", help="list enrolled stations")
     p.set_defaults(func=cmd_list)
