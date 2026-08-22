@@ -27,8 +27,10 @@ class _FakeApi:
         self._exists = exists
         self._error = error
         self.uploaded = None
+        self.info_calls = 0
 
     def repo_info(self, **_):
+        self.info_calls += 1
         if self._error:
             raise self._error
         if not self._exists:
@@ -68,6 +70,12 @@ def hub(monkeypatch, tmp_path):
 
     monkeypatch.setattr(sync_state, "_api", fake_api)
     monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot)
+    # The existence probe is memoised for the life of a run, which is right in production
+    # — it was costing an API call on every checkpoint upload — and wrong across tests,
+    # where each one installs a different hub.
+    sync_state._repo_exists.cache_clear()
+    # Waiting out a rate limit is the point of the retry, but not at test speed.
+    monkeypatch.setattr(sync_state.time, "sleep", lambda *_: None)
     return state
 
 
@@ -163,3 +171,85 @@ def test_a_shard_may_not_upload_a_different_shard(hub, monkeypatch):
                                       str(kw["local_dir"]))[1])
     assert sync_state.download(shard=3, of=20) == 0
     assert sync_state.upload(shard=7, of=20) == 1
+
+
+# ------------------------------------------------------------------ rate limiting
+
+class _RateLimited(Exception):
+    """What the hub raises at the quota, near enough for the parts that are read."""
+
+    def __init__(self, seconds=None):
+        super().__init__(
+            "429 Too Many Requests: you have reached your 'api' rate limit."
+            + (f" Retry after {seconds} seconds (0/1000 requests remaining)."
+               if seconds else "")
+        )
+        self.response = type("R", (), {"status_code": 429, "headers": {}})()
+
+
+def test_a_rate_limit_is_waited_out_rather_than_raised(hub):
+    """Five days of scheduled refreshes died here.
+
+    Six shards restoring, checkpointing and uploading exhausted the hub's 1000 requests
+    per five minutes; the 429 came out of the first call that met it and the whole run
+    banked nothing. A quota is a queue, and something has to wait in it.
+    """
+    calls = {"n": 0}
+
+    def flaky():
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise _RateLimited(seconds=7)
+        return "done"
+
+    assert sync_state.with_rate_limit_retry(flaky, "test call") == "done"
+    assert calls["n"] == 3
+
+
+def test_the_wait_honours_what_the_hub_asked_for(hub, monkeypatch):
+    waited = []
+    monkeypatch.setattr(sync_state.time, "sleep", lambda s: waited.append(s))
+
+    def always():
+        raise _RateLimited(seconds=102)
+
+    with pytest.raises(_RateLimited):
+        sync_state.with_rate_limit_retry(always, "test call", attempts=3)
+    # Its number, plus a little, so six shards told the same figure do not return together.
+    assert waited and all(s > 102 for s in waited)
+
+
+def test_a_failure_that_is_not_a_rate_limit_still_propagates(hub):
+    """The guard this protects only works if real failures still fail."""
+    def broken():
+        raise OSError("connection reset")
+
+    with pytest.raises(OSError):
+        sync_state.with_rate_limit_retry(broken, "test call")
+
+
+def test_the_existence_probe_is_not_repeated_within_a_run(hub):
+    """It was being asked on every checkpoint upload, ninety times a refresh."""
+    hub["api"] = _FakeApi(exists=True)
+    sync_state._repo_exists.cache_clear()
+
+    assert sync_state._repo_exists() is True
+    assert sync_state._repo_exists() is True
+    assert sync_state._repo_exists() is True
+    assert hub["api"].info_calls == 1
+
+
+def test_an_upload_after_a_restore_asks_the_hub_nothing_extra(hub, tmp_path):
+    """The specific waste that broke the fleet.
+
+    The guard asked whether the repository exists before checking whether the answer
+    could change anything, so a run that had plainly just restored still spent a call on
+    it — on every checkpoint, into a quota shared with every other shard.
+    """
+    (tmp_path / "state").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "state" / sync_state.RESTORE_MARKER).write_text("repo\nfull\n")
+    (tmp_path / "state" / "pairs").mkdir(exist_ok=True)
+    sync_state._repo_exists.cache_clear()
+
+    assert sync_state.upload() == 0
+    assert hub["api"].info_calls == 0, "an upload after a restore needs no existence probe"

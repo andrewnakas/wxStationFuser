@@ -136,10 +136,14 @@ jobs:
       - name: Save state
         if: always() && env.HF_TOKEN != ''
         run: |
+          # The script now waits out a rate limit itself, honouring the interval the hub
+          # asks for. This loop is the outer backstop, and its waits are minutes rather
+          # than seconds: when it fires, the quota is genuinely exhausted and returning in
+          # twenty seconds only spends another request confirming it.
           for i in 1 2 3; do
             python scripts/sync_state.py upload --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} && break
-            echo "state upload attempt $i failed; retrying"
-            sleep $((i * 20))
+            echo "state upload attempt $i failed; waiting before retrying"
+            sleep $((i * 180))
           done
 
       - uses: actions/upload-artifact@v4

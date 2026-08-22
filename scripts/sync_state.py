@@ -10,7 +10,10 @@ station rebuilds its archive from the upstream APIs, which is slower but correct
 """
 from __future__ import annotations
 
+import functools
 import os
+import re
+import time
 from pathlib import Path
 
 from wxfuser.config import hf_state_repo
@@ -37,21 +40,81 @@ def _api(*, required: bool = False):
 RESTORE_MARKER = ".restored"
 
 
+# The hub allows 1000 API requests per five minutes across the account, and a sharded
+# fleet checkpointing its way through thousands of stations will reach that. A 429 is not
+# a failure, it is a queue — but only if something waits.
+RATE_LIMIT_ATTEMPTS = 6
+RATE_LIMIT_FALLBACK_S = 30
+
+
+def _retry_after_seconds(exc: Exception) -> float | None:
+    """How long the hub asked us to wait, from the header or from the message."""
+    response = getattr(exc, "response", None)
+    header = getattr(response, "headers", {}) or {}
+    raw = header.get("Retry-After") or header.get("retry-after")
+    if raw:
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            pass
+    match = re.search(r"[Rr]etry after (\d+(?:\.\d+)?) second", str(exc))
+    return float(match.group(1)) if match else None
+
+
+def _is_rate_limited(exc: Exception) -> bool:
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    return status == 429 or "429" in str(exc) or "rate limit" in str(exc).lower()
+
+
+def with_rate_limit_retry(call, what: str, attempts: int = RATE_LIMIT_ATTEMPTS):
+    """Run a hub call, waiting out rate limits rather than dying on them.
+
+    This is the difference between a fleet that publishes and one that does not. Every
+    scheduled refresh between 17 and 22 August failed here: six shards restoring,
+    checkpointing and uploading exhausted the quota, the 429 propagated out of the first
+    call that met it, and the run banked nothing — for five days, with the site frozen at
+    whatever the last success left behind.
+    """
+    for attempt in range(1, attempts + 1):
+        try:
+            return call()
+        except Exception as exc:  # noqa: BLE001
+            if not _is_rate_limited(exc) or attempt == attempts:
+                raise
+            wait = _retry_after_seconds(exc) or RATE_LIMIT_FALLBACK_S * attempt
+            # A little over what was asked for: every shard is being told the same number
+            # at the same moment, and returning together simply re-exhausts the quota.
+            wait += 5.0 * attempt
+            print(f"  {what}: rate limited, waiting {wait:.0f}s "
+                  f"(attempt {attempt}/{attempts})", flush=True)
+            time.sleep(wait)
+    raise RuntimeError(f"{what}: exhausted rate-limit retries")
+
+
+@functools.lru_cache(maxsize=1)
 def _repo_exists() -> bool:
     """Whether the state repo is already there.
 
     Only a genuine absence answers False. Every other failure propagates, because the
     upload guard reads this as "nothing to protect" — so treating a timeout or a bad
-    token as absence would license the shallow-overwrite this is here to prevent.
+    token as absence would license the shallow-overwrite this is here to prevent. A rate
+    limit is neither: it is waited out rather than answered.
+
+    Memoised because the answer cannot change within a run, and the call was being made
+    on every checkpoint upload.
     """
     from huggingface_hub.errors import RepositoryNotFoundError
 
     api, token = _api()
-    try:
-        api.repo_info(repo_id=hf_state_repo(), repo_type="dataset", token=token)
-        return True
-    except RepositoryNotFoundError:
-        return False
+
+    def probe():
+        try:
+            api.repo_info(repo_id=hf_state_repo(), repo_type="dataset", token=token)
+            return True
+        except RepositoryNotFoundError:
+            return False
+
+    return with_rate_limit_retry(probe, "repo_info")
 
 
 def download(shard: int | None = None, of: int | None = None, paths: str | None = None) -> int:
@@ -92,12 +155,15 @@ def download(shard: int | None = None, of: int | None = None, paths: str | None 
             print(f"restoring shard {shard + 1}/{of} only: {len(allow) // 4} stations")
 
     try:
-        path = snapshot_download(
-            repo_id=repo,
-            repo_type="dataset",
-            local_dir=str(STATE_DIR),
-            token=token,  # public repos read without one
-            allow_patterns=allow,
+        path = with_rate_limit_retry(
+            lambda: snapshot_download(
+                repo_id=repo,
+                repo_type="dataset",
+                local_dir=str(STATE_DIR),
+                token=token,  # public repos read without one
+                allow_patterns=allow,
+            ),
+            "snapshot_download",
         )
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: {repo} exists but could not be restored ({exc}).")
@@ -168,8 +234,14 @@ def upload(shard: int | None = None, of: int | None = None, paths: str | None = 
 
     # If the hub already holds state that this runner never restored, anything local is a
     # partial rebuild and publishing it would destroy the real thing.
+    #
+    # Order matters and used not to. Written the other way round, this asked the hub
+    # whether the repository exists before checking whether the answer could change
+    # anything — so every upload, including every mid-run checkpoint, spent an API call it
+    # did not need. Ninety of them per refresh, into a quota of a thousand per five
+    # minutes, shared with the restores.
     scope = _restored_scope()
-    if _repo_exists() and scope is None:
+    if scope is None and _repo_exists():
         print("refusing to upload: hub state exists but was never restored here")
         return 1
 
@@ -194,27 +266,36 @@ def upload(shard: int | None = None, of: int | None = None, paths: str | None = 
     if allow and not paths:
         print(f"uploading only shard {shard + 1}/{of}: {len(allow) // 4} stations")
 
-    api.create_repo(repo_id=repo, repo_type="dataset", exist_ok=True, token=token)
-    api.upload_folder(
-        folder_path=str(STATE_DIR),
-        repo_id=repo,
-        repo_type="dataset",
-        token=token,
-        commit_message=(
-            f"update station state (shard {shard + 1}/{of})" if allow else "update station state"
-        ),
-        allow_patterns=allow,
-        # Filesystem and interpreter debris would otherwise be published alongside the
-        # data and downloaded by every subsequent run.
-        ignore_patterns=[
-            ".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp",
-            RESTORE_MARKER,
-            # Rebuildable downloads, not state. The city gazetteer the prominence
-            # ranking reads lands here; publishing it would have every runner pull a
-            # copy of a file it can fetch from the source in two seconds.
-            "cache/**",
-        ],
+    with_rate_limit_retry(
+        lambda: api.create_repo(repo_id=repo, repo_type="dataset", exist_ok=True,
+                                token=token),
+        "create_repo",
     )
+    def do_upload():
+        return api.upload_folder(
+            folder_path=str(STATE_DIR),
+            repo_id=repo,
+            repo_type="dataset",
+            token=token,
+            commit_message=(
+                f"update station state (shard {shard + 1}/{of})"
+                if allow
+                else "update station state"
+            ),
+            allow_patterns=allow,
+            # Filesystem and interpreter debris would otherwise be published alongside
+            # the data and downloaded by every subsequent run.
+            ignore_patterns=[
+                ".DS_Store", "**/.DS_Store", "__pycache__/**", "*.pyc", "*.tmp",
+                RESTORE_MARKER,
+                # Rebuildable downloads, not state. The city gazetteer the prominence
+                # ranking reads lands here; publishing it would have every runner pull a
+                # copy of a file it can fetch from the source in two seconds.
+                "cache/**",
+            ],
+        )
+
+    with_rate_limit_retry(do_upload, "upload_folder")
     print(f"uploaded {STATE_DIR} to {repo}")
     return 0
 
