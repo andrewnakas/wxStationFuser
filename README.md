@@ -202,7 +202,7 @@ publishes whichever actually wins out-of-sample.
 |---|---|---|
 | 0 | days | Decaying-average bias correction per lead time and hour of day (Delle Monache et al. 2011) |
 | 1 | ~2 weeks | **EMOS** — Gaussian predictive distribution fitted by minimum CRPS (Gneiting et al. 2005), exponentially time-weighted (Lang et al. 2020) |
-| 2 | ~3 months | EMOS plus seasonal and diurnal harmonics |
+| 2 | ~3 months | EMOS plus diurnal harmonics, and seasonal ones where the time weighting can see a year |
 | 3 | ~1 year | Gradient-boosted quantile regression |
 
 The mean is a learned combination of every model you selected, and the spread is driven by
