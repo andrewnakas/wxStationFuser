@@ -20,6 +20,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 
+from wxfuser.config import model_catalogue
 from wxfuser.data import bulk, openmeteo
 from wxfuser.data import obs as obs_mod
 from wxfuser.data import pairs as pairs_mod
@@ -109,6 +110,50 @@ def gather_observations_bulk(
     return out
 
 
+def split_by_provider(models: list[str]) -> tuple[list[str], list[str]]:
+    """Which models come from the point API and which from the gridded archives.
+
+    Both can serve the same station: a station may fuse Open-Meteo's ICON with
+    dynamical's GFS, and the two are fetched by entirely different machinery. What must
+    never happen is a model being served by the provider it was not fitted against, which
+    is why the split reads the catalogue rather than guessing from the id.
+    """
+    catalogue = model_catalogue()
+    grid = [m for m in models if catalogue.get(m, {}).get("source") == "dynamical"]
+    return [m for m in models if m not in grid], grid
+
+
+# How far back an incremental run reads the gridded archives. The point API is asked for
+# 92 days every run because that is one request either way; a grid read costs in
+# proportion to the initialisations it covers, so an incremental refresh takes the window
+# it can actually pair against and no more.
+GRID_INCREMENTAL_DAYS = 14
+
+
+def _grid_forecasts(
+    coords: list[tuple[str, float, float]],
+    models: list[str],
+    variables: list[str],
+    start: date,
+    end: date,
+) -> list[pd.DataFrame]:
+    """Archived forecasts from dynamical.org for one group of stations."""
+    from wxfuser.data import dynamical
+
+    frames = []
+    for model in models:
+        try:
+            frame = dynamical.fetch_history_batch(coords, model, variables, start, end)
+        except Exception as exc:  # noqa: BLE001
+            # One unreachable archive must not cost the run its other models. The
+            # station still trains on what did arrive, and says which models it used.
+            print(f"  WARN: dynamical {model} failed ({exc})", flush=True)
+            continue
+        if not frame.empty:
+            frames.append(frame)
+    return frames
+
+
 def gather_forecasts_bulk(
     stations: list[Station],
     variables: list[str],
@@ -132,20 +177,35 @@ def gather_forecasts_bulk(
 
     for models, group in by_models.items():
         coords = [(s.id, s.lat, s.lon) for s in group]
-        model_list = list(models)
-        print(f"  forecasts for {len(group)} stations, models={model_list}", flush=True)
+        point_models, grid_models = split_by_provider(list(models))
+        print(f"  forecasts for {len(group)} stations, models={list(models)}", flush=True)
+        if point_models and grid_models:
+            # They will not fuse. `to_wide` keys its pivot on lead_source as well as
+            # valid_time, so rows from the two providers never meet in one row and each
+            # ends up a one-model "ensemble" with no spread. Keep a station's model set
+            # to one provider; the warning is here because the failure is otherwise
+            # invisible — every station still publishes, just uncombined.
+            print("  WARN: this station set mixes point and grid providers; they cannot "
+                  "be fused into one forecast", flush=True)
 
-        prev = openmeteo.fetch_previous_runs_batch(coords, model_list, variables)
-        if not prev.empty:
-            for sid, g in prev.groupby("station_id"):
-                out[str(sid)].append(g)
+        if point_models:
+            prev = openmeteo.fetch_previous_runs_batch(coords, point_models, variables)
+            if not prev.empty:
+                for sid, g in prev.groupby("station_id"):
+                    out[str(sid)].append(g)
 
-        if bootstrap:
-            hist = openmeteo.fetch_historical_batch(
-                coords, model_list, variables, start, end
-            )
-            if not hist.empty:
-                for sid, g in hist.groupby("station_id"):
+            if bootstrap:
+                hist = openmeteo.fetch_historical_batch(
+                    coords, point_models, variables, start, end
+                )
+                if not hist.empty:
+                    for sid, g in hist.groupby("station_id"):
+                        out[str(sid)].append(g)
+
+        if grid_models:
+            grid_start = start if bootstrap else end - timedelta(days=GRID_INCREMENTAL_DAYS)
+            for frame in _grid_forecasts(coords, grid_models, variables, grid_start, end):
+                for sid, g in frame.groupby("station_id"):
                     out[str(sid)].append(g)
 
     return {
@@ -213,9 +273,25 @@ def _live_forecasts(stations: list[Station], variables: list[str]) -> dict[str, 
     out: dict[str, pd.DataFrame] = {}
     for models, group in by_models.items():
         coords = [(s.id, s.lat, s.lon) for s in group]
-        long = openmeteo.fetch_forecast_batch(coords, list(models), variables)
-        if long.empty:
+        point_models, grid_models = split_by_provider(list(models))
+        frames = []
+        if point_models:
+            long = openmeteo.fetch_forecast_batch(coords, point_models, variables)
+            if not long.empty:
+                frames.append(long)
+        if grid_models:
+            from wxfuser.data import dynamical
+
+            try:
+                grid = dynamical.fetch_forecast_batch(coords, grid_models, variables)
+            except Exception as exc:  # noqa: BLE001
+                print(f"  WARN: dynamical live forecast failed ({exc})", flush=True)
+                grid = pd.DataFrame()
+            if not grid.empty:
+                frames.append(grid)
+        if not frames:
             continue
+        long = pd.concat(frames, ignore_index=True)
         for sid, g in long.groupby("station_id"):
             out[str(sid)] = _to_wide_live(g, list(models), variables)
     return out

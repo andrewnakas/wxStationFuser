@@ -91,6 +91,65 @@ models:
     prev_runs_from: 2024-01-01
     global: false
 
+# ---------------------------------------------------------------- dynamical.org archives
+#
+# Read from the Zarr stores rather than from a point API, which is what makes multi-year
+# lead-resolved history affordable — see src/wxfuser/data/dynamical.py for the measured
+# arithmetic. `source: dynamical` is what routes a model to that reader.
+#
+# These are deliberately NOT aliases of the Open-Meteo entries above even where the model
+# is the same. Open-Meteo interpolates the grid to the station; this reads the containing
+# grid cell. The two differ by a bias that the calibration would happily learn and then
+# apply to the wrong one, so a coefficient set fitted here may only be used here.
+#
+# `archive_from` is the first initialisation each store actually holds, read off the
+# store rather than assumed.
+
+  - id: dyn_gfs
+    label: NOAA GFS (dynamical.org)
+    center: NOAA
+    resolution_km: 25
+    source: dynamical
+    # The archive carries no gust field for GFS. Listing it here would produce a null
+    # column that training cannot distinguish from a missing observation.
+    vars: [air_temp_c, rh_pct, wind_speed_ms, precip_1h_mm]
+    archive_from: 2021-05-01
+    prev_runs_from: 2021-05-01
+    global: true
+
+  - id: dyn_aifs
+    label: ECMWF AIFS (dynamical.org)
+    center: ECMWF
+    resolution_km: 25
+    source: dynamical
+    # Humidity is derived from temperature and dew point, which is all AIFS publishes.
+    vars: [air_temp_c, rh_pct, wind_speed_ms, precip_1h_mm]
+    archive_from: 2024-04-01
+    prev_runs_from: 2024-04-01
+    global: true
+
+  - id: dyn_hrrr
+    label: NOAA HRRR 48 h (dynamical.org)
+    center: NOAA
+    resolution_km: 3
+    source: dynamical
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    # Eight years, and the only archive here that carries gusts at every lead.
+    archive_from: 2018-07-13
+    prev_runs_from: 2018-07-13
+    global: false          # CONUS only, and 48 h of lead
+
+  - id: dyn_icon_eu
+    label: DWD ICON-EU (dynamical.org)
+    center: DWD
+    resolution_km: 7
+    source: dynamical
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    # Started in February 2026, so it is a shallow archive for now.
+    archive_from: 2026-02-10
+    prev_runs_from: 2026-02-10
+    global: false          # Europe, and 120 h of lead
+
 # Canonical variable -> Open-Meteo hourly variable name.
 variables:
   air_temp_c: temperature_2m
@@ -100,7 +159,18 @@ variables:
   precip_1h_mm: precipitation
 
 # Default model set when an enrollment does not name one.
+#
+# A set must not mix providers. `to_wide` keys its training matrix on lead_source as well
+# as valid time, so a point-API row and a grid row for the same hour stay separate rows —
+# each a one-model ensemble with no spread to drive the intervals. Both providers work;
+# fusing across them does not, and a station that tried would publish something that
+# looks fine and calibrates on half the evidence.
+#
+# The grid sets are opt-in per station (`models:` in stations.yaml) until the measured
+# comparison says they should be the default.
 defaults:
   models: [gfs_seamless, ecmwf_ifs025, icon_seamless]
   models_conus: [gfs_seamless, ecmwf_ifs025, icon_seamless, ncep_hrrr_conus]
+  models_grid: [dyn_gfs, dyn_aifs]
+  models_grid_conus: [dyn_gfs, dyn_aifs, dyn_hrrr]
   variables: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]

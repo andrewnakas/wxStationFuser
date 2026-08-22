@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: pip
       - name: Install
         run: pip install -e ".[train]"
@@ -164,7 +164,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: pip
       # Needs [train] despite doing no training: sync_state imports huggingface_hub, which
       # the base install does not carry. With a bare install the hub restore below failed
