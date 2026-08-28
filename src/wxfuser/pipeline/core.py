@@ -43,6 +43,20 @@ def obs_path(station: Station) -> Path:
     return STATE_DIR / "obs" / f"{station.slug}.parquet"
 
 
+def trained_slugs() -> set[str]:
+    """Slugs that already hold a paired archive, from the state this worker restored.
+
+    A station with no archive cannot publish a page: it fetches a forecast, finds nothing
+    to calibrate against, and reports itself warming up. That is honest, and it is also a
+    forecast request spent on a station that cannot appear on the map — which matters
+    when the map is empty and the API is rationed.
+    """
+    root = STATE_DIR / "pairs"
+    if not root.exists():
+        return set()
+    return {p.stem for p in root.glob("*.parquet")}
+
+
 # --------------------------------------------------------------------------- observations
 
 

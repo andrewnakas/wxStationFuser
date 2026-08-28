@@ -113,8 +113,8 @@ jobs:
         run: |
           for i in 1 2 3; do
             python scripts/sync_state.py upload --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} && break
-            echo "state upload attempt $i failed; retrying"
-            sleep $((i * 20))
+            echo "state upload attempt $i failed; waiting before retrying"
+            sleep $((i * 180))
           done
 
   publish:

@@ -101,6 +101,20 @@ def filter_sources(stations: list, spec: str | None) -> list:
     return picked
 
 
+def only_trained(stations: list) -> list:
+    """Keep only the stations that already have an archive to publish from.
+
+    The fastest way to refill an empty map. The registry holds thousands of stations that
+    have been enrolled but not yet backfilled; they cannot produce a page, so under a
+    rationed forecast API every request they consume is one the map does not get.
+    """
+    trained = core.trained_slugs()
+    picked = [s for s in stations if s.slug in trained]
+    print(f"trained: {len(picked)} of {len(stations)} stations have an archive to publish",
+          flush=True)
+    return picked
+
+
 def _index_path(shard: int | None, of: int | None):
     """Where this worker writes its index entries.
 
@@ -126,6 +140,11 @@ def cmd_refresh(args) -> int:
         stations = [s for s in stations if s.id == args.station]
     stations = filter_sources(stations, getattr(args, "sources", None))
     stations = select_shard(stations, args.shard, args.of)
+    if getattr(args, "only_trained", False):
+        stations = only_trained(stations)
+    if getattr(args, "limit", None) and len(stations) > args.limit:
+        print(f"capped at {args.limit} of {len(stations)} stations", flush=True)
+        stations = stations[: args.limit]
 
     if not stations:
         print("no stations to refresh")
@@ -492,6 +511,11 @@ def main(argv: list[str] | None = None) -> int:
                    help="comma-separated networks to process (ASOS, SNOTEL, MS). Forecast "
                         "requests are the scarce resource, so an incremental run can skip "
                         "networks whose observations cannot arrive yet")
+    p.add_argument("--only-trained", action="store_true",
+                   help="only stations that already have an archive, and can therefore "
+                        "publish a page; the fastest way to refill an empty map")
+    p.add_argument("--limit", type=int,
+                   help="process at most this many stations per shard")
     p.set_defaults(func=cmd_refresh)
 
     p = sub.add_parser("merge-index", help="combine per-shard index fragments")

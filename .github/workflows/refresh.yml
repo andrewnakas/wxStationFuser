@@ -31,6 +31,15 @@ on:
         description: 'Networks to refresh (e.g. ASOS,SNOTEL). Blank means all.'
         required: false
         default: ''
+      only_trained:
+        description: 'Only stations that already have an archive (refills an empty map fastest)'
+        type: boolean
+        required: false
+        default: false
+      limit:
+        description: 'Max stations per worker (blank = no cap)'
+        required: false
+        default: ''
   push:
     branches: [main]
     paths:
@@ -116,9 +125,18 @@ jobs:
       - name: Refresh shard
         env:
           SOURCES: ${{ inputs.sources }}
+          LIMIT: ${{ inputs.limit }}
+          TRAINED_ONLY: ${{ inputs.only_trained }}
         run: |
+          # Decided in the shell rather than in an expression: `cond && '' || flag` reads
+          # like a ternary and is not one, because an empty string is falsy.
+          TRAINED=""
+          if [ "$TRAINED_ONLY" = "true" ]; then TRAINED="--only-trained"; fi
+
           wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
             --checkpoint-every 100 \
+            ${TRAINED} \
+            ${LIMIT:+--limit "$LIMIT"} \
             ${SOURCES:+--sources "$SOURCES"}
 
       # Each shard writes only its own stations, so uploading in parallel touches
@@ -126,10 +144,14 @@ jobs:
       - name: Save state
         if: always() && env.HF_TOKEN != ''
         run: |
+          # The script waits out a rate limit itself, honouring the interval the hub
+          # asks for. This loop is the outer backstop, and its waits are minutes rather
+          # than seconds: when it fires the quota is genuinely exhausted, and returning
+          # in twenty seconds only spends another request confirming it.
           for i in 1 2 3; do
             python scripts/sync_state.py upload --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} && break
-            echo "state upload attempt $i failed; retrying"
-            sleep $((i * 20))
+            echo "state upload attempt $i failed; waiting before retrying"
+            sleep $((i * 180))
           done
 
       - uses: actions/upload-artifact@v4
