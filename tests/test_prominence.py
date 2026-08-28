@@ -202,3 +202,20 @@ def test_enrollment_refuses_to_pick_an_unranked_selection(bulk_enrollment, monke
     with pytest.raises(SystemExit):
         cli.main(["enroll-bulk", "--limit", "2", "--no-bootstrap"])
     assert len(bulk_enrollment.load_registry()) == 2
+
+
+def test_only_trained_is_the_complement_of_only_untrained(monkeypatch, tmp_path):
+    """What refills an empty map.
+
+    A station with no archive cannot publish a page however much forecast budget it is
+    given: it fetches, finds nothing to calibrate against, and reports itself warming up.
+    When the map is empty and the API is rationed, the budget belongs to stations that
+    can actually appear on it.
+    """
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    (tmp_path / "pairs").mkdir()
+    (tmp_path / "pairs" / "ASOS_DEN.parquet").write_bytes(b"")
+
+    stations = [_station("ASOS:DEN", 39.8, -104.7), _station("ASOS:BOS", 42.4, -71.0)]
+    assert [s.id for s in cli.only_trained(stations)] == ["ASOS:DEN"]
+    assert [s.id for s in cli.only_untrained(stations)] == ["ASOS:BOS"]

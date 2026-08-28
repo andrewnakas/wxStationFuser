@@ -130,6 +130,22 @@ def order_stations(stations: list, order: str | None) -> list:
     return ranked
 
 
+def only_trained(stations: list, *, use_hub: bool = False) -> list:
+    """Keep only stations that already hold a paired archive.
+
+    The complement of ``only_untrained``, and what repopulates a site quickly. A station
+    with no archive cannot publish a page however much budget is spent on it — it fetches
+    a forecast, finds nothing to calibrate against, and reports itself warming up. When
+    the map is empty and the forecast API is rationed, every request should go to a
+    station that can actually appear on it.
+    """
+    trained = core.trained_slugs(use_hub=use_hub)
+    picked = [s for s in stations if s.slug in trained]
+    print(f"trained: {len(picked)} of {len(stations)} stations have an archive to publish",
+          flush=True)
+    return picked
+
+
 def only_untrained(stations: list, *, use_hub: bool = False) -> list:
     """Drop stations that already have a paired archive.
 
@@ -181,6 +197,8 @@ def cmd_refresh(args) -> int:
     stations = select_shard(stations, args.shard, args.of)
     if getattr(args, "only_untrained", False):
         stations = only_untrained(stations)
+    if getattr(args, "only_trained", False):
+        stations = only_trained(stations)
     stations = order_stations(stations, getattr(args, "order", None))
     if getattr(args, "limit", None):
         # Applied last, so the cap keeps the head of the ranking rather than an
@@ -664,6 +682,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="skip stations that already have a paired archive; what lets a "
                         "scheduled bootstrap work through the backlog instead of "
                         "restarting it")
+    p.add_argument("--only-trained", action="store_true",
+                   help="only stations that already have an archive, and can therefore "
+                        "publish a page; the fastest way to refill an empty map")
     p.add_argument("--limit", type=int,
                    help="process at most this many stations (per shard), after ordering")
     p.set_defaults(func=cmd_refresh)

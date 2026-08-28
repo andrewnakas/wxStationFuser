@@ -31,6 +31,15 @@ on:
         description: 'Networks to refresh (e.g. ASOS,SNOTEL). Blank means all.'
         required: false
         default: ''
+      only_trained:
+        description: 'Only stations that already have an archive (refills an empty map fastest)'
+        type: boolean
+        required: false
+        default: false
+      limit:
+        description: 'Max stations per worker (blank = no cap)'
+        required: false
+        default: ''
   push:
     branches: [main]
     paths:
@@ -125,10 +134,19 @@ jobs:
       - name: Refresh shard
         env:
           SOURCES: ${{ inputs.sources }}
+          LIMIT: ${{ inputs.limit }}
+          TRAINED_ONLY: ${{ inputs.only_trained }}
         run: |
+          # Decided in the shell: `cond && '' || flag` reads like a ternary and is not
+          # one, because an empty string is falsy.
+          TRAINED=""
+          if [ "$TRAINED_ONLY" = "true" ]; then TRAINED="--only-trained"; fi
+
           wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
             --checkpoint-every 100 \
             --order prominence \
+            ${TRAINED} \
+            ${LIMIT:+--limit "$LIMIT"} \
             ${SOURCES:+--sources "$SOURCES"}
 
       # Each shard writes only its own stations, so uploading in parallel touches
