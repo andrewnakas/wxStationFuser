@@ -125,6 +125,31 @@ def filter_bbox(stations: list, spec: str | None) -> list:
     return picked
 
 
+def publishable_first(stations: list) -> list:
+    """Stations that can publish a page, then the rest, order preserved within each.
+
+    A refresh is not guaranteed to finish. Six shards over nine thousand stations against
+    a throttled forecast API is hours of work, and when a shard hits its timeout the
+    stations it never reached contribute nothing — so which ones it reached first decides
+    what the map shows.
+
+    A station with no archive cannot publish either way: it fetches a forecast, finds
+    nothing to calibrate against, and reports itself warming up. Doing those first spends
+    the run's whole budget without adding a single station to the map. Doing them last
+    costs nothing, because warming up is worth exactly as much at the end of a run as at
+    the beginning, and it means an interrupted run has always published everything it
+    could have.
+    """
+    trained = core.trained_slugs()
+    if not trained:
+        return stations
+    ready = [s for s in stations if s.slug in trained]
+    warming = [s for s in stations if s.slug not in trained]
+    print(f"publishable first: {len(ready)} with an archive, then {len(warming)} warming up",
+          flush=True)
+    return ready + warming
+
+
 def only_trained(stations: list) -> list:
     """Keep only the stations that already have an archive to publish from.
 
@@ -167,6 +192,8 @@ def cmd_refresh(args) -> int:
     stations = filter_bbox(stations, getattr(args, "bbox", None))
     if getattr(args, "only_trained", False):
         stations = only_trained(stations)
+    else:
+        stations = publishable_first(stations)
     if getattr(args, "limit", None) and len(stations) > args.limit:
         print(f"capped at {args.limit} of {len(stations)} stations", flush=True)
         stations = stations[: args.limit]

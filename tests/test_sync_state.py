@@ -296,3 +296,34 @@ def test_a_bounding_box_selects_a_region_and_rejects_a_malformed_one():
     import pytest as _pytest
     with _pytest.raises(SystemExit):
         cli.filter_bbox(stations, "not-a-box")
+
+
+def test_publishable_stations_are_refreshed_before_the_rest(monkeypatch, tmp_path):
+    """Which stations a run reaches first decides what the map shows when it is cut off.
+
+    Six shards over nine thousand stations against a throttled API is hours of work, and
+    a shard killed at its timeout contributes only what it already processed. A station
+    with no archive cannot publish either way, so doing those first spends the whole
+    budget without adding anything to the map.
+    """
+    from wxfuser import cli
+    from wxfuser.data.registry import Station
+    from wxfuser.pipeline import core
+
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    (tmp_path / "pairs").mkdir()
+    (tmp_path / "pairs" / "ASOS_SEA.parquet").write_bytes(b"")
+
+    stations = [
+        Station(id="ASOS:AAA", name="warming", lat=40.0, lon=-100.0),
+        Station(id="ASOS:SEA", name="ready", lat=47.4, lon=-122.3),
+        Station(id="ASOS:ZZZ", name="warming too", lat=41.0, lon=-101.0),
+    ]
+    assert [s.id for s in cli.publishable_first(stations)] == [
+        "ASOS:SEA", "ASOS:AAA", "ASOS:ZZZ"
+    ]
+
+    # With no archives at all — a genuine cold start — the order is left alone rather
+    # than every station being labelled unpublishable.
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path / "empty")
+    assert cli.publishable_first(stations) == stations
