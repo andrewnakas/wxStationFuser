@@ -40,6 +40,10 @@ on:
         description: 'Max stations per worker (blank = no cap)'
         required: false
         default: ''
+      bbox:
+        description: 'Only stations in this box, south,west,north,east (western US: 31,-125,49.5,-104)'
+        required: false
+        default: ''
   push:
     branches: [main]
     paths:
@@ -126,6 +130,7 @@ jobs:
         env:
           SOURCES: ${{ inputs.sources }}
           LIMIT: ${{ inputs.limit }}
+          BBOX: ${{ inputs.bbox }}
           TRAINED_ONLY: ${{ inputs.only_trained }}
         run: |
           # Decided in the shell rather than in an expression: `cond && '' || flag` reads
@@ -136,6 +141,7 @@ jobs:
           wxfuser refresh --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
             --checkpoint-every 100 \
             ${TRAINED} \
+            ${BBOX:+--bbox "$BBOX"} \
             ${LIMIT:+--limit "$LIMIT"} \
             ${SOURCES:+--sources "$SOURCES"}
 

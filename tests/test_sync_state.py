@@ -276,3 +276,23 @@ def test_only_trained_keeps_the_stations_that_can_publish(monkeypatch, tmp_path)
     ]
     assert [s.id for s in cli.only_trained(stations)] == ["ASOS:DEN"]
     assert cli.only_trained([]) == []
+
+
+def test_a_bounding_box_selects_a_region_and_rejects_a_malformed_one():
+    """So a run can be pointed at the mountains in snow season rather than waiting for a
+    full pass to reach them."""
+    from wxfuser import cli
+    from wxfuser.data.registry import Station
+
+    stations = [
+        Station(id="ASOS:DEN", name="Denver", lat=39.83, lon=-104.66),   # just outside
+        Station(id="ASOS:SEA", name="Seattle", lat=47.44, lon=-122.31),  # inside
+        Station(id="ASOS:BOS", name="Boston", lat=42.36, lon=-71.01),    # far outside
+    ]
+    picked = cli.filter_bbox(stations, "31,-125,49.5,-105")
+    assert [s.id for s in picked] == ["ASOS:SEA"]
+    assert cli.filter_bbox(stations, None) == stations
+
+    import pytest as _pytest
+    with _pytest.raises(SystemExit):
+        cli.filter_bbox(stations, "not-a-box")

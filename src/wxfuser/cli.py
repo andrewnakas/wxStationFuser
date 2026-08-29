@@ -101,6 +101,30 @@ def filter_sources(stations: list, spec: str | None) -> list:
     return picked
 
 
+def filter_bbox(stations: list, spec: str | None) -> list:
+    """Restrict a run to a geographic box, given as ``south,west,north,east``.
+
+    Refreshing the whole fleet is hours of throttled work, so when a particular region
+    matters — a mountain range in its snow season, a coast before a storm — it is worth
+    being able to spend the budget there rather than waiting for a full pass to come
+    round to it. The western US, Rockies included, is ``31,-125,49.5,-104``.
+    """
+    if not spec:
+        return stations
+    try:
+        south, west, north, east = (float(v) for v in spec.split(","))
+    except ValueError:
+        raise SystemExit(
+            f"--bbox wants four numbers, south,west,north,east; got {spec!r}"
+        ) from None
+    picked = [
+        s for s in stations
+        if south <= s.lat <= north and west <= s.lon <= east
+    ]
+    print(f"bbox {spec}: {len(picked)} of {len(stations)} stations", flush=True)
+    return picked
+
+
 def only_trained(stations: list) -> list:
     """Keep only the stations that already have an archive to publish from.
 
@@ -140,6 +164,7 @@ def cmd_refresh(args) -> int:
         stations = [s for s in stations if s.id == args.station]
     stations = filter_sources(stations, getattr(args, "sources", None))
     stations = select_shard(stations, args.shard, args.of)
+    stations = filter_bbox(stations, getattr(args, "bbox", None))
     if getattr(args, "only_trained", False):
         stations = only_trained(stations)
     if getattr(args, "limit", None) and len(stations) > args.limit:
@@ -511,6 +536,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="comma-separated networks to process (ASOS, SNOTEL, MS). Forecast "
                         "requests are the scarce resource, so an incremental run can skip "
                         "networks whose observations cannot arrive yet")
+    p.add_argument("--bbox", metavar="S,W,N,E",
+                   help="only stations inside this box, e.g. 31,-125,49.5,-104 for the "
+                        "western US; lets a run spend its budget on one region")
     p.add_argument("--only-trained", action="store_true",
                    help="only stations that already have an archive, and can therefore "
                         "publish a page; the fastest way to refill an empty map")
