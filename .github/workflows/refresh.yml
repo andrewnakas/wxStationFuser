@@ -160,7 +160,13 @@ jobs:
             sleep $((i * 180))
           done
 
+      # Unconditional on purpose. This is the step that gets stations onto the map, and
+      # for twelve days it did not run: the state upload above failed on a rate limit,
+      # the job aborted, this was skipped, the publish job found no artifacts, and
+      # merge-index correctly refused to publish an empty index over a populated
+      # registry. The site's fate should not hang on whether the archive could be saved.
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: site-shard-${{ matrix.shard }}
           path: |
