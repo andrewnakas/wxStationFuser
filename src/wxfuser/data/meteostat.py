@@ -82,7 +82,7 @@ def fetch_meteostat_hourly(ms_id: str, start: date, end: date) -> pd.DataFrame:
     """Hourly obs for one Meteostat station over [start, end], normalized to OBS_COLUMNS.
 
     Pulls the per-year bulk CSVs spanning the window, concatenates, filters to the range."""
-    from wxfuser.data.obs import OBS_COLUMNS
+    from wxfuser.data.obs import OBS_COLUMNS, conform
 
     frames = []
     for year in range(start.year, end.year + 1):
@@ -118,4 +118,4 @@ def fetch_meteostat_hourly(ms_id: str, start: date, end: date) -> pd.DataFrame:
     for c in OBS_COLUMNS:
         if c not in out:
             out[c] = np.nan
-    return out[OBS_COLUMNS]
+    return conform(out)

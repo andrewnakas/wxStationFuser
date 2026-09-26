@@ -106,6 +106,35 @@ def forecast_json(
     return payload
 
 
+# Enterprise forecasts extend the public payload rather than forking it, so the site's
+# reader and Tree60's share one schema. Version 2 adds the fields below; every version-1
+# field keeps its meaning. docs/forecast-schema-v2.md is the contract.
+SCHEMA_VERSION_SPEC = 2
+
+
+def spec_forecast_json(
+    payload: dict, spec: dict, exceedance: dict[str, dict], obs_latest: str | None
+) -> dict:
+    """A published forecast, extended with what one customer's spec asked for.
+
+    ``exceedance`` maps variable -> {threshold: hourly P(X > threshold)}, aligned with
+    ``hourly.time``. ``obs_latest`` is the newest observation the calibration saw, so a
+    reader can tell a forecast conditioned on this morning's data from one running on
+    last week's.
+    """
+    out = dict(payload)
+    out["hourly"] = {k: dict(v) if isinstance(v, dict) else v
+                     for k, v in payload["hourly"].items()}
+    out["schema_version"] = SCHEMA_VERSION_SPEC
+    out["spec"] = _clean(spec)
+    out["obs_latest"] = obs_latest
+    for var, probs in exceedance.items():
+        block = out["hourly"].get(var)
+        if block is not None:
+            block["p_exceed"] = {t: _series(v) for t, v in probs.items()}
+    return out
+
+
 def write_json(payload: dict, path: str | Path) -> Path:
     """Write JSON, sanitising NaN and infinity at the boundary rather than trusting callers.
 

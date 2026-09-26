@@ -33,6 +33,9 @@ train = [
 # base install so the public Open-Meteo pipeline does not carry the zarr stack; fsspec
 # needs aiohttp to read a store over HTTPS.
 zarr = ["xarray>=2024.6", "zarr>=3", "fsspec>=2024.6", "aiohttp>=3.9"]
+# Private org state in Cloudflare R2 (src/wxfuser/r2.py), used only by the enterprise
+# runner. R2 speaks the S3 API.
+r2 = ["boto3>=1.34"]
 # Ruff is pinned to a minor series: its import-sorting rules change between releases,
 # and an unpinned range meant CI could fail a lint that passed locally on the same commit.
 #
@@ -41,7 +44,7 @@ zarr = ["xarray>=2024.6", "zarr>=3", "fsspec>=2024.6", "aiohttp>=3.9"]
 # passing on a developer machine that happened to have them — and the sync bug that killed
 # every data job for days lived in exactly that blind spot. A slower install is worth
 # testing the code paths production actually runs.
-dev = ["pytest>=7.4", "ruff~=0.16.3", "wxfuser[train,zarr]"]
+dev = ["pytest>=7.4", "ruff~=0.16.3", "moto[s3]>=5", "wxfuser[train,zarr,r2]"]
 
 [project.scripts]
 wxfuser = "wxfuser.cli:main"

@@ -24,7 +24,7 @@ from datetime import date
 import numpy as np
 import pandas as pd
 
-from wxfuser.data.obs import KT_TO_MS, OBS_COLUMNS
+from wxfuser.data.obs import KT_TO_MS, OBS_COLUMNS, conform
 
 ASOS_BASE = "https://data.source.coop/dynamical/asos-parquet"
 
@@ -109,4 +109,4 @@ def fetch_asos_hourly(station_ids: list[str], start: date, end: date) -> pd.Data
     for c in OBS_COLUMNS:
         if c not in out:
             out[c] = np.nan
-    return out[OBS_COLUMNS]
+    return conform(out)

@@ -29,7 +29,7 @@ from wxfuser.models.distributions import (
 )
 from wxfuser.models.tier1_emos import (
     NONNEGATIVE,
-    PRECIP,
+    PRECIP_LIKE,
     _design,
     _nearest_bucket,
     _tau_days,
@@ -72,8 +72,8 @@ def harmonic_features(valid_time: pd.Series, n_doy: int, n_hod: int) -> np.ndarr
 
 
 def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
-    if variable == PRECIP:
-        state = fit_precip(pairs, models)
+    if variable in PRECIP_LIKE:
+        state = fit_precip(pairs, models, variable=variable)
         state["tier"] = "tier2"
         return state
 
@@ -167,7 +167,7 @@ def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
 
 
 def predict(state: dict, fc: pd.DataFrame, models: list[str]) -> dict:
-    if state.get("variable") == PRECIP:
+    if state.get("variable") in PRECIP_LIKE:
         return predict_precip(state, fc, models)
 
     buckets = state.get("buckets", {})

@@ -51,6 +51,10 @@ from wxfuser.models.distributions import (
 # Variables whose support is [0, inf) and therefore use the truncated normal.
 NONNEGATIVE = {"wind_speed_ms", "wind_gust_ms"}
 PRECIP = "precip_1h_mm"
+# Zero-inflated amounts: a point mass at "nothing fell" plus a skewed positive part. The
+# 24 h snow and water amounts have exactly precipitation's shape, so they take its
+# two-part model rather than a Gaussian that would predict negative snowfall.
+PRECIP_LIKE = {PRECIP, "swe_24h_mm", "hn24_cm"}
 
 # Physically bounded variables. Relative humidity is the one that bites: it is bounded
 # on both sides and spends much of its time near a boundary, so an unclamped Gaussian
@@ -60,6 +64,8 @@ VARIABLE_BOUNDS = {
     "wind_speed_ms": (0.0, None),
     "wind_gust_ms": (0.0, None),
     "precip_1h_mm": (0.0, None),
+    "swe_24h_mm": (0.0, None),
+    "hn24_cm": (0.0, None),
 }
 
 
@@ -83,7 +89,7 @@ def clamp_quantiles(out: dict, variable: str) -> dict:
 
 
 def distribution_for(variable: str) -> str:
-    if variable == PRECIP:
+    if variable in PRECIP_LIKE:
         return "bernoulli_quantile_map"
     return "truncated_normal" if variable in NONNEGATIVE else "normal"
 
@@ -195,8 +201,8 @@ def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
 
     ``pairs`` needs: valid_time, lead_h, obs, and fc_{model} for each model.
     """
-    if variable == PRECIP:
-        return fit_precip(pairs, models)
+    if variable in PRECIP_LIKE:
+        return fit_precip(pairs, models, variable=variable)
 
     cfg = load_configs()["tiers"]["tier1"]
     max_days = int(cfg["max_train_days"])
@@ -240,7 +246,7 @@ def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
 def predict(state: dict, fc: pd.DataFrame, models: list[str]) -> dict:
     """Predictive quantiles for new forecasts. ``fc`` needs lead_h + fc_{model} columns."""
     variable = state.get("variable")
-    if variable == PRECIP:
+    if variable in PRECIP_LIKE:
         return predict_precip(state, fc, models)
 
     truncated = state.get("dist") == "truncated_normal"
@@ -334,7 +340,9 @@ def _nearest_bucket(buckets: dict, label: str) -> dict | None:
 # --------------------------------------------------------------------------- precipitation
 
 
-def fit_precip(pairs: pd.DataFrame, models: list[str], threshold: float = 0.1) -> dict:
+def fit_precip(
+    pairs: pd.DataFrame, models: list[str], threshold: float = 0.1, *, variable: str = PRECIP
+) -> dict:
     """Two-part precipitation model: occurrence, then amount.
 
     Precipitation is a mixed random variable — a point mass at zero plus a skewed
@@ -351,7 +359,7 @@ def fit_precip(pairs: pd.DataFrame, models: list[str], threshold: float = 0.1) -
     max_days = int(cfg["max_train_days"])
     df = pairs.dropna(subset=["obs"]).copy()
     if df.empty:
-        return {"variable": PRECIP, "models": models, "dist": "bernoulli_quantile_map",
+        return {"variable": variable, "models": models, "dist": "bernoulli_quantile_map",
                 "buckets": {}}
     ref = pd.to_datetime(df["valid_time"]).max()
     df = df[pd.to_datetime(df["valid_time"]) >= ref - pd.Timedelta(days=max_days)]
@@ -385,7 +393,7 @@ def fit_precip(pairs: pd.DataFrame, models: list[str], threshold: float = 0.1) -
         }
 
     return {
-        "variable": PRECIP,
+        "variable": variable,
         "models": models,
         "dist": "bernoulli_quantile_map",
         "buckets": buckets,

@@ -16,7 +16,7 @@ import re
 import sys
 from datetime import date
 
-from wxfuser.config import model_catalogue, variable_map
+from wxfuser.config import known_variables, model_catalogue
 from wxfuser.data.registry import Station, find, upsert
 
 NO_RESPONSE = {"_no response_", "_none_", "none", "n/a", ""}
@@ -129,7 +129,7 @@ def validate(fields: dict) -> tuple[Station | None, list[str]]:
             f"these mix {', '.join(sorted(sources))}."
         )
 
-    known_vars = set(variable_map())
+    known_vars = set(known_variables())
     variables = [v for v in (fields.get("variables") or []) if v]
     bad_vars = [v for v in variables if v not in known_vars]
     if bad_vars:

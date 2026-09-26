@@ -65,6 +65,10 @@ OBS_COLUMNS = [
     "wind_gust_ms",
     "wind_dir_deg",
     "precip_1h_mm",
+    # Snowpack state, from SNOTEL and org stations. The 24 h snow variables are gains in
+    # these (see data/derived.py), so they are kept as states, not increments.
+    "snow_depth_cm",
+    "swe_mm",
     "source",
 ]
 
@@ -76,6 +80,9 @@ OBS_FOR_VARIABLE = {
     "wind_speed_ms": "wind_speed_ms",
     "wind_gust_ms": "wind_gust_ms",
     "precip_1h_mm": "precip_1h_mm",
+    # Derived from snow_depth_cm and swe_mm by data/derived.add_obs_columns.
+    "hn24_cm": "hn24_cm",
+    "swe_24h_mm": "swe_24h_mm",
 }
 
 
@@ -101,13 +108,23 @@ def _empty() -> pd.DataFrame:
     return pd.DataFrame(columns=OBS_COLUMNS)
 
 
-def _finish(out: pd.DataFrame, station_id: str, source: str) -> pd.DataFrame:
-    out["station_id"] = station_id
-    out["source"] = source
+def conform(out: pd.DataFrame) -> pd.DataFrame:
+    """The observation schema exactly: missing columns added as NaN, extras dropped.
+
+    Every source ends here, as does every stored history read back, so a column added
+    to the schema (snow depth and SWE were) never breaks a source that does not measure
+    it or a history written before it existed.
+    """
     for c in OBS_COLUMNS:
         if c not in out:
             out[c] = np.nan
     return out[OBS_COLUMNS]
+
+
+def _finish(out: pd.DataFrame, station_id: str, source: str) -> pd.DataFrame:
+    out["station_id"] = station_id
+    out["source"] = source
+    return conform(out)
 
 
 # --------------------------------------------------------------------------- NWS
@@ -303,7 +320,7 @@ def fetch_snotel_hourly(triplet: str, start: date, end: date) -> pd.DataFrame:
     """Hourly SNOTEL obs (NRCS AWDB). TOBS -> air temp; PREC (cumulative) -> hourly increment."""
     params = {
         "stationTriplets": triplet,
-        "elements": "TOBS,PREC",
+        "elements": "TOBS,PREC,SNWD,WTEQ",
         "duration": "HOURLY",
         "beginDate": start.isoformat(),
         "endDate": end.isoformat(),
@@ -334,6 +351,8 @@ def fetch_snotel_hourly(triplet: str, start: date, end: date) -> pd.DataFrame:
         out["precip_1h_mm"] = (df["PREC"].diff() * IN_TO_MM).clip(lower=0.0)
     else:
         out["precip_1h_mm"] = np.nan
+    out["snow_depth_cm"] = df["SNWD"] * 2.54 if "SNWD" in df else np.nan
+    out["swe_mm"] = df["WTEQ"] * IN_TO_MM if "WTEQ" in df else np.nan
     out = out.reset_index(names="valid_time")
     return _finish(out, triplet, "SNOTEL")
 
@@ -467,6 +486,10 @@ def fetch_obs(
             print(f"  WARN: {station_id} needs SYNOPTIC_API_TOKEN; skipping", flush=True)
             return _empty()
         return fetch_synoptic_hourly(station_id[4:], token, start, end)
+    if station_id.startswith("ORG:"):
+        from wxfuser.data.org_obs import fetch_org_hourly
+
+        return fetch_org_hourly(station_id, start, end)
     if station_id.startswith("MS:"):
         from wxfuser.data.meteostat import fetch_meteostat_hourly
 
@@ -492,6 +515,8 @@ QC_BOUNDS = {
     "wind_gust_ms": (0.0, 150.0),
     "wind_dir_deg": (0.0, 360.0),
     "precip_1h_mm": (0.0, 305.0),  # above the world 1-hour record
+    "snow_depth_cm": (0.0, 1500.0),
+    "swe_mm": (0.0, 5000.0),
 }
 
 QC_MAX_STEP = {
@@ -550,7 +575,7 @@ def normalize_hourly(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out["valid_time"] = pd.to_datetime(out["valid_time"]).dt.floor("h")
     out = out.drop_duplicates(["station_id", "valid_time"], keep="last").reset_index(drop=True)
-    return out[OBS_COLUMNS]
+    return conform(out)
 
 
 def utcnow() -> datetime:

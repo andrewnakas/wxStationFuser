@@ -20,7 +20,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from wxfuser.data import bulk, sources
+from wxfuser.data import bulk, derived, sources
 from wxfuser.data import obs as obs_mod
 from wxfuser.data import pairs as pairs_mod
 from wxfuser.data.registry import Station
@@ -142,7 +142,7 @@ def gather_forecasts_bulk(
         window_end = end if bootstrap else date.today()
         try:
             got = sources.archive_batch(
-                coords, model_list, variables, window_start, window_end,
+                coords, model_list, derived.fetch_variables(variables), window_start, window_end,
                 include_long_history=bootstrap,
             )
         except sources.MixedSourceError as exc:
@@ -218,7 +218,7 @@ def _live_forecasts(stations: list[Station], variables: list[str]) -> dict[str, 
     for models, group in by_models.items():
         coords = [(s.id, s.lat, s.lon) for s in group]
         try:
-            long = sources.live_batch(coords, list(models), variables)
+            long = sources.live_batch(coords, list(models), derived.fetch_variables(variables))
         except sources.MixedSourceError as exc:
             print(f"  WARN: no live forecast for {len(group)} stations: {exc}", flush=True)
             continue
@@ -231,6 +231,7 @@ def _live_forecasts(stations: list[Station], variables: list[str]) -> dict[str, 
 
 def _to_wide_live(long: pd.DataFrame, models: list[str], variables: list[str]) -> pd.DataFrame:
     """One row per valid_time with fc_{var}__{model} columns, as core.emit expects."""
+    long = derived.add_forecast_columns(long, variables)
     base = (
         long[["valid_time", "lead_h"]]
         .drop_duplicates("valid_time")

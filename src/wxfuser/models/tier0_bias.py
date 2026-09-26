@@ -22,8 +22,9 @@ from wxfuser.config import bucket_for_lead, load_configs, quantiles
 # additionally gets no additive bias: shifting a variable that is zero most of the time
 # by its mean error just smears the dry hours, which costs more than the bias correction
 # saves. Precipitation is properly handled by the two-part model in Tier 1.
-NONNEGATIVE = {"wind_speed_ms", "wind_gust_ms", "precip_1h_mm", "rh_pct"}
-NO_ADDITIVE_BIAS = {"precip_1h_mm"}
+NONNEGATIVE = {"wind_speed_ms", "wind_gust_ms", "precip_1h_mm", "rh_pct",
+               "swe_24h_mm", "hn24_cm"}
+NO_ADDITIVE_BIAS = {"precip_1h_mm", "swe_24h_mm", "hn24_cm"}
 
 VARIABLE_CEILING = {"rh_pct": 100.0}
 

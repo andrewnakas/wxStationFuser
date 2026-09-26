@@ -32,6 +32,7 @@ from wxfuser.data.obs import (
     KT_TO_MS,
     OBS_COLUMNS,
     USER_AGENT,
+    conform,
     snotel_local_to_utc,
     snotel_utc_offsets,
 )
@@ -181,7 +182,7 @@ def _normalise_asos(df: pd.DataFrame) -> pd.DataFrame:
     for c in OBS_COLUMNS:
         if c not in out:
             out[c] = np.nan
-    return out[OBS_COLUMNS]
+    return conform(out)
 
 
 # --------------------------------------------------------------------------- SNOTEL
@@ -255,7 +256,7 @@ def snotel_observations(
         batch = triplets[i : i + chunk]
         params = {
             "stationTriplets": ",".join(batch),
-            "elements": "TOBS,PREC",
+            "elements": "TOBS,PREC,SNWD,WTEQ",
             "duration": "HOURLY",
             "beginDate": start.isoformat(),
             "endDate": end.isoformat(),
@@ -312,6 +313,9 @@ def _normalise_snotel(station: dict, offsets: dict[str, float] | None = None) ->
         out["precip_1h_mm"] = (df["PREC"].diff() * 25.4).clip(lower=0.0)
     else:
         out["precip_1h_mm"] = np.nan
+    # AWDB reports snow depth and SWE in inches.
+    out["snow_depth_cm"] = df["SNWD"] * 2.54 if "SNWD" in df else np.nan
+    out["swe_mm"] = df["WTEQ"] * 25.4 if "WTEQ" in df else np.nan
 
     out = out.reset_index(names="valid_time")
     out["valid_time"] = pd.to_datetime(out["valid_time"]).dt.floor("h")
@@ -320,7 +324,7 @@ def _normalise_snotel(station: dict, offsets: dict[str, float] | None = None) ->
     for c in OBS_COLUMNS:
         if c not in out:
             out[c] = np.nan
-    return out[OBS_COLUMNS]
+    return conform(out)
 
 
 def meteostat_observations(

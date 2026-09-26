@@ -66,8 +66,19 @@ def model_supports(model_id: str, variable: str) -> bool:
     (ECMWF IFS/AIFS have no wind gusts), so this gate keeps null columns from being
     mistaken for missing observations during training.
     """
+    from wxfuser.data.derived import FORECAST_SOURCES
+
+    if variable in FORECAST_SOURCES:
+        return all(model_supports(model_id, src) for src in FORECAST_SOURCES[variable])
     meta = model_catalogue().get(model_id)
     return bool(meta) and variable in meta.get("vars", [])
+
+
+def known_variables() -> list[str]:
+    """Every variable a station or spec may ask for: fetched, then derived."""
+    from wxfuser.data.derived import DERIVED
+
+    return [*variable_map(), *DERIVED]
 
 
 def hf_state_repo() -> str:

@@ -26,7 +26,7 @@ from wxfuser.models import tier0_bias, tier1_emos, tier2, tier3_gbm
 from wxfuser.verify import metrics
 
 # Variables with a point mass (dry hours) need randomised PIT to be interpretable.
-POINT_MASS_VARIABLES = {"precip_1h_mm"}
+POINT_MASS_VARIABLES = {"precip_1h_mm", "swe_24h_mm", "hn24_cm"}
 PRECIP_VARIABLE = "precip_1h_mm"
 # The wet/dry threshold the occurrence model is fitted at, from tier1_emos.fit_precip.
 OCCURRENCE_THRESHOLD = 0.1
@@ -436,7 +436,7 @@ def scorecard(
     # about heavy rain, with a plausible-looking number.
     briers = {}
     for thr in cfg["thresholds"].get(variable, []):
-        if variable == PRECIP_VARIABLE and p_occ is not None and _is_occurrence_threshold(thr):
+        if variable in POINT_MASS_VARIABLES and p_occ is not None and _is_occurrence_threshold(thr):
             prob = p_occ
             basis = "occurrence model"
         else:

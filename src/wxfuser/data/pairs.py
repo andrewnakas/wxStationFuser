@@ -49,6 +49,10 @@ def build_pairs(
     if forecasts.empty or obs.empty:
         return pd.DataFrame(columns=pair_columns(variables))
 
+    from wxfuser.data import derived
+
+    forecasts = derived.add_forecast_columns(forecasts, variables)
+    obs = derived.add_obs_columns(obs, variables)
     fc = forecasts.copy()
     fc["valid_time"] = pd.to_datetime(fc["valid_time"]).dt.floor("h")
 

@@ -214,25 +214,48 @@ def reliability_bins(
     return out
 
 
+def exceedance_probability(levels, values: np.ndarray, threshold: float) -> np.ndarray:
+    """P(Y > threshold) per row, read off each row's predicted quantile function.
+
+    The quantiles are interpolated onto the dense grid with tails extended at the
+    outermost slope, exactly as CRPS is scored, and the CDF at the threshold is read
+    back by inverse interpolation. Two details matter for amounts with a dry mass:
+
+      * On a plateau (quantiles pinned to zero for dry hours), the CDF at the plateau's
+        value is its right edge, so P(amount > 0) is the wet probability and not ~1.
+      * Beyond the dense grid the answer saturates at its resolution, 1% and 99%. It
+        never reaches 0 or 1, which a handful of fitted quantiles cannot support.
+
+    This is the one implementation. Published exceedance probabilities and the Brier
+    scores that verify them both come from here, so the score describes the number a
+    reader actually sees.
+    """
+    lv = np.asarray(levels, dtype=float)
+    vals = np.asarray(values, dtype=float)
+    dense = densify_quantiles(lv, vals)
+    grid = DENSE_LEVELS
+    out = np.empty(len(vals))
+    for i, row in enumerate(dense):
+        if np.isnan(row).any():
+            out[i] = np.nan
+            continue
+        row = np.maximum.accumulate(row)  # a quantile function never decreases
+        at = np.nonzero(row == threshold)[0]
+        cdf = grid[at[-1]] if len(at) else np.interp(threshold, row, grid,
+                                                     left=grid[0], right=grid[-1])
+        out[i] = 1.0 - cdf
+    return np.clip(out, 0.0, 1.0)
+
+
 def prob_exceed_from_quantiles(quantile_preds: dict[str, np.ndarray], threshold: float) -> np.ndarray:
-    """P(Y > threshold) read off the quantile grid by interpolating the predicted CDF."""
+    """P(Y > threshold) from a dict of predicted quantile arrays (see exceedance_probability)."""
     qs = quantiles()
     keys = [f"q{int(q * 100):02d}" for q in qs if f"q{int(q * 100):02d}" in quantile_preds]
     if not keys:
         return np.array([])
     mat = np.column_stack([quantile_preds[k] for k in keys])
-    levels = np.array([q for q in qs if f"q{int(q * 100):02d}" in quantile_preds])
-    out = np.empty(len(mat))
-    for i in range(len(mat)):
-        row = mat[i]
-        if threshold <= row[0]:
-            out[i] = 1.0 - levels[0] * 0.5
-        elif threshold >= row[-1]:
-            out[i] = (1.0 - levels[-1]) * 0.5
-        else:
-            cdf = float(np.interp(threshold, row, levels))
-            out[i] = 1.0 - cdf
-    return np.clip(out, 0.0, 1.0)
+    levels = [q for q in qs if f"q{int(q * 100):02d}" in quantile_preds]
+    return exceedance_probability(levels, mat, threshold)
 
 
 def block_bootstrap_ci(

@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from wxfuser.data import dynamical, openmeteo, sources
+from wxfuser.data import derived, dynamical, openmeteo, sources
 from wxfuser.data import obs as obs_mod
 from wxfuser.data import pairs as pairs_mod
 from wxfuser.data.registry import Station
@@ -148,6 +148,8 @@ def backfill_pairs(station: Station, years: float = 2.0, previous_runs_days: int
     """
     models = station.resolved_models()
     variables = station.resolved_variables()
+    # Derived variables (24 h snow) are computed from fetched inputs, not fetched.
+    fetch_vars = derived.fetch_variables(variables)
     end = date.today() - timedelta(days=1)
     start = end - timedelta(days=int(365 * years))
 
@@ -163,7 +165,7 @@ def backfill_pairs(station: Station, years: float = 2.0, previous_runs_days: int
 
     if sources.source_for(models) == "dynamical":
         print(f"  fetching archived runs ({len(models)} models, dynamical.org)", flush=True)
-        forecasts = _dynamical_archive(station, models, variables, eff_start, end)
+        forecasts = _dynamical_archive(station, models, fetch_vars, eff_start, end)
         if forecasts.empty:
             return pd.DataFrame()
         built = pairs_mod.build_pairs(forecasts, observations, station.id, variables)
@@ -172,13 +174,13 @@ def backfill_pairs(station: Station, years: float = 2.0, previous_runs_days: int
 
     frames = []
     print(f"  fetching archived forecasts ({len(models)} models)", flush=True)
-    hist = openmeteo.fetch_historical(station.lat, station.lon, models, variables, eff_start, end)
+    hist = openmeteo.fetch_historical(station.lat, station.lon, models, fetch_vars, eff_start, end)
     if not hist.empty:
         frames.append(hist)
         print(f"  historical-forecast rows: {len(hist)}", flush=True)
 
     prev = openmeteo.fetch_previous_runs(
-        station.lat, station.lon, models, variables, past_days=previous_runs_days
+        station.lat, station.lon, models, fetch_vars, past_days=previous_runs_days
     )
     if not prev.empty:
         frames.append(prev)
@@ -196,6 +198,7 @@ def incremental_pairs(station: Station, lookback_days: int = 10) -> pd.DataFrame
     """Refresh step: re-pair a trailing window so late-arriving obs are picked up."""
     models = station.resolved_models()
     variables = station.resolved_variables()
+    fetch_vars = derived.fetch_variables(variables)
     end = date.today()
     start = end - timedelta(days=lookback_days)
 
@@ -205,7 +208,7 @@ def incremental_pairs(station: Station, lookback_days: int = 10) -> pd.DataFrame
     merge_obs_history(station, observations)
 
     if sources.source_for(models) == "dynamical":
-        forecasts = _dynamical_archive(station, models, variables, start, end)
+        forecasts = _dynamical_archive(station, models, fetch_vars, start, end)
         if forecasts.empty:
             return pairs_mod.read_archive(pairs_path(station))
         built = pairs_mod.build_pairs(forecasts, observations, station.id, variables)
@@ -213,12 +216,12 @@ def incremental_pairs(station: Station, lookback_days: int = 10) -> pd.DataFrame
 
     frames = []
     prev = openmeteo.fetch_previous_runs(
-        station.lat, station.lon, models, variables, past_days=max(lookback_days, 7)
+        station.lat, station.lon, models, fetch_vars, past_days=max(lookback_days, 7)
     )
     if not prev.empty:
         frames.append(prev)
     hist = openmeteo.fetch_historical(
-        station.lat, station.lon, models, variables, start, end - timedelta(days=1)
+        station.lat, station.lon, models, fetch_vars, start, end - timedelta(days=1)
     )
     if not hist.empty:
         frames.append(hist)
@@ -349,12 +352,14 @@ def live_forecast_wide(station: Station, models: list[str], variables: list[str]
     Columns: valid_time, lead_h, fc_{model} (for the variable being predicted), plus
     fc_{var}__{model} for every variable so the published JSON can show raw model traces.
     """
+    fetch_vars = derived.fetch_variables(variables)
     if sources.source_for(models) == "dynamical":
-        long = dynamical.fetch_live_batch([(station.id, station.lat, station.lon)], models, variables)
+        long = dynamical.fetch_live_batch([(station.id, station.lat, station.lon)], models, fetch_vars)
     else:
-        long = openmeteo.fetch_forecast(station.lat, station.lon, models, variables, forecast_days=7)
+        long = openmeteo.fetch_forecast(station.lat, station.lon, models, fetch_vars, forecast_days=7)
     if long.empty:
         return pd.DataFrame()
+    long = derived.add_forecast_columns(long, variables)
 
     base = (
         long[["valid_time", "lead_h"]]

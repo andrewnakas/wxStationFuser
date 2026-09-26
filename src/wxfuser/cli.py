@@ -264,6 +264,113 @@ def cmd_repair_obs(args) -> int:
     return 0
 
 
+def cmd_org_run(args) -> int:
+    """Run every spec in one org's spec file, into that org's private state root.
+
+    The org's state and published forecasts live under ``--root`` (the org's R2 prefix,
+    mirrored locally), never in the public state or site directories. Nothing an org
+    owns can end up on the public hub or GitHub Pages by running the public jobs, and
+    nothing here writes to theirs.
+    """
+    import json as _json
+
+    import numpy as np
+    import pandas as pd
+
+    from wxfuser.config import quantiles
+    from wxfuser.data import org_obs
+    from wxfuser.spec import exceedance, load_org
+
+    org, specs = load_org(args.specs)
+    root = Path(args.root)
+    core.STATE_DIR = root / "state"
+    core.SITE_DIR = root / "site"
+    org_obs.ORG_OBS_DIR = root / "observations"
+    held = org_obs.compact_inbox(root / "inbox", org)
+    if held:
+        print(f"inbox: {len(held)} stations updated", flush=True)
+    if args.spec:
+        specs = [s for s in specs if s.key() == args.spec]
+    print(f"org {org}: {len(specs)} specs", flush=True)
+
+    levels = quantiles()
+    qkeys = [f"q{int(q * 100):02d}" for q in levels]
+    index = []
+    for spec in specs:
+        st = spec.to_station()
+        try:
+            entry = core.run_station(st, bootstrap=args.bootstrap, years=args.years,
+                                     evaluate=args.evaluate or None)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[{spec.slug}] FAILED: {exc}", flush=True)
+            entry = {"status": "error"}
+        path = core.SITE_DIR / "stations" / st.slug / "forecast.json"
+        if entry.get("status") == "ok" and path.exists():
+            payload = _json.loads(path.read_text())
+            probs = {}
+            for var, ts in spec.thresholds.items():
+                block = payload["hourly"].get(var) or {}
+                if all(k in block for k in qkeys):
+                    vals = np.array([block[k] for k in qkeys], dtype=float).T
+                    probs[var] = exceedance(levels, vals, ts)
+            obs_file = core.obs_path(st)
+            latest = None
+            if obs_file.exists():
+                vt = pd.read_parquet(obs_file, columns=["valid_time"])["valid_time"]
+                latest = pd.to_datetime(vt).max().strftime("%Y-%m-%dT%H:%MZ") if len(vt) else None
+            emit.write_json(emit.spec_forecast_json(payload, spec.public_dict(), probs, latest),
+                            path)
+        index.append({**spec.public_dict(), "slug": st.slug, "station_id": st.id,
+                      "station_name": st.name, "lat": st.lat, "lon": st.lon,
+                      "status": entry.get("status"),
+                      "crpss_vs_raw": entry.get("crpss_vs_raw"),
+                      "beats_raw": entry.get("beats_raw")})
+    emit.write_json({"schema_version": emit.SCHEMA_VERSION_SPEC, "org": org, "specs": index},
+                    core.SITE_DIR / "index.json")
+    ok = sum(1 for e in index if e["status"] == "ok")
+    print(f"org {org}: {ok}/{len(index)} specs published")
+    return 0
+
+
+def cmd_ingest_csv(args) -> int:
+    """Append a logger CSV to an org station's observation store."""
+    from wxfuser.data import org_obs
+
+    if not args.station.startswith("ORG:"):
+        raise SystemExit("ingest-csv writes org stations only (ORG:<org>:<id>)")
+    mapping = org_obs.parse_mapping(args.col)
+    records = org_obs.read_csv(args.file, args.station, mapping,
+                               time_col=args.time_col, tz=args.tz)
+    if records.empty:
+        raise SystemExit("no readable rows; check --time-col and --tz")
+    print(f"{len(records)} records, {records['time'].min()} .. {records['time'].max()} UTC")
+    if args.lon is not None:
+        peak = org_obs.diurnal_peak_solar_hour(records, args.lon)
+        if peak is not None:
+            print(f"temperature peaks at {peak:.0f}:00 local solar time")
+            if not 11 <= peak <= 18:
+                # Not fatal: a site in a deep, west-facing valley can peak late. Worth
+                # a look, though, because a wrong zone is far more common.
+                print("WARNING: an afternoon peak is expected; check --tz. A peak near "
+                      "dawn usually means local time was read as UTC or vice versa.")
+    held = org_obs.append_raw(records, Path(args.root) / "observations")
+    print(f"store now holds {held.get(args.station, 0)} records for {args.station}")
+    return 0
+
+
+def cmd_org_sync(args) -> int:
+    """Pull an org's private prefix from R2, or push it back."""
+    from wxfuser import r2
+
+    if args.direction == "pull":
+        n = r2.pull(args.org, args.root)
+        print(f"pulled {n} files for {args.org}")
+    else:
+        n = r2.push(args.org, args.root)
+        print(f"pushed {n} changed files for {args.org}")
+    return 0
+
+
 def cmd_merge_index(args) -> int:
     """Combine per-shard index fragments into the single index the site reads.
 
@@ -577,6 +684,36 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--limit", type=int,
                    help="process at most this many stations per shard")
     p.set_defaults(func=cmd_refresh)
+
+    p = sub.add_parser("org-run", help="run one org's fusion specs into its private root")
+    p.add_argument("--specs", required=True, help="the org's specs.yaml")
+    p.add_argument("--root", required=True,
+                   help="the org's local state root (mirrors orgs/{org}/ in R2)")
+    p.add_argument("--spec", help="run only the spec with this key")
+    p.add_argument("--bootstrap", action="store_true")
+    p.add_argument("--evaluate", action="store_true")
+    p.add_argument("--years", type=float, default=2.0)
+    p.set_defaults(func=cmd_org_run)
+
+    p = sub.add_parser("ingest-csv", help="add a logger CSV to an org station's observations")
+    p.add_argument("file")
+    p.add_argument("--root", required=True, help="the org's local state root")
+    p.add_argument("--station", required=True, help="ORG:<org>:<id>")
+    p.add_argument("--time-col", required=True)
+    p.add_argument("--tz", required=True,
+                   help="IANA zone (America/Denver), UTC, or a fixed offset (-07:00) for "
+                        "loggers kept on standard time all year")
+    p.add_argument("--col", action="append", required=True, metavar="TARGET=COLUMN:UNIT",
+                   help="e.g. air_temp_c=TempF:F, wind_gust_ms=Gust:mph, "
+                        "precip_mm=Precip:in:cumulative; repeat per column")
+    p.add_argument("--lon", type=float, help="station longitude, for a time-zone sanity check")
+    p.set_defaults(func=cmd_ingest_csv)
+
+    p = sub.add_parser("org-sync", help="pull or push one org's private state in R2")
+    p.add_argument("direction", choices=["pull", "push"])
+    p.add_argument("--org", required=True)
+    p.add_argument("--root", required=True)
+    p.set_defaults(func=cmd_org_sync)
 
     p = sub.add_parser(
         "repair-obs",
