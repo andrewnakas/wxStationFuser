@@ -79,21 +79,36 @@ def _hub_existing(repo: str, model: str) -> set[str]:
     return {Path(f).stem for f in files if f.startswith(f"points/{model}/") and f.endswith(".parquet")}
 
 
-def _upload(repo: str, path: Path, model: str) -> None:
-    from huggingface_hub import HfApi
+UPLOAD_BATCH = 12  # months per hub commit
 
+
+def _upload_batch(repo: str, paths: list[Path], model: str, attempts: int = 6) -> bool:
+    """Commit several months at once. Returns False rather than raising when it fails.
+
+    One commit per month drew the hub's per-repository commit throttle within the first
+    hour (the GEFS and ECMWF jobs died on it), so months go up a dozen per commit, and a
+    throttle is waited out with growing pauses. A batch that still fails is left on
+    disk for the end-of-run retry; extraction never stops for it.
+    """
+    from huggingface_hub import CommitOperationAdd, HfApi
+
+    if not paths:
+        return True
     api = HfApi(token=os.environ.get("HF_TOKEN"))
-    api.create_repo(repo, repo_type="dataset", exist_ok=True)
-    for attempt in range(1, 4):
+    ops = [CommitOperationAdd(path_in_repo=f"points/{model}/{p.name}", path_or_fileobj=str(p))
+           for p in paths]
+    for attempt in range(1, attempts + 1):
         try:
-            api.upload_file(path_or_fileobj=str(path), path_in_repo=f"points/{model}/{path.name}",
-                            repo_id=repo, repo_type="dataset",
-                            commit_message=f"{model} {path.stem} at station points")
-            return
+            api.create_repo(repo, repo_type="dataset", exist_ok=True)
+            api.create_commit(repo_id=repo, repo_type="dataset", operations=ops,
+                              commit_message=f"{model}: {paths[0].stem}..{paths[-1].stem} at station points")
+            return True
         except Exception as exc:  # noqa: BLE001
-            print(f"  upload attempt {attempt} failed ({exc})", flush=True)
-            time.sleep(60 * attempt)
-    raise RuntimeError(f"could not upload {path}")
+            wait = min(120 * attempt, 900)
+            print(f"  upload of {len(paths)} months failed ({str(exc)[:120]}); "
+                  f"waiting {wait}s ({attempt}/{attempts})", flush=True)
+            time.sleep(wait)
+    return False
 
 
 def build(model: str, *, states: list[str] | None, out: str | Path, start: date | None = None,
@@ -120,7 +135,15 @@ def build(model: str, *, states: list[str] | None, out: str | Path, start: date 
     todo = [m for m in mine if m not in done]
     print(f"{model}: {len(coords)} stations, {len(all_months)} months, shard {shard + 1}/{of}: "
           f"{len(mine)} mine, {len(todo)} to do", flush=True)
-    written = []
+    written, pending, failed = [], [], []
+
+    def flush(force: bool = False) -> None:
+        if hub_repo and pending and (force or len(pending) >= UPLOAD_BATCH):
+            batch = list(pending)
+            pending.clear()
+            if not _upload_batch(hub_repo, batch, model):
+                failed.extend(batch)
+
     for month in todo:
         if budget_s and time.monotonic() - t0 > budget_s:
             print(f"  time budget reached; {len(todo) - len(written)} months left for the next run")
@@ -132,9 +155,18 @@ def build(model: str, *, states: list[str] | None, out: str | Path, start: date 
             continue
         path = out / f"{month}.parquet"
         frame.to_parquet(path, index=False, compression="zstd")
-        if hub_repo:
-            _upload(hub_repo, path, model)
+        pending.append(path)
         written.append(month)
         print(f"  {month}: {frame['init_time'].nunique()} runs, {len(frame):,} rows, "
               f"{path.stat().st_size / 1e6:.1f} MB, {time.monotonic() - t:.0f}s", flush=True)
+        flush()
+    flush(force=True)
+    if failed and hub_repo:  # one last try for anything the throttle held back
+        retry = list(failed)
+        failed.clear()
+        if not _upload_batch(hub_repo, retry, model):
+            failed.extend(retry)
+    if failed:
+        raise RuntimeError(f"{len(failed)} months extracted but not published; the next run "
+                           "re-extracts them")
     return {"model": model, "written": written, "remaining": len(todo) - len(written)}
