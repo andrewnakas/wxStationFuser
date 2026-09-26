@@ -151,3 +151,25 @@ def test_uploads_are_ingested_once_and_only_for_the_org(tmp_path):
     assert not org_obs.store_path("ORG:someone-else:x", root).exists()
     csv.write_text(csv.read_text().replace("32.0", "33.0"))  # a corrected re-upload
     assert org_obs.ingest_uploads(up, "wasatch-patrol", root) == ["plot.csv"]
+
+
+def test_station_keys_store_only_hashes_and_reissue_revokes(tmp_path, capsys):
+    import hashlib
+
+    from wxfuser import cli
+
+    args = ["station-key", "--org", "wasatch-patrol", "--station", SID, "--root", str(tmp_path)]
+    cli.main(args)
+    first = capsys.readouterr().out.strip().splitlines()[1]
+    table = json.loads((tmp_path / "keys.json").read_text())
+    assert table == {hashlib.sha256(first.encode()).hexdigest(): SID}
+    assert first not in (tmp_path / "keys.json").read_text()
+
+    cli.main(args)
+    second = capsys.readouterr().out.strip().splitlines()[1]
+    table = json.loads((tmp_path / "keys.json").read_text())
+    assert list(table.values()) == [SID] and hashlib.sha256(second.encode()).hexdigest() in table
+
+    with pytest.raises(SystemExit):
+        cli.main(["station-key", "--org", "wasatch-patrol", "--station", "ORG:other:x",
+                  "--root", str(tmp_path)])

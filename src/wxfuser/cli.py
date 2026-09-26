@@ -361,6 +361,33 @@ def cmd_ingest_csv(args) -> int:
     return 0
 
 
+def cmd_station_key(args) -> int:
+    """Issue a push-API key for one org station, storing only its hash.
+
+    The key is printed once and never stored. ``keys.json`` in the org root (served to
+    the Worker as orgs/{org}/keys.json) maps each key's SHA-256 to its station, so a
+    leaked copy of the table authenticates nothing. Re-issuing for a station revokes
+    its previous key.
+    """
+    import hashlib
+    import json as _json
+    import secrets
+
+    prefix = f"ORG:{args.org}:"
+    if not args.station.startswith(prefix):
+        raise SystemExit(f"station must be one of this org's: {prefix}<id>")
+    path = Path(args.root) / "keys.json"
+    table = _json.loads(path.read_text()) if path.exists() else {}
+    table = {h: st for h, st in table.items() if st != args.station}
+    key = f"t60sk_{secrets.token_urlsafe(32)}"
+    table[hashlib.sha256(key.encode()).hexdigest()] = args.station
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_json.dumps(table, indent=1, sort_keys=True))
+    print(f"station key for {args.station} (shown once; previous key revoked):\n{key}")
+    print("It takes effect after the next org-sync push, within 5 minutes.")
+    return 0
+
+
 def cmd_org_sync(args) -> int:
     """Pull an org's private prefix from R2, or push it back."""
     from wxfuser import r2
@@ -711,6 +738,12 @@ def main(argv: list[str] | None = None) -> int:
                         "precip_mm=Precip:in:cumulative; repeat per column")
     p.add_argument("--lon", type=float, help="station longitude, for a time-zone sanity check")
     p.set_defaults(func=cmd_ingest_csv)
+
+    p = sub.add_parser("station-key", help="issue a push-API key for an org station")
+    p.add_argument("--org", required=True)
+    p.add_argument("--station", required=True, help="ORG:<org>:<id>")
+    p.add_argument("--root", required=True, help="the org's local root (pulled from R2)")
+    p.set_defaults(func=cmd_station_key)
 
     p = sub.add_parser("org-sync", help="pull or push one org's private state in R2")
     p.add_argument("direction", choices=["pull", "push"])

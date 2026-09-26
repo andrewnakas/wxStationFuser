@@ -51,6 +51,19 @@ stations" to calibrated forecasts in Tree60. The data contract is
      sidecar `.json` holding the same mapping. The runner ingests each file once, by
      content hash.
 
+   **Live data.** For loggers that can push, issue each station a key:
+
+   ```sh
+   wxfuser org-sync pull --org wasatch-patrol --root ./org
+   wxfuser station-key --org wasatch-patrol --station ORG:wasatch-patrol:plot --root ./org
+   wxfuser org-sync push --org wasatch-patrol --root ./org
+   ```
+
+   - The key is printed once. Only its hash is stored, and re-issuing revokes the old
+     key.
+   - The logger POSTs readings to `/api/v1/ent/wasatch-patrol/obs` with the header
+     `X-T60-Station-Key`. The record format is in the schema doc.
+
 4. **Specs.** Write `orgs/{org}/specs.yaml`:
 
    ```yaml
