@@ -152,7 +152,8 @@ def add_nowcast_error(wide: pd.DataFrame, obs_by_time: pd.Series) -> pd.DataFram
     """Add ``nowcast_err``: how wrong the fused model was just as the forecast was issued.
 
     Defined as the observation one hour *before* the issue time minus the fused model's
-    first-hour forecast from that issue. The hour's gap is deliberate: at issue time the
+    first forecast step from that issue (1 h for hourly models, up to 3 h for 3-hourly
+    ensembles; later than that is no longer "now"). The hour's gap is deliberate: at issue time the
     current hour's observation has usually not arrived, so live forecasts can only ever
     see the previous one, and training uses exactly what live will have. Model error
     persists for hours (a cold pool the model missed at 06:00 is usually still there at
@@ -167,11 +168,16 @@ def add_nowcast_error(wide: pd.DataFrame, obs_by_time: pd.Series) -> pd.DataFram
     if not keyed.any():
         return out
     issue = pd.to_datetime(out["valid_time"]) - pd.to_timedelta(out["lead_h"], unit="h")
-    first = out[keyed & (out["lead_h"] == 1).to_numpy()]
-    fc1 = pd.Series(first["fc_mean"].to_numpy(), index=issue[first.index])
-    fc1 = fc1[~fc1.index.duplicated(keep="last")]
-    ob = obs_by_time[~obs_by_time.index.duplicated(keep="last")]
-    err = ob.reindex(issue - pd.Timedelta(hours=1)).to_numpy() - fc1.reindex(issue).to_numpy()
+    cand = out[keyed & (out["lead_h"] <= 3).to_numpy()].assign(_issue=issue)
+    first = cand.sort_values("lead_h").drop_duplicates("_issue", keep="first")
+    fc1 = pd.Series(first["fc_mean"].to_numpy(), index=first["_issue"].to_numpy())
+    ob = obs_by_time[~obs_by_time.index.duplicated(keep="last")].dropna().sort_index()
+    # The newest observation at or before issue - 1 h, if it is within 3 h of that: what
+    # a live run has. An exact-hour match would never find one for a 3-hourly model's
+    # rows, whose observations only exist at its own steps.
+    seen = ob.reindex(issue - pd.Timedelta(hours=1), method="ffill",
+                      tolerance=pd.Timedelta(hours=3)).to_numpy()
+    err = seen - fc1.reindex(issue).to_numpy()
     out["nowcast_err"] = np.where(keyed, err, np.nan)
     return out
 

@@ -415,6 +415,37 @@ def cmd_point_archive(args) -> int:
     return 0
 
 
+def cmd_network_train(args) -> int:
+    """Evaluate on unseen stations and time, then fit and save the network model."""
+    from wxfuser import network
+
+    models = args.models.split(",")
+    root = Path(args.archive)
+    if args.fetch:
+        root = network.fetch_archive(root, models)
+    report = {}
+    for variable in args.variables.split(","):
+        print(f"== {variable}", flush=True)
+        data = network.build_dataset(root, models, variable)
+        if data.empty:
+            print("  no paired data")
+            continue
+        print(f"  {len(data):,} rows, {data['station_id'].nunique()} stations, "
+              f"{data['valid_time'].min():%Y-%m} .. {data['valid_time'].max():%Y-%m}", flush=True)
+        ev = network.leave_stations_out(data, variable, models, folds=args.folds,
+                                        rounds=args.rounds, test_from=args.test_from)
+        print(f"  CRPSS vs {ev['raw_best_model']}: {ev['crpss_vs_raw_best']:.3f} "
+              f"({ev['scheme']}, {ev['stations']} stations, {ev['rows']:,} rows); "
+              f"{ev['stations_improved']:.0%} of stations improved", flush=True)
+        model = network.fit(data, variable, models, rounds=args.rounds)
+        path = network.save(model, Path(args.out) / f"{variable}.json", ev)
+        print(f"  saved {path}")
+        report[variable] = ev
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    (Path(args.out) / "evaluation.json").write_text(json.dumps(report, indent=1, default=str))
+    return 0
+
+
 def cmd_ingest_csv(args) -> int:
     """Append a logger CSV to an org station's observation store."""
     from wxfuser.data import org_obs
@@ -850,6 +881,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--budget-minutes", type=float,
                    help="stop starting new months after this long (CI jobs)")
     p.set_defaults(func=cmd_point_archive)
+
+    p = sub.add_parser("network-train",
+                       help="train one calibration model across the archived station network")
+    p.add_argument("--archive", default="archive/hub", help="local copy of nakas/wxfuser-archive")
+    p.add_argument("--fetch", action="store_true", help="download the archive first")
+    p.add_argument("--models", required=True, help="e.g. hrrr,gefs,ecmwf_ens")
+    p.add_argument("--variables", default="air_temp_c")
+    p.add_argument("--test-from", help="score only on hours from this date (and unseen stations)")
+    p.add_argument("--folds", type=int, default=5)
+    p.add_argument("--rounds", type=int, default=400)
+    p.add_argument("--out", default="archive/network")
+    p.set_defaults(func=cmd_network_train)
 
     p = sub.add_parser("ingest-csv", help="add a logger CSV to an org station's observations")
     p.add_argument("file")

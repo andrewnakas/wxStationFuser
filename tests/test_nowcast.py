@@ -56,3 +56,12 @@ def test_tier3_takes_the_feature_only_when_training_data_carries_it():
     assert "nowcast_err" not in without["features"]
     # A model trained without the feature still predicts from a frame that has it.
     assert tier3_gbm.predict(without, df.iloc[:5], ["hrrr"])["calibrated"]
+
+
+def test_three_hourly_models_use_their_first_step():
+    rows = _pairs()
+    rows = rows[rows["lead_h"] % 3 == 0]  # an ensemble on 3-hourly steps
+    wide = pairs.to_wide(rows, "air_temp_c", ["hrrr"])
+    later = wide[wide["valid_time"] >= pd.Timestamp("2026-01-10 06:00")]
+    assert later["nowcast_err"].notna().any()
+    assert later["nowcast_err"].dropna().eq(3.0).all()
