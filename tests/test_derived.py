@@ -33,10 +33,12 @@ def test_derived_variables_fetch_their_inputs():
 
 
 def test_window_sums_rate_times_step_and_refuses_partial_windows():
-    out = derived.add_forecast_columns(_issue_rows(), ["swe_24h_mm"]).set_index("lead_h")
-    # The first row has no known step, so full coverage arrives 24 steps later.
-    assert np.isnan(out.loc[24, "fc_swe_24h_mm"])
-    assert out.loc[25, "fc_swe_24h_mm"] == pytest.approx(24.0)
+    rows = _issue_rows(n=40)
+    rows.loc[rows["lead_h"] == 30, "fc_precip_1h_mm"] = np.nan  # one missing hour
+    out = derived.add_forecast_columns(rows, ["swe_24h_mm"]).set_index("lead_h")
+    assert out.loc[29, "fc_swe_24h_mm"] == pytest.approx(24.0)
+    # Every window containing the gap is refused rather than summed short.
+    assert out.loc[30:40, "fc_swe_24h_mm"].isna().all()
 
 
 def test_three_hourly_steps_weigh_by_their_length():
@@ -121,3 +123,10 @@ def test_zero_inflated_amounts_use_the_two_part_model():
     pred = tier1_emos.predict(state, wide.iloc[:5], ["hrrr"])
     assert "p_occ" in pred
     assert all((pred[k] >= 0).all() for k in pred if k.startswith("q"))
+
+
+def test_the_window_ending_24h_after_issue_is_complete():
+    """'New snow by tomorrow morning' is the window a briefing needs; it must not be empty."""
+    out = derived.add_forecast_columns(_issue_rows(), ["swe_24h_mm"]).set_index("lead_h")
+    assert out.loc[24, "fc_swe_24h_mm"] == pytest.approx(24.0)
+    assert np.isnan(out.loc[23, "fc_swe_24h_mm"])  # reaches back before issue

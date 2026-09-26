@@ -99,7 +99,8 @@ def add_forecast_columns(frame: pd.DataFrame, variables: list[str]) -> pd.DataFr
 
     Each row's precipitation is a mean hourly rate over the step since the previous row
     of its series. Its amount is rate × step, and coverage is counted in hours. The
-    first row of a series has no known step and so contributes no coverage.
+    first row of an issue-aligned series covers the hours since issue; the first row of
+    an Open-Meteo archive series has no known step and so contributes no coverage.
     """
     wanted = [v for v in variables if is_derived(v)]
     if not wanted or frame.empty:
@@ -115,6 +116,11 @@ def add_forecast_columns(frame: pd.DataFrame, variables: list[str]) -> pd.DataFr
     for _, idx in out.groupby(keys, sort=False).groups.items():
         block = out.loc[idx].sort_values("valid_time")
         steps = block["valid_time"].diff().dt.total_seconds().to_numpy() / 3600.0
+        # An issue-aligned series starts at issue time, so its first row covers the
+        # hours since issue. Without this, the window ending 24 h after issue ("new snow
+        # by tomorrow morning", the one a briefing needs) was always one step short.
+        if len(steps) and block["lead_source"].iloc[0] in ISSUE_KEYED_SOURCES:
+            steps[0] = float(block["lead_h"].iloc[0])
         rate = block["fc_precip_1h_mm"].to_numpy(dtype=float) if "fc_precip_1h_mm" in block else None
         if rate is None:
             continue

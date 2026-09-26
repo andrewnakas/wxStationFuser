@@ -9,6 +9,7 @@ bounds.
 from __future__ import annotations
 
 import html
+import math
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -114,10 +115,14 @@ def _svg(times, block, raw_series, conv, unit, decimals) -> str:
         return "".join(f'<polyline class="{cls}" points="{" ".join(s)}"/>' for s in segs)
 
     parts = [f'<svg viewBox="0 0 {w} {h}" role="img" preserveAspectRatio="none">']
+    # Enough decimals that neighbouring labels differ: a 0-0.02 in axis at two decimals
+    # read "0.00, 0.01, 0.01, 0.02".
+    step = (hi - lo) / 4
+    tick_dec = max(decimals, 0 if step >= 1 else min(3, int(-math.floor(math.log10(step)))))
     for i in range(5):  # grid and y labels
-        v = lo + (hi - lo) * i / 4
+        v = lo + step * i
         parts.append(f'<line class="grid" x1="{pl}" x2="{w - pr}" y1="{y(v):.1f}" y2="{y(v):.1f}"/>')
-        parts.append(f'<text class="ax" x="{pl - 6}" y="{y(v) + 4:.1f}" text-anchor="end">{v:.{decimals}f}</text>')
+        parts.append(f'<text class="ax" x="{pl - 6}" y="{y(v) + 4:.1f}" text-anchor="end">{v:.{tick_dec}f}</text>')
     day = times[0].replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     while day < times[-1]:  # midnight UTC ticks, labelled by date
         parts.append(f'<line class="grid" x1="{x(day):.1f}" x2="{x(day):.1f}" y1="{pt}" y2="{h - pb}"/>')

@@ -153,8 +153,11 @@ def backfill_pairs(station: Station, years: float = 2.0, previous_runs_days: int
     end = date.today() - timedelta(days=1)
     start = end - timedelta(days=int(365 * years))
 
-    print(f"  fetching observations {start} .. {end}", flush=True)
-    observations = gather_observations(station, start, end)
+    # Observations run through today even though archived forecasts stop at yesterday:
+    # the freshest hours pair with nothing yet, but they are what the live forecast's
+    # nowcast feature and its obs_latest stamp need.
+    print(f"  fetching observations {start} .. {date.today()}", flush=True)
+    observations = gather_observations(station, start, date.today())
     print(f"  obs rows: {len(observations)}", flush=True)
     if observations.empty:
         return pd.DataFrame()
