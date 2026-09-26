@@ -25,3 +25,6 @@ venv/
 
 # wxfuser calibrate output: customer station data, never committed.
 /calibrations/
+
+# Full observation archives (wxfuser snotel-archive): large, rebuilt from source.
+/archive/

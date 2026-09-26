@@ -381,6 +381,40 @@ def cmd_calibrate(args) -> int:
     return 0
 
 
+def cmd_snotel_archive(args) -> int:
+    """Fetch every SNOTEL station's full hourly history (resumable)."""
+    from wxfuser import archive
+
+    states = args.states.split(",") if args.states else None
+    result = archive.build_snotel_archive(args.out, workers=args.workers, limit=args.limit,
+                                          states=states)
+    print(f"archive: {result['archived']}/{result['stations']} stations in {args.out}")
+    if args.upload:
+        archive.upload_to_hub(args.out)
+        print(f"published to https://huggingface.co/datasets/{archive.HUB_REPO}")
+    return 0
+
+
+def cmd_point_archive(args) -> int:
+    """Extract a model's archived runs at SNOTEL points, month by month (resumable)."""
+    from datetime import date
+
+    from wxfuser import points
+
+    result = points.build(
+        args.model,
+        states=args.states.split(",") if args.states else None,
+        out=args.out,
+        start=date.fromisoformat(args.start) if args.start else None,
+        end=date.fromisoformat(args.end) if args.end else None,
+        init_hours=[int(h) for h in args.init_hours.split(",")] if args.init_hours else None,
+        shard=args.shard or 0, of=args.of or 1, hub_repo=args.hub_repo,
+        budget_s=args.budget_minutes * 60 if args.budget_minutes else None,
+    )
+    print(f"{result['model']}: wrote {len(result['written'])} months, {result['remaining']} remain")
+    return 0
+
+
 def cmd_ingest_csv(args) -> int:
     """Append a logger CSV to an org station's observation store."""
     from wxfuser.data import org_obs
@@ -791,6 +825,31 @@ def main(argv: list[str] | None = None) -> int:
                    help="override column detection; repeat per column (as ingest-csv)")
     p.add_argument("--out", help="output directory (default calibrations/<name>)")
     p.set_defaults(func=cmd_calibrate)
+
+    p = sub.add_parser("snotel-archive",
+                       help="fetch every SNOTEL station's full hourly history (resumable)")
+    p.add_argument("--out", default="archive/snotel")
+    p.add_argument("--workers", type=int, default=4)
+    p.add_argument("--limit", type=int, help="only this many stations (for a trial)")
+    p.add_argument("--states", help="comma-separated state codes, e.g. MT or MT,ID,WY")
+    p.add_argument("--upload", action="store_true",
+                   help="publish the archive to the nakas/wxfuser-archive dataset afterwards")
+    p.set_defaults(func=cmd_snotel_archive)
+
+    p = sub.add_parser("point-archive",
+                       help="extract a dynamical.org model's archived runs at SNOTEL points")
+    p.add_argument("--model", required=True, help="hrrr, gefs, ecmwf_ens, gfs16, aifs_single")
+    p.add_argument("--states", help="comma-separated state codes, e.g. MT")
+    p.add_argument("--out", default="archive/points")
+    p.add_argument("--start", help="first month (YYYY-MM-DD); default: the store's start")
+    p.add_argument("--end", help="last date; default: the store's latest run")
+    p.add_argument("--init-hours", help="only runs initialised at these UTC hours, e.g. 0,12")
+    p.add_argument("--shard", type=int)
+    p.add_argument("--of", type=int)
+    p.add_argument("--hub-repo", help="publish each month to this Hugging Face dataset")
+    p.add_argument("--budget-minutes", type=float,
+                   help="stop starting new months after this long (CI jobs)")
+    p.set_defaults(func=cmd_point_archive)
 
     p = sub.add_parser("ingest-csv", help="add a logger CSV to an org station's observations")
     p.add_argument("file")

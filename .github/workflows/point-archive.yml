@@ -1,0 +1,63 @@
+name: Point archive
+
+# Extracts archived model runs at SNOTEL points into the nakas/wxfuser-archive dataset
+# (see src/wxfuser/points.py), for training one calibration model across a network.
+#
+# Deliberately slow. dynamical.org is a free community service, and the full pull for
+# Montana is about 1.15 TB, so at most two jobs run at once and each stops starting new
+# months after its time budget. The daily schedule resumes where the last run stopped.
+# Finished months are skipped, so a run with nothing left ends in a minute.
+
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+    inputs:
+      states:
+        description: 'SNOTEL states (comma-separated)'
+        default: 'MT'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: point-archive
+  cancel-in-progress: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - {model: hrrr, init_hours: '0,12', shard: 0, of: 4}
+          - {model: hrrr, init_hours: '0,12', shard: 1, of: 4}
+          - {model: hrrr, init_hours: '0,12', shard: 2, of: 4}
+          - {model: hrrr, init_hours: '0,12', shard: 3, of: 4}
+          - {model: gefs, init_hours: '', shard: 0, of: 2}
+          - {model: gefs, init_hours: '', shard: 1, of: 2}
+          - {model: ecmwf_ens, init_hours: '', shard: 0, of: 1}
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      # Identifies this client to dynamical.org, as they ask of heavy users.
+      WXFUSER_DYNAMICAL_EMAIL: ${{ secrets.WXFUSER_DYNAMICAL_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install
+        run: pip install -e ".[train,zarr]"
+      - name: Extract
+        env:
+          STATES: ${{ inputs.states || 'MT' }}
+          HOURS: ${{ matrix.init_hours }}
+        run: |
+          wxfuser point-archive --model ${{ matrix.model }} --states "$STATES" \
+            ${HOURS:+--init-hours "$HOURS"} \
+            --shard ${{ matrix.shard }} --of ${{ matrix.of }} \
+            --hub-repo nakas/wxfuser-archive --budget-minutes 300
