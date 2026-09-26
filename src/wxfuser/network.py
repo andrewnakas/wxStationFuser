@@ -53,15 +53,21 @@ def load_obs(root: Path, station_ids: list[str]) -> dict[str, pd.DataFrame]:
     return out
 
 
-def load_runs(root: Path, model: str, station_ids: set[str] | None = None) -> pd.DataFrame:
+def load_runs(root: Path, model: str, station_ids: set[str] | None = None,
+              columns: list[str] | None = None) -> pd.DataFrame:
+    """A model's stored runs, filtered to stations and columns as they are read.
+
+    Filtering in the reader rather than after it is the difference between holding
+    ten stations' runs and the whole network's: HRRR for Montana alone is 27 M rows.
+    """
+    import pyarrow.dataset as pads
+
     files = sorted((root / "points" / model).glob("*.parquet"))
-    frames = []
-    for f in files:
-        df = pd.read_parquet(f)
-        if station_ids is not None:
-            df = df[df["station_id"].isin(station_ids)]
-        frames.append(df)
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if not files:
+        return pd.DataFrame()
+    ds = pads.dataset([str(f) for f in files], format="parquet")
+    filt = pads.field("station_id").isin(sorted(station_ids)) if station_ids is not None else None
+    return ds.to_table(filter=filt, columns=columns).to_pandas()
 
 
 def align_runs(runs: pd.DataFrame, model: str, issue_hours: list[int], variables: list[str],
@@ -94,8 +100,15 @@ def align_runs(runs: pd.DataFrame, model: str, issue_hours: list[int], variables
 
 
 def build_dataset(root: str | Path, models: list[str], variable: str, *,
-                  issue_hours: tuple[int, ...] = (3, 15), states: list[str] | None = None) -> pd.DataFrame:
+                  issue_hours: tuple[int, ...] = (3, 15), states: list[str] | None = None,
+                  station_batch: int = 10, issue_fraction: float = 1.0,
+                  seed: int = 0) -> pd.DataFrame:
     """The pooled training table for one variable: one row per (station, issue, lead).
+
+    Built a few stations at a time, keeping float32, so peak memory is one batch's runs
+    plus the finished table rather than every run in the network. ``issue_fraction``
+    keeps a random share of issue times (the same ones at every station), a way to
+    trade rows for memory without biasing toward any station or season.
 
     Columns: station_id, valid_time, lead_h, obs, fc_{model}..., fc_mean, fc_spread,
     nowcast_err, the station descriptors and calendar harmonics.
@@ -104,36 +117,53 @@ def build_dataset(root: str | Path, models: list[str], variable: str, *,
     stations = load_stations(root)
     if states:
         stations = stations[stations["state"].isin(states)]
-    ids = set(stations["station_id"])
-    obs = load_obs(root, sorted(ids))
-    aligned = []
-    for model in models:
-        runs = load_runs(root, model, ids)
-        # Derived variables (24 h snow) are computed while pairing, from their inputs.
-        a = align_runs(runs, model, list(issue_hours), derived.fetch_variables([variable]))
-        if not a.empty:
-            aligned.append(a)
-        print(f"  {model}: {len(runs):,} run rows -> {len(a):,} issue-aligned", flush=True)
-    if not aligned:
-        return pd.DataFrame()
-    fc_all = pd.concat(aligned, ignore_index=True)
+    ids = sorted(stations["station_id"])
+    inputs = derived.fetch_variables([variable])
+    cols = ["station_id", "init_time", "lead_h", "valid_time", *[f"fc_{v}" for v in inputs]]
+    rng = np.random.default_rng(seed)
+    keep_issue: dict = {}
 
     tables = []
-    for sid, fc in fc_all.groupby("station_id"):
-        ob = obs.get(sid)
-        if ob is None or ob.empty:
+    for i in range(0, len(ids), station_batch):
+        batch = set(ids[i : i + station_batch])
+        obs = load_obs(root, sorted(batch))
+        aligned = []
+        for model in models:
+            runs = load_runs(root, model, batch, columns=cols)
+            a = align_runs(runs, model, list(issue_hours), inputs)
+            del runs
+            if a.empty:
+                continue
+            if issue_fraction < 1.0:
+                issue = a["valid_time"] - pd.to_timedelta(a["lead_h"], unit="h")
+                for t in issue.unique():
+                    if t not in keep_issue:
+                        keep_issue[t] = rng.random() < issue_fraction
+                a = a[issue.map(keep_issue).to_numpy()]
+            aligned.append(a)
+        if not aligned:
             continue
-        built = pairs_mod.build_pairs(fc.drop(columns="station_id"), ob, sid, [variable])
-        wide = pairs_mod.to_wide(built, variable, models)
-        if wide.empty:
-            continue
-        wide["station_id"] = sid
-        tables.append(wide)
+        fc_all = pd.concat(aligned, ignore_index=True)
+        for sid, fc in fc_all.groupby("station_id"):
+            ob = obs.get(sid)
+            if ob is None or ob.empty:
+                continue
+            built = pairs_mod.build_pairs(fc.drop(columns="station_id"), ob, sid, [variable])
+            wide = pairs_mod.to_wide(built, variable, models)
+            if wide.empty:
+                continue
+            wide["station_id"] = sid
+            for c in wide.columns:
+                if wide[c].dtype == "float64":
+                    wide[c] = wide[c].astype("float32")
+            tables.append(wide)
+        print(f"  stations {min(i + station_batch, len(ids))}/{len(ids)}: "
+              f"{sum(len(t) for t in tables):,} rows", flush=True)
     if not tables:
         return pd.DataFrame()
     data = pd.concat(tables, ignore_index=True).merge(stations, on="station_id", how="left")
     vt = pd.to_datetime(data["valid_time"])
-    doy, hod = vt.dt.dayofyear.to_numpy(float), vt.dt.hour.to_numpy(float)
+    doy, hod = vt.dt.dayofyear.to_numpy(np.float32), vt.dt.hour.to_numpy(np.float32)
     data["sin_doy"], data["cos_doy"] = np.sin(2 * np.pi * doy / 365.25), np.cos(2 * np.pi * doy / 365.25)
     data["sin_hod"], data["cos_hod"] = np.sin(2 * np.pi * hod / 24), np.cos(2 * np.pi * hod / 24)
     return data

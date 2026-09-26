@@ -1,0 +1,60 @@
+name: Network train
+
+# Trains the network-wide calibration model from nakas/wxfuser-archive, scores it on
+# unseen stations and an unseen period, and publishes the models and their evaluation
+# back to the dataset under models/. Runs on a CI runner because the pooled table
+# outgrows a laptop.
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: 'Models to fuse'
+        default: 'hrrr'
+      variables:
+        description: 'Variables'
+        default: 'air_temp_c,precip_1h_mm,hn24_cm'
+      test_from:
+        description: 'Score only from this date (unseen period)'
+        default: '2025-10-01'
+      issue_fraction:
+        description: 'Share of issue times to train on (memory)'
+        default: '0.5'
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install
+        run: pip install -e ".[train,zarr]"
+      - name: Train and evaluate
+        run: |
+          wxfuser network-train --fetch --archive archive/hub \
+            --models "${{ inputs.models }}" --variables "${{ inputs.variables }}" \
+            --test-from "${{ inputs.test_from }}" --issue-fraction "${{ inputs.issue_fraction }}" \
+            --out "archive/network/${{ inputs.models }}"
+      - name: Publish models
+        if: always()
+        run: |
+          python - <<'PY'
+          from huggingface_hub import HfApi
+          import os
+          models = "${{ inputs.models }}".replace(",", "+")
+          HfApi().upload_folder(folder_path=f"archive/network/${{ inputs.models }}",
+                                path_in_repo=f"models/{models}", repo_id="nakas/wxfuser-archive",
+                                repo_type="dataset", commit_message=f"network models: {models}")
+          PY
+      - name: Summary
+        if: always()
+        run: cat archive/network/*/evaluation.json >> "$GITHUB_STEP_SUMMARY" || true

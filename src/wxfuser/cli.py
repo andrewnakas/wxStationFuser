@@ -426,7 +426,7 @@ def cmd_network_train(args) -> int:
     report = {}
     for variable in args.variables.split(","):
         print(f"== {variable}", flush=True)
-        data = network.build_dataset(root, models, variable)
+        data = network.build_dataset(root, models, variable, issue_fraction=args.issue_fraction)
         if data.empty:
             print("  no paired data")
             continue
@@ -891,6 +891,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--test-from", help="score only on hours from this date (and unseen stations)")
     p.add_argument("--folds", type=int, default=5)
     p.add_argument("--rounds", type=int, default=400)
+    p.add_argument("--issue-fraction", type=float, default=1.0,
+                   help="train on a random share of issue times, to fit in memory")
     p.add_argument("--out", default="archive/network")
     p.set_defaults(func=cmd_network_train)
 
