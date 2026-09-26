@@ -354,7 +354,10 @@ def fetch_snotel_hourly(triplet: str, start: date, end: date) -> pd.DataFrame:
         "elements": "TOBS,PREC,SNWD,WTEQ",
         "duration": "HOURLY",
         "beginDate": start.isoformat(),
-        "endDate": end.isoformat(),
+        # AWDB dates are station-local and the end date means its midnight, so asking
+        # for "through today" stopped 8+ hours short of now. A day more covers the
+        # UTC day being asked for.
+        "endDate": (end + timedelta(days=1)).isoformat(),
     }
     raw = _http(f"{AWDB}/data?" + urlencode(params))
     payload = json.loads(raw.decode("utf-8"))

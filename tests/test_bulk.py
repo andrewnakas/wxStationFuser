@@ -396,7 +396,7 @@ def test_snotel_requests_stay_under_awdbs_size_limit_and_stitch(monkeypatch):
     out = bulk_mod.snotel_observations(triplets, date(2025, 1, 1), date(2025, 12, 31))
     assert len(seen) > 1
     one = out[out["station_id"] == "0:UT:SNTL"].sort_values("valid_time")
-    assert len(one) == 365 * 24
+    assert len(one) == 366 * 24  # one day past the end: AWDB dates are station-local
     # Only the very first hour lacks an increment; window edges do not.
     assert one["precip_1h_mm"].isna().sum() == 1
     assert one["precip_1h_mm"].dropna().round(3).eq(0.254).all()

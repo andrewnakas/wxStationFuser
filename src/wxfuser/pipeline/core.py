@@ -16,7 +16,7 @@ every run is what makes this adaptive rather than a one-time calibration.
 from __future__ import annotations
 
 import os
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -156,8 +156,11 @@ def backfill_pairs(station: Station, years: float = 2.0, previous_runs_days: int
     # Observations run through today even though archived forecasts stop at yesterday:
     # the freshest hours pair with nothing yet, but they are what the live forecast's
     # nowcast feature and its obs_latest stamp need.
-    print(f"  fetching observations {start} .. {date.today()}", flush=True)
-    observations = gather_observations(station, start, date.today())
+    # UTC, not the machine's local date: west of Greenwich the local date lags UTC for
+    # the evening hours, which is exactly when a fresh calibration is often run.
+    today_utc = datetime.now(UTC).date()
+    print(f"  fetching observations {start} .. {today_utc}", flush=True)
+    observations = gather_observations(station, start, today_utc)
     print(f"  obs rows: {len(observations)}", flush=True)
     if observations.empty:
         return pd.DataFrame()

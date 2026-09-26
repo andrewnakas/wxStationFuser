@@ -264,8 +264,11 @@ def snotel_observations(
         span = max(1, AWDB_STATION_DAYS // len(batch))
         merged: dict[str, dict[str, list]] = {}
         cursor = start
-        while cursor <= end:
-            window_end = min(cursor + timedelta(days=span - 1), end)
+        # AWDB dates are station-local, so the span runs a day past `end` to cover
+        # the UTC day asked for (see obs.fetch_snotel_hourly).
+        last = end + timedelta(days=1)
+        while cursor <= last:
+            window_end = min(cursor + timedelta(days=span - 1), last)
             params = {
                 "stationTriplets": ",".join(batch),
                 "elements": "TOBS,PREC,SNWD,WTEQ",
