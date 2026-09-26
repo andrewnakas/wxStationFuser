@@ -33,6 +33,11 @@ from wxfuser.config import load_configs, quantiles
 from wxfuser.models.tier1_emos import clamp_quantiles
 
 FEATURES_BASE = ["fc_mean", "fc_spread", "lead_h", "sin_doy", "cos_doy", "sin_hod", "cos_hod"]
+# Included only when enough training rows carry it (issue-aligned sources with fresh
+# observations); see pairs.add_nowcast_error. The fitted state records its feature
+# list, so boosters trained before or without it keep predicting unchanged.
+NOWCAST_FEATURE = "nowcast_err"
+NOWCAST_MIN_FRACTION = 0.2
 
 
 def available() -> bool:
@@ -63,6 +68,8 @@ def build_features(df: pd.DataFrame, models: list[str]) -> pd.DataFrame:
     out["cos_doy"] = np.cos(2 * np.pi * doy / 365.25)
     out["sin_hod"] = np.sin(2 * np.pi * hod / 24.0)
     out["cos_hod"] = np.cos(2 * np.pi * hod / 24.0)
+    out[NOWCAST_FEATURE] = (df[NOWCAST_FEATURE].to_numpy(dtype=float)
+                            if NOWCAST_FEATURE in df else np.nan)
     return out
 
 
@@ -90,6 +97,8 @@ def fit(pairs: pd.DataFrame, variable: str, models: list[str]) -> dict:
     X = build_features(df, models)
     y = df["obs"].to_numpy(dtype=float)
     names = feature_names(models)
+    if X[NOWCAST_FEATURE].notna().mean() >= NOWCAST_MIN_FRACTION:
+        names = [*names, NOWCAST_FEATURE]
     X = X[names]
 
     # Hold out the most recent block for early stopping — validating on a random split

@@ -33,6 +33,7 @@ from wxfuser.data.obs import (
     OBS_COLUMNS,
     USER_AGENT,
     conform,
+    gauge_increments,
     snotel_local_to_utc,
     snotel_utc_offsets,
 )
@@ -244,8 +245,8 @@ def snotel_observations(
     would dominate every refresh.
 
     Elements: TOBS is observed air temperature in Fahrenheit; PREC accumulates through the
-    water year, so hourly precipitation is its positive first difference — negative steps
-    are the sensor's seasonal reset, not negative rainfall.
+    water year, and hourly precipitation is its jitter-free increment (obs.gauge_increments).
+    SNWD and WTEQ are snow depth and snow water equivalent, in inches.
     """
     if not triplets:
         return pd.DataFrame(columns=OBS_COLUMNS)
@@ -310,7 +311,7 @@ def _normalise_snotel(station: dict, offsets: dict[str, float] | None = None) ->
     out = pd.DataFrame(index=df.index)
     out["air_temp_c"] = (df["TOBS"] - 32.0) * 5.0 / 9.0 if "TOBS" in df else np.nan
     if "PREC" in df:
-        out["precip_1h_mm"] = (df["PREC"].diff() * 25.4).clip(lower=0.0)
+        out["precip_1h_mm"] = gauge_increments(df["PREC"] * 25.4)
     else:
         out["precip_1h_mm"] = np.nan
     # AWDB reports snow depth and SWE in inches.

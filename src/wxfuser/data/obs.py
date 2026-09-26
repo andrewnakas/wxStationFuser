@@ -108,6 +108,37 @@ def _empty() -> pd.DataFrame:
     return pd.DataFrame(columns=OBS_COLUMNS)
 
 
+# A drop larger than this in a cumulative gauge is a reset (SNOTEL zeroes PREC each
+# 1 October), not noise. Real jitter is a few tenths of an inch.
+GAUGE_RESET_DROP_MM = 50.0
+
+
+def gauge_increments(cumulative_mm: pd.Series) -> pd.Series:
+    """Per-interval precipitation from a cumulative gauge, with sensor jitter removed.
+
+    The obvious method, clipping the positive first differences, turns noise into
+    rain. A weighing gauge that reads 12.3, 12.4, 12.3 inches has had no precipitation,
+    but the up-tick counts 2.5 mm and the down-tick is discarded. At Snowbird over
+    summer 2026 that booked 2,073 mm against a real gain of 183 mm, with 28% of hours
+    marked wet instead of about 4%.
+
+    Each reading is replaced by the minimum of itself and every later reading (a future
+    minimum), which caps any rise the gauge later gives back. Increments of that
+    non-decreasing series are then real accumulation. Resets split the series into
+    segments, and the first reading of each segment has no increment.
+    """
+    s = pd.Series(cumulative_mm, dtype="float64")
+    out = pd.Series(np.nan, index=s.index)
+    valid = s.dropna()
+    if valid.empty:
+        return out
+    seg = (valid.diff() < -GAUGE_RESET_DROP_MM).cumsum()
+    for _, part in valid.groupby(seg):
+        floor = part[::-1].cummin()[::-1]
+        out.loc[part.index] = floor.diff().clip(lower=0.0)
+    return out
+
+
 def conform(out: pd.DataFrame) -> pd.DataFrame:
     """The observation schema exactly: missing columns added as NaN, extras dropped.
 
@@ -346,9 +377,8 @@ def fetch_snotel_hourly(triplet: str, start: date, end: date) -> pd.DataFrame:
     out = pd.DataFrame(index=df.index)
     out["air_temp_c"] = F_TO_C(df["TOBS"]) if "TOBS" in df else np.nan
     if "PREC" in df:
-        # Cumulative for the water year; hourly increment = positive diff (negatives are
-        # the sensor's end-of-season reset, not negative precipitation).
-        out["precip_1h_mm"] = (df["PREC"].diff() * IN_TO_MM).clip(lower=0.0)
+        # Cumulative for the water year; see gauge_increments for why not a plain diff.
+        out["precip_1h_mm"] = gauge_increments(df["PREC"] * IN_TO_MM)
     else:
         out["precip_1h_mm"] = np.nan
     out["snow_depth_cm"] = df["SNWD"] * 2.54 if "SNWD" in df else np.nan

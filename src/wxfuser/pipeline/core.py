@@ -375,6 +375,25 @@ def live_forecast_wide(station: Station, models: list[str], variables: list[str]
     return base
 
 
+def with_live_nowcast(vf: pd.DataFrame, obs_history: pd.DataFrame, variable: str) -> pd.DataFrame:
+    """Attach ``nowcast_err`` to a live frame, from the stored observation history.
+
+    Same definition as training (pairs.add_nowcast_error). If the observation an hour
+    before issue has not arrived, the feature is simply missing and tier 3 treats it as
+    unknown, as it learned to for stale hours.
+    """
+    if vf.empty or obs_history is None or obs_history.empty:
+        return vf.assign(nowcast_err=np.nan)
+    from wxfuser.data.obs import OBS_FOR_VARIABLE
+
+    hist = derived.add_obs_columns(obs_history, [variable])
+    col = OBS_FOR_VARIABLE.get(variable)
+    if col not in hist:
+        return vf.assign(nowcast_err=np.nan)
+    series = hist.set_index(pd.to_datetime(hist["valid_time"]))[col].astype(float)
+    return pairs_mod.add_nowcast_error(vf.assign(lead_source="live"), series)
+
+
 def variable_frame(fc_wide: pd.DataFrame, variable: str, models: list[str]) -> pd.DataFrame:
     """Slice the live forecast down to one variable, in the shape the tiers expect."""
     out = fc_wide[["valid_time", "lead_h"]].copy()
@@ -469,7 +488,7 @@ def run_station(
         if trained.get("status") != "ok":
             continue
         wide = trained["wide"]
-        vf = variable_frame(fc_wide, variable, models)
+        vf = with_live_nowcast(variable_frame(fc_wide, variable, models), obs_history, variable)
         pred = predict_variable(trained, vf, models)
         if not pred.get("calibrated"):
             continue

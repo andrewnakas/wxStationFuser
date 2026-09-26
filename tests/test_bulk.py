@@ -337,3 +337,27 @@ def test_repair_leaves_a_station_alone_when_observations_do_not_arrive(tmp_path,
     monkeypatch.setattr(bulk_run, "gather_observations_bulk", lambda *a: {})
     assert bulk_run.repair_observations([st])[0]["status"] == "untouched"
     assert len(pairs_mod.read_archive(core.pairs_path(st))) == 3
+
+
+def test_gauge_jitter_is_not_precipitation():
+    """12.3, 12.4, 12.3 in is no rain. Clipped differences called it 2.5 mm, which at
+    Snowbird booked 2,073 mm over a summer whose gauge gained 183 mm."""
+    from wxfuser.data.obs import gauge_increments
+
+    jitter = pd.Series([312.4, 314.9, 312.4, 314.9, 312.4, 312.4])
+    assert gauge_increments(jitter).fillna(0).sum() == pytest.approx(0.0)
+
+    rain = pd.Series([100.0, 100.0, 102.5, 105.0, 104.9, 105.0])
+    inc = gauge_increments(rain)
+    assert np.isnan(inc.iloc[0])
+    assert inc.sum() == pytest.approx(5.0, abs=0.11)
+
+
+def test_gauge_reset_starts_a_new_segment():
+    from wxfuser.data.obs import gauge_increments
+
+    wy = pd.Series([900.0, 902.5, 0.0, 0.0, 2.5])  # 1 October zeroes the gauge
+    inc = gauge_increments(wy)
+    assert inc.iloc[1] == pytest.approx(2.5)
+    assert np.isnan(inc.iloc[2])  # no increment across a reset
+    assert inc.iloc[4] == pytest.approx(2.5)

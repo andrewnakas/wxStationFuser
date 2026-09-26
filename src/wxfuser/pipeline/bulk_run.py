@@ -309,7 +309,7 @@ def _finish_station(
         if trained.get("status") != "ok":
             continue
         wide = trained["wide"]
-        vf = core.variable_frame(live, variable, models)
+        vf = core.with_live_nowcast(core.variable_frame(live, variable, models), obs_history, variable)
         pred = core.predict_variable(trained, vf, models)
         if not pred.get("calibrated"):
             continue

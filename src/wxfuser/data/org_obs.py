@@ -28,7 +28,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from wxfuser.data.obs import OBS_COLUMNS, qc
+from wxfuser.data.obs import OBS_COLUMNS, gauge_increments, qc
 
 # Where org stores live during a run. ``wxfuser org-run`` points this at the org's root.
 ORG_OBS_DIR = Path(os.environ.get("WXFUSER_ORG_OBS_DIR", "observations"))
@@ -214,7 +214,7 @@ def read_csv(
             vals = vals / 10.0  # the length converters give mm
         if cumulative:
             order = np.argsort(t.to_numpy())
-            inc = pd.Series(vals.to_numpy()[order]).diff().clip(lower=0.0)
+            inc = gauge_increments(pd.Series(vals.to_numpy()[order]))
             vals = pd.Series(np.empty(len(inc)))
             vals.iloc[order] = inc.to_numpy()
         out[target] = vals.to_numpy()

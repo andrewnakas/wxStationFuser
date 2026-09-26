@@ -137,7 +137,43 @@ def to_wide(pairs: pd.DataFrame, variable: str, models: list[str]) -> pd.DataFra
         out["fc_spread"] = out[model_cols].std(axis=1, skipna=True, ddof=0)
     out = out.dropna(subset=["fc_mean", "obs"])
     out["valid_time"] = pd.to_datetime(out["valid_time"])
+    obs_by_time = df.groupby("valid_time")[obs_col].last()
+    obs_by_time.index = pd.to_datetime(obs_by_time.index)
+    out = add_nowcast_error(out, obs_by_time)
     return out.sort_values("valid_time").reset_index(drop=True)
+
+
+# Sources whose rows share a real issue time. Open-Meteo archive rows carry nominal
+# leads, so "the observation when this forecast was issued" is undefined for them.
+ISSUE_KEYED_SOURCES = {"dyn", "live"}
+
+
+def add_nowcast_error(wide: pd.DataFrame, obs_by_time: pd.Series) -> pd.DataFrame:
+    """Add ``nowcast_err``: how wrong the fused model was just as the forecast was issued.
+
+    Defined as the observation one hour *before* the issue time minus the fused model's
+    first-hour forecast from that issue. The hour's gap is deliberate: at issue time the
+    current hour's observation has usually not arrived, so live forecasts can only ever
+    see the previous one, and training uses exactly what live will have. Model error
+    persists for hours (a cold pool the model missed at 06:00 is usually still there at
+    09:00), so this is the most informative single number for short leads. Tier 3
+    learns how fast its value decays with lead.
+    """
+    out = wide.copy()
+    out["nowcast_err"] = np.nan
+    if out.empty or "lead_source" not in out:
+        return out
+    keyed = out["lead_source"].isin(ISSUE_KEYED_SOURCES).to_numpy()
+    if not keyed.any():
+        return out
+    issue = pd.to_datetime(out["valid_time"]) - pd.to_timedelta(out["lead_h"], unit="h")
+    first = out[keyed & (out["lead_h"] == 1).to_numpy()]
+    fc1 = pd.Series(first["fc_mean"].to_numpy(), index=issue[first.index])
+    fc1 = fc1[~fc1.index.duplicated(keep="last")]
+    ob = obs_by_time[~obs_by_time.index.duplicated(keep="last")]
+    err = ob.reindex(issue - pd.Timedelta(hours=1)).to_numpy() - fc1.reindex(issue).to_numpy()
+    out["nowcast_err"] = np.where(keyed, err, np.nan)
+    return out
 
 
 def read_archive(path: str | Path) -> pd.DataFrame:
