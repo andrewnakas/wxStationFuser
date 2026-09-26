@@ -370,8 +370,11 @@ def cmd_calibrate(args) -> int:
         print(f"not published: {entry['status']}")
         return 1
     fc_path = org_run.forecast_path(spec)
+    payload = quick.withhold_unverifiable_snow(
+        json.loads(fc_path.read_text()), core.pairs_path(spec.to_station()))
+    emit.write_json(payload, fc_path)
     (out / "forecast.json").write_text(fc_path.read_text())
-    report = write_report(json.loads(fc_path.read_text()), out / "report.html")
+    report = write_report(payload, out / "report.html")
     print(f"\nforecast: {out / 'forecast.json'}\nreport:   {report}")
     return 0
 

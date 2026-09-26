@@ -43,6 +43,8 @@ def fmt_prob(p) -> str:
 
 
 def skill_sentence(skill: dict | None) -> str:
+    if skill and skill.get("reason"):
+        return f"Not yet verified: {skill['reason']}."
     if not skill or skill.get("status") != "verified" or skill.get("crpss_vs_raw") is None:
         return "Not yet verified: too little history to measure skill honestly."
     pct = round(skill["crpss_vs_raw"] * 100)

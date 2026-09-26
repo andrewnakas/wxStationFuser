@@ -291,3 +291,37 @@ def variables_for(columns: set[str]) -> list[str]:
         if obs_col in columns and var not in out:
             out.append(var)
     return out
+
+
+# A 24 h snow variable needs this many distinct snow days in its history before its
+# skill means anything. Below it, "better than raw" mostly measures predicting zero
+# through a snow-free summer, which is true and useless.
+MIN_SNOW_DAYS = 15
+
+
+def withhold_unverifiable_snow(payload: dict, pairs_path) -> dict:
+    """Replace the skill of snow variables with too few observed snow days by a reason."""
+    from wxfuser.data import pairs as pairs_mod
+
+    archive = pairs_mod.read_archive(pairs_path)
+    # A snow day is new snow on the depth sensor. A SWE gain alone is not one: rain on
+    # the pillow weighs the same, and summer at Snowbird had enough of it to pass a
+    # count of SWE-gain days while measuring nothing about snow.
+    depth = "obs_hn24_cm" if "obs_hn24_cm" in archive else None
+    for var in ("hn24_cm", "swe_24h_mm"):
+        if var not in payload.get("skill", {}):
+            continue
+        col = f"obs_{var}"
+        days = 0
+        if not archive.empty and col in archive:
+            snowing = archive[col] > 0
+            if depth:
+                snowing &= archive[depth] > 0
+            days = int(pd.to_datetime(archive.loc[snowing, "valid_time"]).dt.date.nunique())
+        if days < MIN_SNOW_DAYS:
+            payload["skill"][var] = {
+                "status": "warming_up",
+                "reason": f"only {days} snow days in the training history; skill is verified "
+                          f"after {MIN_SNOW_DAYS}",
+            }
+    return payload

@@ -108,3 +108,29 @@ def test_report_renders_standalone_and_honest():
     assert "not yet distinguishable" in out  # no claim without a clear interval
     assert "<svg" in out
     json.dumps(fc)  # the fixture itself is valid schema-shaped JSON
+
+
+def test_snow_skill_is_withheld_without_enough_snow_days(tmp_path):
+    from wxfuser.data import pairs as P
+
+    t = pd.date_range("2026-06-01", periods=24 * 100, freq="h")
+    arch = pd.DataFrame({"station_id": "s", "model": "gefs", "valid_time": t, "lead_h": 12,
+                         "lead_source": "dyn", "fc_hn24_cm": 0.0, "obs_hn24_cm": 0.0,
+                         "fc_swe_24h_mm": 0.0, "obs_swe_24h_mm": 0.0, "obs_source": "x"})
+    arch.loc[arch.index[:24 * 20], "obs_swe_24h_mm"] = 5.0  # 20 days of rain on the pillow
+    arch.loc[arch.index[24 * 40:24 * 60], ["obs_swe_24h_mm", "obs_hn24_cm"]] = [5.0, 4.0]  # 20 snow days
+    P.write_archive(arch, tmp_path / "p.parquet")
+    payload = {"skill": {"hn24_cm": {"status": "verified", "crpss_vs_raw": 0.7, "beats_raw": 1},
+                         "swe_24h_mm": {"status": "verified", "crpss_vs_raw": 0.2, "beats_raw": 1}}}
+    out = quick.withhold_unverifiable_snow(payload, tmp_path / "p.parquet")
+    # 20 real snow days: both verify. Rain on the pillow never counted.
+    assert out["skill"]["hn24_cm"]["status"] == "verified"
+    assert out["skill"]["swe_24h_mm"]["status"] == "verified"
+    arch.loc[arch.index[24 * 40:24 * 60], "obs_hn24_cm"] = 0.0  # no depth gain: only rain
+    P.write_archive(arch, tmp_path / "p.parquet")
+    payload["skill"]["swe_24h_mm"] = {"status": "verified", "crpss_vs_raw": 0.7, "beats_raw": 1}
+    out = quick.withhold_unverifiable_snow(payload, tmp_path / "p.parquet")
+    assert out["skill"]["swe_24h_mm"]["status"] == "warming_up"
+    from wxfuser.report import skill_sentence
+
+    assert skill_sentence(out["skill"]["swe_24h_mm"]).startswith("Not yet verified: only 0 snow days")
