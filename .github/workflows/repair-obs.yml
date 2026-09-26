@@ -1,0 +1,86 @@
+name: Repair observations
+
+# Re-pairs stored forecasts with re-fetched observations for one network, keeping
+# every forecast row. For archives whose observation side is known to be wrong, as
+# SNOTEL's was while its local-standard-time stamps were read as UTC. Re-bootstrapping
+# would re-download years of forecasts that were never wrong.
+#
+# Pause the refresh workflow while this runs. A refresh shard that restored before a
+# repair uploaded would push the old pairs back over the repaired ones.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: 'Network to repair (e.g. SNOTEL)'
+        required: true
+        default: 'SNOTEL'
+      shards:
+        description: 'Number of parallel workers'
+        required: false
+        default: '6'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repair-obs
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - id: plan
+        env:
+          SHARDS: ${{ inputs.shards || '6' }}
+        run: |
+          python -c "
+          import json, os
+          n = int(os.environ['SHARDS'])
+          print('matrix=' + json.dumps(list(range(n))))
+          print('shards=' + str(n))
+          " >> "$GITHUB_OUTPUT"
+
+  repair:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        shard: ${{ fromJson(needs.plan.outputs.matrix) }}
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: pip install -e ".[train]"
+
+      - name: Stagger the restore
+        run: sleep $(( ${{ matrix.shard }} * 45 ))
+
+      # No state, no repair: this job only rewrites archives it restored.
+      - name: Restore state
+        run: python scripts/sync_state.py download --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
+
+      - name: Repair shard
+        run: |
+          wxfuser repair-obs --sources "${{ inputs.sources }}" \
+            --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }}
+
+      - name: Save state
+        run: |
+          for i in 1 2 3; do
+            python scripts/sync_state.py upload --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} && break
+            echo "state upload attempt $i failed; waiting before retrying"
+            sleep $((i * 180))
+          done

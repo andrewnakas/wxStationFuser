@@ -245,6 +245,25 @@ def _checkpoint_state(shard: int | None = None, of: int | None = None) -> None:
         print(f"  WARN: checkpoint upload failed ({exc})", flush=True)
 
 
+def cmd_repair_obs(args) -> int:
+    """Re-pair stored forecasts against re-fetched observations; see repair_observations."""
+    from wxfuser.pipeline import bulk_run
+
+    stations = filter_sources(load_registry(), args.sources)
+    stations = select_shard(stations, args.shard, args.of)
+    step = args.checkpoint_every or len(stations) or 1
+    repaired = untouched = 0
+    for i in range(0, len(stations), step):
+        for r in bulk_run.repair_observations(stations[i : i + step]):
+            if r["status"] == "repaired":
+                repaired += 1
+            else:
+                untouched += 1
+        _checkpoint_state(args.shard, args.of)
+    print(f"repair complete: {repaired} repaired, {untouched} left untouched")
+    return 0
+
+
 def cmd_merge_index(args) -> int:
     """Combine per-shard index fragments into the single index the site reads.
 
@@ -558,6 +577,19 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--limit", type=int,
                    help="process at most this many stations per shard")
     p.set_defaults(func=cmd_refresh)
+
+    p = sub.add_parser(
+        "repair-obs",
+        help="re-pair stored forecasts with re-fetched observations, for archives whose "
+             "observation side is known to be wrong",
+    )
+    p.add_argument("--sources", required=True,
+                   help="networks to repair, e.g. SNOTEL; required so a repair is never "
+                        "run across the whole registry by accident")
+    p.add_argument("--shard", type=int)
+    p.add_argument("--of", type=int)
+    p.add_argument("--checkpoint-every", type=int, default=40)
+    p.set_defaults(func=cmd_repair_obs)
 
     p = sub.add_parser("merge-index", help="combine per-shard index fragments")
     p.set_defaults(func=cmd_merge_index)

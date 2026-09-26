@@ -366,3 +366,52 @@ def _finish_station(
         "train_days": methods.get("air_temp_c", {}).get("train_days"),
         "obs_age_days": obs_age_days,
     }
+
+
+def repair_observations(stations: list[Station]) -> list[dict]:
+    """Re-pair stored forecasts with freshly fetched observations.
+
+    For when the observation half of an archive is wrong but the forecast half is fine,
+    as it was for SNOTEL while its local-time stamps were read as UTC. Re-bootstrapping
+    would re-download years of forecasts, the scarcest resource the system spends, to
+    replace data that was never wrong. This keeps every stored forecast row, discards
+    the observation history, and joins those rows against observations fetched again.
+
+    A station whose observations cannot be fetched is left exactly as it was: a
+    misaligned archive still beats an empty one.
+    """
+    archives = {}
+    for st in stations:
+        pairs = pairs_mod.read_archive(core.pairs_path(st))
+        if not pairs.empty:
+            archives[st.id] = pairs
+    todo = [s for s in stations if s.id in archives]
+    if not todo:
+        return []
+    start = min(pd.to_datetime(a["valid_time"]).min() for a in archives.values()).date()
+    end = max(pd.to_datetime(a["valid_time"]).max() for a in archives.values()).date()
+    print(f"[repair] {len(todo)} stations, observations {start}..{end}", flush=True)
+    observations = gather_observations_bulk(todo, start - timedelta(days=1), end + timedelta(days=1))
+
+    report = []
+    for st in todo:
+        obs = observations.get(st.id)
+        before = archives[st.id]
+        if obs is None or obs.empty:
+            print(f"[{st.id}] no observations fetched; left untouched", flush=True)
+            report.append({"id": st.id, "status": "untouched", "rows_before": len(before)})
+            continue
+        fc_cols = [c for c in before.columns
+                   if c not in ("station_id", "obs_source") and not c.startswith("obs_")]
+        forecasts = before[fc_cols].drop_duplicates(pairs_mod.PAIR_KEY, keep="last")
+        variables = [c[3:] for c in fc_cols if c.startswith("fc_")]
+        rebuilt = pairs_mod.build_pairs(forecasts, obs, st.id, variables)
+        core.obs_path(st).unlink(missing_ok=True)
+        core.merge_obs_history(st, obs)
+        if rebuilt.empty:
+            core.pairs_path(st).unlink(missing_ok=True)
+        else:
+            pairs_mod.write_archive(rebuilt, core.pairs_path(st))
+        report.append({"id": st.id, "status": "repaired", "rows_before": len(before),
+                       "rows_after": len(rebuilt)})
+    return report

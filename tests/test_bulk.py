@@ -286,3 +286,54 @@ def test_rebuild_discards_history_and_demands_a_bootstrap(tmp_path, monkeypatch)
 
     with pytest.raises(SystemExit, match="needs --bootstrap"):
         cli.main(["refresh", "--rebuild"])
+
+
+def test_repair_keeps_forecasts_and_rejoins_corrected_observations(tmp_path, monkeypatch):
+    from wxfuser.data import pairs as pairs_mod
+    from wxfuser.data.registry import Station
+    from wxfuser.pipeline import bulk_run, core
+
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    st = Station(id="766:UT:SNTL", name="Snowbird", lat=40.57, lon=-111.66,
+                 variables=["air_temp_c"])
+    hours = pd.date_range("2026-01-11", periods=24, freq="h")
+    fc = pd.DataFrame({"model": "gfs_seamless", "valid_time": hours, "lead_h": 24,
+                       "lead_source": "prev_runs", "fc_air_temp_c": np.arange(24.0)})
+    shifted = pd.DataFrame({"station_id": st.id, "valid_time": hours - pd.Timedelta(hours=8),
+                            "air_temp_c": np.arange(24.0), "source": "SNOTEL"})
+    pairs_mod.write_archive(pairs_mod.build_pairs(fc, shifted, st.id, ["air_temp_c"]),
+                            core.pairs_path(st))
+    corrected = shifted.assign(valid_time=hours)
+    for c in OBS_COLUMNS:
+        if c not in corrected:
+            corrected[c] = np.nan
+    monkeypatch.setattr(bulk_run, "gather_observations_bulk",
+                        lambda stations, start, end: {st.id: corrected[OBS_COLUMNS]})
+
+    stored = len(pairs_mod.read_archive(core.pairs_path(st)))
+    assert stored == 16  # the 8-hour shift left only the overlapping hours paired
+
+    report = bulk_run.repair_observations([st])
+    assert report[0]["status"] == "repaired"
+    out = pairs_mod.read_archive(core.pairs_path(st))
+    # Every stored forecast row survives, and forecast and observation now agree hour
+    # for hour. Rows the shift never stored cannot be recovered, and are not invented.
+    assert len(out) == stored
+    assert np.allclose(out["fc_air_temp_c"], out["obs_air_temp_c"])
+
+
+def test_repair_leaves_a_station_alone_when_observations_do_not_arrive(tmp_path, monkeypatch):
+    from wxfuser.data import pairs as pairs_mod
+    from wxfuser.data.registry import Station
+    from wxfuser.pipeline import bulk_run, core
+
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    st = Station(id="1:CO:SNTL", name="x", lat=40.0, lon=-106.0)
+    archive = pd.DataFrame({"station_id": st.id, "model": "m",
+                            "valid_time": pd.date_range("2026-01-01", periods=3, freq="h"),
+                            "lead_h": 3, "lead_source": "hist", "fc_air_temp_c": 1.0,
+                            "obs_air_temp_c": 2.0, "obs_source": "SNOTEL"})
+    pairs_mod.write_archive(archive, core.pairs_path(st))
+    monkeypatch.setattr(bulk_run, "gather_observations_bulk", lambda *a: {})
+    assert bulk_run.repair_observations([st])[0]["status"] == "untouched"
+    assert len(pairs_mod.read_archive(core.pairs_path(st))) == 3
