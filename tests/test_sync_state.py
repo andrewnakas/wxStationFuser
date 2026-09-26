@@ -296,3 +296,52 @@ def test_a_bounding_box_selects_a_region_and_rejects_a_malformed_one():
     import pytest as _pytest
     with _pytest.raises(SystemExit):
         cli.filter_bbox(stations, "not-a-box")
+
+
+class _Entry:
+    def __init__(self, path, data, *, lfs, recorded_size=None):
+        import hashlib
+
+        self.path = path
+        self.size = recorded_size if recorded_size is not None else len(data)
+        self.blob_id = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+        self.lfs = {"sha256": hashlib.sha256(data).hexdigest()} if lfs else None
+
+
+def _mismatch_hub(hub, monkeypatch, served: dict[str, bytes], entries: list):
+    class _Info:
+        sha = "abc123"
+
+    api = hub["api"]
+    api.repo_info = lambda **_: _Info()
+    api.list_repo_tree = lambda *a, **k: iter(entries)
+
+    def bad_snapshot(**kw):
+        raise RuntimeError("Task error: File size mismatch: expected 11532 bytes but "
+                           "downloaded 11625 bytes")
+
+    monkeypatch.setattr("huggingface_hub.snapshot_download", bad_snapshot)
+    monkeypatch.setattr(sync_state, "_fetch_bytes",
+                        lambda url, token: served[url.split("/resolve/abc123/")[1]])
+
+
+def test_wrong_size_metadata_falls_back_to_a_hash_verified_restore(hub, monkeypatch):
+    """The hub once recorded a parquet's size wrongly while serving intact bytes, and that
+    alone failed every shard's restore. Content that matches its hash is accepted."""
+    good = b"PAR1" + b"\x00" * 93
+    mine = _Entry("obs/750_NV_SNTL.parquet", good, lfs=True, recorded_size=11532)
+    other = _Entry("pairs/elsewhere.parquet", b"not mine", lfs=True)
+    _mismatch_hub(hub, monkeypatch, {mine.path: good, other.path: b"not mine"}, [mine, other])
+
+    assert sync_state.download(paths="obs") == 0
+    assert (sync_state.STATE_DIR / "obs" / "750_NV_SNTL.parquet").read_bytes() == good
+    assert not (sync_state.STATE_DIR / "pairs" / "elsewhere.parquet").exists()
+    assert (sync_state.STATE_DIR / sync_state.RESTORE_MARKER).exists()
+
+
+def test_the_fallback_still_refuses_content_that_is_actually_wrong(hub, monkeypatch):
+    entry = _Entry("obs/a.parquet", b"what was uploaded", lfs=True)
+    _mismatch_hub(hub, monkeypatch, {entry.path: b"something else"}, [entry])
+
+    assert sync_state.download() == 1
+    assert not (sync_state.STATE_DIR / sync_state.RESTORE_MARKER).exists()

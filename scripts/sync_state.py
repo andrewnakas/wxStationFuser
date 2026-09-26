@@ -166,9 +166,18 @@ def download(shard: int | None = None, of: int | None = None, paths: str | None 
             "snapshot_download",
         )
     except Exception as exc:  # noqa: BLE001
-        print(f"ERROR: {repo} exists but could not be restored ({exc}).")
-        print("Refusing to continue: proceeding would overwrite it with shallow archives.")
-        return 1
+        if not _is_size_mismatch(exc):
+            print(f"ERROR: {repo} exists but could not be restored ({exc}).")
+            print("Refusing to continue: proceeding would overwrite it with shallow archives.")
+            return 1
+        print(f"WARN: bulk restore rejected a file ({exc}); restoring file by file, "
+              "verifying content by hash instead of recorded size", flush=True)
+        try:
+            path = _download_verified(repo, token, allow)
+        except Exception as exc2:  # noqa: BLE001
+            print(f"ERROR: {repo} exists but could not be restored ({exc2}).")
+            print("Refusing to continue: proceeding would overwrite it with shallow archives.")
+            return 1
 
     n = sum(1 for _ in Path(path).rglob("*") if _.is_file())
     # Record what was restored, not just that something was. Local state after a scoped
@@ -178,6 +187,86 @@ def download(shard: int | None = None, of: int | None = None, paths: str | None 
     (STATE_DIR / RESTORE_MARKER).write_text(f"{repo}\n{scope}\n")
     print(f"restored {n} state files from {repo} ({scope})")
     return 0
+
+
+def _is_size_mismatch(exc: Exception) -> bool:
+    text = str(exc).lower()
+    return "size mismatch" in text or ("consistency check failed" in text and "size" in text)
+
+
+def _fetch_bytes(url: str, token: str | None) -> bytes:
+    import requests
+
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    resp = requests.get(url, headers=headers, timeout=120)
+    resp.raise_for_status()
+    return resp.content
+
+
+def _content_matches(entry, data: bytes) -> bool:
+    """Whether downloaded bytes are the file the tree lists, judged by content hash.
+
+    LFS files carry the SHA-256 of their content; plain git files carry a blob id. The
+    recorded *size* is deliberately not consulted. On 25 September the hub listed
+    obs/750_NV_SNTL.parquet at 11,532 bytes while serving 11,625 bytes whose SHA-256
+    matched its LFS pointer exactly. The file was intact and only the metadata was
+    wrong, yet the client's size check failed every shard restore that touched it.
+    """
+    import hashlib
+
+    lfs = getattr(entry, "lfs", None)
+    if lfs is not None:
+        want = getattr(lfs, "sha256", None) or (lfs.get("sha256") if isinstance(lfs, dict) else None)
+        return hashlib.sha256(data).hexdigest() == want
+    blob = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+    return blob == getattr(entry, "blob_id", None)
+
+
+def _download_verified(repo: str, token: str | None, allow: list[str] | None) -> str:
+    """Restore file by file at one pinned revision, checking each file's content hash.
+
+    The fallback for when the bulk restore rejects a file on its recorded size. It is
+    slower than a snapshot, but it restores exactly the same set of files and fails
+    just as loudly on anything whose content is actually wrong.
+    """
+    import fnmatch
+    from concurrent.futures import ThreadPoolExecutor
+
+    from huggingface_hub import hf_hub_url
+
+    api, _ = _api()
+    revision = with_rate_limit_retry(
+        lambda: api.repo_info(repo_id=repo, repo_type="dataset", token=token).sha,
+        "repo_info",
+    )
+    tree = with_rate_limit_retry(
+        lambda: list(api.list_repo_tree(repo, repo_type="dataset", recursive=True,
+                                        revision=revision, token=token)),
+        "list_repo_tree",
+    )
+    files = [e for e in tree if getattr(e, "blob_id", None) is not None]
+    if allow is not None:
+        files = [e for e in files if any(fnmatch.fnmatch(e.path, pat) for pat in allow)]
+
+    repaired: list[str] = []
+
+    def one(entry) -> None:
+        url = hf_hub_url(repo, entry.path, repo_type="dataset", revision=revision)
+        data = with_rate_limit_retry(lambda: _fetch_bytes(url, token), f"fetch {entry.path}")
+        if not _content_matches(entry, data):
+            raise RuntimeError(f"{entry.path}: content does not match its recorded hash")
+        if getattr(entry, "size", None) not in (None, len(data)):
+            repaired.append(entry.path)
+        dest = STATE_DIR / entry.path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(data)
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        list(pool.map(one, files))
+    for path in repaired:
+        print(f"  restored {path}: content verified, hub size metadata wrong", flush=True)
+    print(f"verified restore: {len(files)} files, {len(repaired)} with wrong size metadata")
+    return str(STATE_DIR)
 
 
 def _restored_scope() -> str | None:
