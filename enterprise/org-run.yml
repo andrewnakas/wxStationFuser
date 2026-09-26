@@ -1,0 +1,107 @@
+# Template for the PRIVATE enterprise runner repository (e.g. tree60-enterprise-runner),
+# copied there as .github/workflows/org-run.yml. It lives outside .github/ here, so it
+# can never run from this public repository, whose Actions logs anyone can read.
+#
+# The private repository holds only this workflow and orgs.txt (one org id per line).
+# Each org's specs, observations and forecasts stay in R2 under orgs/{org}/.
+#
+# Secrets (private repo only): R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
+# Optional variable: WXFUSER_REF, the fuser tag or commit to run (pin it; main moves).
+
+name: Org forecasts
+
+on:
+  schedule:
+    - cron: '20 * * * *'     # hourly: short leads are the product, so freshness matters
+    - cron: '40 9 * * 0'     # weekly re-evaluation and champion choice
+  workflow_dispatch:
+    inputs:
+      org:
+        description: 'One org id (blank: every org in orgs.txt)'
+        required: false
+        default: ''
+      bootstrap:
+        description: 'Backfill history (new org or new spec)'
+        type: boolean
+        default: false
+      years:
+        description: 'Years to backfill'
+        default: '2'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      orgs: ${{ steps.orgs.outputs.orgs }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: orgs
+        env:
+          ONE: ${{ inputs.org }}
+        run: |
+          python - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          one = os.environ.get("ONE", "").strip()
+          orgs = [one] if one else [l.strip() for l in open("orgs.txt") if l.strip() and not l.startswith("#")]
+          assert all(re.fullmatch(r"[a-z0-9][a-z0-9-]{1,62}", o) for o in orgs), orgs
+          print("orgs=" + json.dumps(orgs))
+          EOF
+
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        org: ${{ fromJson(needs.plan.outputs.orgs) }}
+    # One run per org at a time. A second would pull state the first has not pushed.
+    concurrency:
+      group: org-${{ matrix.org }}
+      cancel-in-progress: false
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      ROOT: ${{ github.workspace }}/org
+    steps:
+      # Configs are read from the checkout (configs/), so the fuser is installed
+      # editable from a checkout, never from a wheel.
+      - uses: actions/checkout@v4
+        with:
+          repository: andrewnakas/wxStationFuser
+          ref: ${{ vars.WXFUSER_REF || 'main' }}
+          path: wxfuser
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install
+        run: pip install -e "./wxfuser[train,zarr,r2]"
+
+      - name: Pull org state
+        run: wxfuser org-sync pull --org ${{ matrix.org }} --root "$ROOT"
+
+      - name: Run specs
+        working-directory: wxfuser
+        env:
+          BOOTSTRAP: ${{ inputs.bootstrap && '--bootstrap' || '' }}
+          EVALUATE: ${{ github.event.schedule == '40 9 * * 0' && '--evaluate' || '' }}
+        run: |
+          test -f "$ROOT/specs.yaml" || { echo "no specs.yaml for ${{ matrix.org }}"; exit 0; }
+          wxfuser org-run --specs "$ROOT/specs.yaml" --root "$ROOT" \
+            --years ${{ inputs.years || '2' }} $BOOTSTRAP $EVALUATE
+
+      # Push whatever was produced, even after a failure part-way: a spec that published
+      # should not be lost because a later one failed.
+      - name: Push org state
+        if: always()
+        run: |
+          for i in 1 2 3; do
+            wxfuser org-sync push --org ${{ matrix.org }} --root "$ROOT" && break
+            sleep $((i * 60))
+          done

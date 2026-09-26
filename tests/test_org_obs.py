@@ -129,3 +129,25 @@ def test_snow_depth_uploads_are_kept_in_centimetres(tmp_path):
     hourly = org_obs.fetch_org_hourly(SID, "2026-01-11", "2026-01-11", tmp_path / "obs")
     # A state, not an amount: the hour takes its last reading, never a sum.
     assert hourly["snow_depth_cm"].max() < 110
+
+
+def test_uploads_are_ingested_once_and_only_for_the_org(tmp_path):
+    up = tmp_path / "uploads"
+    up.mkdir()
+    csv = _csv(tmp_path, name="uploads/plot.csv")
+    (up / "plot.json").write_text(json.dumps({
+        "station": SID, "time_col": "Timestamp", "tz": "UTC",
+        "columns": ["air_temp_c=TempF:F"]}))
+    _csv(tmp_path, name="uploads/other.csv")
+    (up / "other.json").write_text(json.dumps({
+        "station": "ORG:someone-else:x", "time_col": "Timestamp", "tz": "UTC",
+        "columns": ["air_temp_c=TempF:F"]}))
+    _csv(tmp_path, name="uploads/nosidecar.csv")
+
+    root = tmp_path / "obs"
+    assert org_obs.ingest_uploads(up, "wasatch-patrol", root) == ["plot.csv"]
+    assert org_obs.ingest_uploads(up, "wasatch-patrol", root) == []  # already done
+    assert org_obs.store_path(SID, root).exists()
+    assert not org_obs.store_path("ORG:someone-else:x", root).exists()
+    csv.write_text(csv.read_text().replace("32.0", "33.0"))  # a corrected re-upload
+    assert org_obs.ingest_uploads(up, "wasatch-patrol", root) == ["plot.csv"]

@@ -286,6 +286,9 @@ def cmd_org_run(args) -> int:
     core.STATE_DIR = root / "state"
     core.SITE_DIR = root / "site"
     org_obs.ORG_OBS_DIR = root / "observations"
+    uploaded = org_obs.ingest_uploads(root / "uploads", org)
+    if uploaded:
+        print(f"uploads: ingested {', '.join(uploaded)}", flush=True)
     held = org_obs.compact_inbox(root / "inbox", org)
     if held:
         print(f"inbox: {len(held)} stations updated", flush=True)

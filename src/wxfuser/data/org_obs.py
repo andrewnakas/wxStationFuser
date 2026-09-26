@@ -279,3 +279,51 @@ def compact_inbox(inbox: Path, org: str, root: Path | None = None) -> dict[str, 
     if not rows:
         return {}
     return append_raw(pd.DataFrame(rows, columns=RAW_COLUMNS), root)
+
+
+# --------------------------------------------------------------------------- uploads
+
+UPLOAD_LEDGER = "uploads-ingested.json"
+
+
+def ingest_uploads(uploads: Path, org: str, root: Path | None = None,
+                   ledger: Path | None = None) -> list[str]:
+    """Ingest uploaded CSVs that have not been ingested before.
+
+    Each ``name.csv`` needs a sidecar ``name.json`` saying how to read it::
+
+        {"station": "ORG:demo-patrol:plot", "time_col": "Date Time", "tz": "-07:00",
+         "columns": ["air_temp_c=Air Temp (F):F", "precip_mm=Precip (in):in:cumulative"]}
+
+    The upload form writes both. The ledger records each file's content hash, so a file
+    is read once however many runs see it, while a corrected re-upload under the same
+    name is read again. A file that fails is reported and retried next run, not
+    recorded.
+    """
+    import hashlib
+
+    ledger = ledger or (uploads.parent / "state" / UPLOAD_LEDGER)
+    done = set(json.loads(ledger.read_text())) if ledger.exists() else set()
+    ingested = []
+    for csv_path in sorted(uploads.glob("*.csv")) if uploads.exists() else []:
+        digest = hashlib.sha256(csv_path.read_bytes()).hexdigest()
+        if digest in done:
+            continue
+        side = csv_path.with_suffix(".json")
+        try:
+            meta = json.loads(side.read_text())
+            station = str(meta["station"])
+            if not station.startswith(f"ORG:{org}:"):
+                raise IngestError(f"{station} is not a station of {org}")
+            records = read_csv(csv_path, station, parse_mapping(list(meta["columns"])),
+                               time_col=meta["time_col"], tz=meta["tz"])
+            append_raw(records, root)
+        except (OSError, KeyError, ValueError) as exc:
+            print(f"  upload {csv_path.name} not ingested: {exc}", flush=True)
+            continue
+        done.add(digest)
+        ingested.append(csv_path.name)
+    if ingested:
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        ledger.write_text(json.dumps(sorted(done)))
+    return ingested
