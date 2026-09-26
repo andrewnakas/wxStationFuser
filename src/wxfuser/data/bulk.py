@@ -28,7 +28,13 @@ from urllib.request import Request, urlopen
 import numpy as np
 import pandas as pd
 
-from wxfuser.data.obs import KT_TO_MS, OBS_COLUMNS, USER_AGENT
+from wxfuser.data.obs import (
+    KT_TO_MS,
+    OBS_COLUMNS,
+    USER_AGENT,
+    snotel_local_to_utc,
+    snotel_utc_offsets,
+)
 
 ASOS_BASE = "https://data.source.coop/dynamical/asos-parquet"
 AWDB = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1"
@@ -243,6 +249,7 @@ def snotel_observations(
     if not triplets:
         return pd.DataFrame(columns=OBS_COLUMNS)
 
+    offsets = snotel_utc_offsets(triplets)
     frames: list[pd.DataFrame] = []
     for i in range(0, len(triplets), chunk):
         batch = triplets[i : i + chunk]
@@ -261,7 +268,7 @@ def snotel_observations(
         if not isinstance(payload, list):
             continue
         for station in payload:
-            frame = _normalise_snotel(station)
+            frame = _normalise_snotel(station, offsets)
             if not frame.empty:
                 frames.append(frame)
         print(f"  SNOTEL: {min(i + chunk, len(triplets))}/{len(triplets)} stations, "
@@ -272,7 +279,12 @@ def snotel_observations(
     return pd.concat(frames, ignore_index=True)
 
 
-def _normalise_snotel(station: dict) -> pd.DataFrame:
+def _normalise_snotel(station: dict, offsets: dict[str, float] | None = None) -> pd.DataFrame:
+    """One AWDB station block in the observation schema, stamped in UTC.
+
+    ``offsets`` maps each triplet to its ``dataTimeZone``. A triplet that is absent is
+    looked up, so a caller can never get local time back by forgetting to pass it.
+    """
     triplet = station.get("stationTriplet")
     if not triplet:
         return pd.DataFrame(columns=OBS_COLUMNS)
@@ -289,7 +301,10 @@ def _normalise_snotel(station: dict) -> pd.DataFrame:
         return pd.DataFrame(columns=OBS_COLUMNS)
 
     df = pd.DataFrame.from_dict(series, orient="index").sort_index()
-    df.index = pd.to_datetime(df.index)
+    offset = (offsets or {}).get(triplet)
+    if offset is None:
+        offset = snotel_utc_offsets([triplet])[triplet]
+    df.index = snotel_local_to_utc(df.index, offset)
 
     out = pd.DataFrame(index=df.index)
     out["air_temp_c"] = (df["TOBS"] - 32.0) * 5.0 / 9.0 if "TOBS" in df else np.nan

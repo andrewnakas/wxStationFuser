@@ -260,6 +260,45 @@ def fetch_ghcnh_hourly(ghcnh_id: str, start: date, end: date) -> pd.DataFrame:
 # --------------------------------------------------------------------------- SNOTEL
 
 
+# AWDB reports hourly data in each station's *standard* local time, never UTC. The offset
+# is in the station metadata (`dataTimeZone`), and for western SNOTEL it is Pacific
+# Standard Time even in Utah or Colorado. Reading those stamps as UTC shifted every SNOTEL
+# observation 7-9 hours early, so the afternoon maximum was paired with the model's
+# pre-dawn forecast. Found by comparing Snowbird against HRRR: the obs peak sat at 12 UTC.
+SNOTEL_DEFAULT_UTC_OFFSET_H = -8.0
+_snotel_offsets: dict[str, float] = {}
+
+
+def snotel_utc_offsets(triplets: list[str], *, chunk: int = 200) -> dict[str, float]:
+    """Hours to add to UTC to get each station's AWDB timestamps (e.g. -8.0), cached.
+
+    A station the metadata service does not answer for gets the NRCS convention, PST.
+    That is right for nearly all of the network, and far closer than treating local
+    time as UTC.
+    """
+    missing = [t for t in dict.fromkeys(triplets) if t not in _snotel_offsets]
+    for i in range(0, len(missing), chunk):
+        batch = missing[i : i + chunk]
+        params = {"stationTriplets": ",".join(batch), "returnStationElements": "false"}
+        try:
+            meta = json.loads(_http(f"{AWDB}/stations?" + urlencode(params)).decode("utf-8"))
+        except Exception as exc:  # noqa: BLE001
+            print(f"  WARN: SNOTEL time zones unavailable ({exc}); assuming PST", flush=True)
+            meta = []
+        for s in meta if isinstance(meta, list) else []:
+            tz = s.get("dataTimeZone")
+            if s.get("stationTriplet") and tz is not None:
+                _snotel_offsets[s["stationTriplet"]] = float(tz)
+        for t in batch:
+            _snotel_offsets.setdefault(t, SNOTEL_DEFAULT_UTC_OFFSET_H)
+    return {t: _snotel_offsets[t] for t in triplets}
+
+
+def snotel_local_to_utc(stamps, offset_h: float) -> pd.DatetimeIndex:
+    """AWDB local-standard timestamps as naive UTC."""
+    return pd.DatetimeIndex(pd.to_datetime(stamps)) - pd.Timedelta(hours=offset_h)
+
+
 def fetch_snotel_hourly(triplet: str, start: date, end: date) -> pd.DataFrame:
     """Hourly SNOTEL obs (NRCS AWDB). TOBS -> air temp; PREC (cumulative) -> hourly increment."""
     params = {
@@ -286,7 +325,7 @@ def fetch_snotel_hourly(triplet: str, start: date, end: date) -> pd.DataFrame:
         return _empty()
 
     df = pd.DataFrame.from_dict(series, orient="index").sort_index()
-    df.index = pd.to_datetime(df.index)
+    df.index = snotel_local_to_utc(df.index, snotel_utc_offsets([triplet])[triplet])
     out = pd.DataFrame(index=df.index)
     out["air_temp_c"] = F_TO_C(df["TOBS"]) if "TOBS" in df else np.nan
     if "PREC" in df:

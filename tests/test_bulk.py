@@ -240,3 +240,31 @@ def test_a_partial_run_adds_to_the_map_rather_than_replacing_it(monkeypatch, tmp
     out = {e["id"]: e for e in json.loads((site / "index.json").read_text())["stations"]}
     assert set(out) == {"MS:1", "ASOS:K1"}, "untouched station was dropped from the map"
     assert out["ASOS:K1"]["crpss_vs_raw"] == 0.5, "fresh entry did not win"
+
+
+def test_snotel_timestamps_are_converted_from_local_standard_time_to_utc(monkeypatch):
+    """AWDB stamps are station standard time. Reading them as UTC shifted every SNOTEL
+    observation by 7-9 hours, pairing the afternoon maximum with the pre-dawn forecast."""
+    from wxfuser.data import bulk as bulk_mod
+
+    block = {
+        "stationTriplet": "766:UT:SNTL",
+        "data": [{
+            "stationElement": {"elementCode": "TOBS"},
+            "values": [{"date": "2026-01-11 12:00", "value": 41.0}],
+        }],
+    }
+    out = bulk_mod._normalise_snotel(block, {"766:UT:SNTL": -8.0})
+    assert out["valid_time"].iloc[0] == pd.Timestamp("2026-01-11 20:00")
+    assert out["air_temp_c"].iloc[0] == pytest.approx(5.0)
+
+
+def test_snotel_offset_falls_back_to_pst_when_metadata_is_unreachable(monkeypatch):
+    from wxfuser.data import obs as obs_mod
+
+    def boom(*a, **k):
+        raise OSError("offline")
+
+    monkeypatch.setattr(obs_mod, "_http", boom)
+    monkeypatch.setattr(obs_mod, "_snotel_offsets", {})
+    assert obs_mod.snotel_utc_offsets(["1:CO:SNTL"]) == {"1:CO:SNTL": -8.0}
