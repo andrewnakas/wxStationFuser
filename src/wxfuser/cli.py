@@ -375,7 +375,9 @@ def cmd_calibrate(args) -> int:
     emit.write_json(payload, fc_path)
     (out / "forecast.json").write_text(fc_path.read_text())
     report = write_report(payload, out / "report.html")
-    print(f"\nforecast: {out / 'forecast.json'}\nreport:   {report}")
+    # The same report as page content (web fonts, no document shell), for publishing.
+    page = write_report(payload, out / "page.html", fragment=True)
+    print(f"\nforecast: {out / 'forecast.json'}\nreport:   {report}\npage:     {page}")
     return 0
 
 

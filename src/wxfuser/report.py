@@ -73,9 +73,13 @@ def _peak(times, probs, hours, now):
     return best
 
 
-def _svg(times, block, raw_series, conv, unit, decimals) -> str:
-    """A fan chart: 90% and 50% ranges, calibrated median, raw models dashed."""
-    w, h, pl, pr, pt, pb = 760, 220, 48, 12, 10, 28
+def _svg(times, block, raw_series, conv, unit, decimals, off: timedelta) -> str:
+    """A fan chart: 90% and 50% ranges, calibrated median, raw models dashed.
+
+    Day ticks fall on local-standard-time midnights, the clock a forecaster briefs by.
+    """
+    w, h, pl, pr, pt, pb = 760, 236, 50, 14, 24, 30
+
     def series(key):
         return [None if v is None else conv(v) for v in (block.get(key) or [None] * len(times))]
     q = {k: series(k) for k in ("q05", "q25", "q50", "q75", "q95")}
@@ -114,36 +118,106 @@ def _svg(times, block, raw_series, conv, unit, decimals) -> str:
             segs.append(cur)
         return "".join(f'<polyline class="{cls}" points="{" ".join(s)}"/>' for s in segs)
 
-    parts = [f'<svg viewBox="0 0 {w} {h}" role="img" preserveAspectRatio="none">']
+    parts = [f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="Forecast range" preserveAspectRatio="none">']
     # Enough decimals that neighbouring labels differ: a 0-0.02 in axis at two decimals
     # read "0.00, 0.01, 0.01, 0.02".
     step = (hi - lo) / 4
     tick_dec = max(decimals, 0 if step >= 1 else min(3, int(-math.floor(math.log10(step)))))
-    for i in range(5):  # grid and y labels
+    for i in range(5):
         v = lo + step * i
         parts.append(f'<line class="grid" x1="{pl}" x2="{w - pr}" y1="{y(v):.1f}" y2="{y(v):.1f}"/>')
-        parts.append(f'<text class="ax" x="{pl - 6}" y="{y(v) + 4:.1f}" text-anchor="end">{v:.{tick_dec}f}</text>')
-    day = times[0].replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    while day < times[-1]:  # midnight UTC ticks, labelled by date
-        parts.append(f'<line class="grid" x1="{x(day):.1f}" x2="{x(day):.1f}" y1="{pt}" y2="{h - pb}"/>')
-        parts.append(f'<text class="ax" x="{x(day):.1f}" y="{h - 8}" text-anchor="middle">{day:%a %d}</text>')
+        parts.append(f'<text class="ax num" x="{pl - 8}" y="{y(v) + 4:.1f}" text-anchor="end">{v:.{tick_dec}f}</text>')
+    local0 = times[0] + off
+    day = local0.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1) - off
+    while day < times[-1]:
+        parts.append(f'<line class="grid day" x1="{x(day):.1f}" x2="{x(day):.1f}" y1="{pt}" y2="{h - pb}"/>')
+        if x(day) + 30 < w - pr:
+            parts.append(f'<text class="ax" x="{x(day) + 5:.1f}" y="{h - 10}">{(day + off):%a %-d}</text>')
         day += timedelta(days=1)
     parts.append(band(q["q05"], q["q95"], "b90"))
     parts.append(band(q["q25"], q["q75"], "b50"))
     for arr in raws.values():
         parts.append(line(arr, "raw"))
     parts.append(line(q["q50"], "med"))
-    parts.append(f'<text class="ax" x="4" y="{pt + 10}">{html.escape(unit)}</text></svg>')
+    parts.append(f'<text class="ax unit" x="{pl - 8}" y="12" text-anchor="end">{html.escape(unit)}</text></svg>')
     return "".join(parts)
 
 
-def render(fc: dict, *, units: str = "imperial", now: datetime | None = None) -> str:
+def _zone(lon: float | None) -> tuple[timedelta, str]:
+    """Local standard time from longitude, named where it is a US zone."""
+    hours = int(round((lon or 0.0) / 15.0))
+    names = {-5: "EST", -6: "CST", -7: "MST", -8: "PST", -9: "AKST", -10: "HST"}
+    return timedelta(hours=hours), names.get(hours, f"UTC{hours:+d}")
+
+
+STYLE = """
+:root{--ground:#F4F7F8;--panel:#FFFFFF;--ink:#172430;--soft:#56657A;--rule:#D3DCE1;
+--accent:#1D5F8C;--accent-ink:#FFFFFF;--warn:#C2701A;--warn-ground:#FBF1E4;
+--display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+--body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--ground:#0E151B;
+--panel:#15202A;--ink:#E4ECF1;--soft:#93A3B3;--rule:#26343F;--accent:#6FB0DD;--accent-ink:#0E151B;
+--warn:#E3A04E;--warn-ground:#2A2015}}
+:root[data-theme="dark"]{color-scheme:dark;--ground:#0E151B;--panel:#15202A;--ink:#E4ECF1;--soft:#93A3B3;
+--rule:#26343F;--accent:#6FB0DD;--accent-ink:#0E151B;--warn:#E3A04E;--warn-ground:#2A2015}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--body)}
+.page{max-width:860px;margin:0 auto;padding-inline:20px;padding-block:28px 56px}
+.kicker{font:600 12px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font:600 44px/1 var(--display);letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font:600 26px/1.1 var(--display);letter-spacing:.02em;margin:0;text-wrap:balance}
+.strip{display:flex;flex-wrap:wrap;gap:6px 22px;margin:16px 0 0;padding:12px 0;border-block:1px solid var(--rule);
+font:13px/1.4 var(--mono);color:var(--soft)}
+.strip b{font-weight:500;color:var(--ink)}
+.warn{margin:18px 0 0;padding:10px 14px;background:var(--warn-ground);border-left:3px solid var(--warn);color:var(--ink);font-size:14px}
+section{margin-top:40px;display:grid;gap:14px}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
+.head .note{margin:0}
+.note,.legend,footer{color:var(--soft);font-size:13px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;display:grid;gap:2px}
+.tl{font:500 13px/1.3 var(--mono);color:var(--soft)}
+.tv{font:600 34px/1.05 var(--display);font-variant-numeric:tabular-nums}
+.tile.hot .tv{color:var(--warn)}
+.tn{font-size:12.5px;color:var(--soft)}
+.chart{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px 8px 4px}
+.chart svg{width:100%;height:236px;display:block}
+.grid{stroke:var(--rule);stroke-width:1}.grid.day{stroke-dasharray:2 4}
+.ax{fill:var(--soft);font:11px var(--body)}.ax.num,.ax.unit{font-family:var(--mono)}
+.b90{fill:var(--accent);fill-opacity:.14}.b50{fill:var(--accent);fill-opacity:.3}
+.med{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round}
+.raw{fill:none;stroke:var(--soft);stroke-width:1.2;stroke-dasharray:3 3}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:9px;border-radius:2px}
+.legend i.med{height:3px;background:var(--accent)}.legend i.b50{background:var(--accent);opacity:.45}
+.legend i.b90{background:var(--accent);opacity:.18}.legend i.raw{height:0;border-top:1.5px dashed var(--soft)}
+.skill{margin:0;font-size:15px;max-width:68ch}
+.skill.claim{font-weight:500}
+.method{margin:0;max-width:68ch}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--rule);max-width:72ch}
+@media (max-width:520px){h1{font-size:34px}.tv{font-size:30px}.chart svg{height:190px}}
+"""
+
+FONTS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600'
+         '&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">')
+
+
+def render(fc: dict, *, units: str = "imperial", now: datetime | None = None,
+           fragment: bool = False) -> str:
+    """The report as a full document, or with ``fragment`` as page content only.
+
+    The full document is what gets emailed, so it makes no external requests: system
+    fonts stand in for the web fonts, which only the fragment (published as a page)
+    loads.
+    """
     now = now or datetime.now(UTC)
     times = _times(fc)
     st = fc["station"]
+    off, zone = _zone(st.get("lon"))
+    local = lambda t: t + off  # noqa: E731
     title = fc.get("spec", {}).get("label") or st["name"]
     elev = st.get("elev_m")
-    elev_txt = "" if elev is None else (f" · {round(elev * 3.28084):,} ft" if units == "imperial" else f" · {round(elev):,} m")
     sections = []
     for var, (label, iu, to_i, mu, dec, window) in VARS.items():
         block = fc["hourly"].get(var)
@@ -155,68 +229,70 @@ def render(fc: dict, *, units: str = "imperial", now: datetime | None = None) ->
         tiles = []
         for thr, probs in (block.get("p_exceed") or {}).items():
             p24, p48 = _peak(times, probs, 24, now), _peak(times, probs, 48, now)
-            when = f" · {p24[1]:%a %H:%M} UTC" if p24 else ""
+            when = f" · {local(p24[1]):%a %H:%M} {zone}" if p24 else ""
+            # Amber marks a hazard likely to be crossed: gusts, snow, heavy precipitation.
+            # Above-freezing temperature is not one, so it stays in ink.
+            hot = " hot" if p24 and p24[0] >= 0.3 and var != "air_temp_c" else ""
             tiles.append(
-                f'<div class="tile"><div class="tl">&gt; {conv(float(thr)):.{d}f} {html.escape(unit)}</div>'
+                f'<div class="tile{hot}"><div class="tl">&gt; {conv(float(thr)):.{d}f} {html.escape(unit)}</div>'
                 f'<div class="tv">{fmt_prob(p24[0] if p24 else None)}</div>'
                 f'<div class="tn">peak chance, next 24 h{when}</div>'
-                f'<div class="tn">48 h: {fmt_prob(p48[0] if p48 else None)}</div></div>')
+                f'<div class="tn">next 48 h: {fmt_prob(p48[0] if p48 else None)}</div></div>')
         raws = {m: v[var] for m, v in fc.get("raw", {}).items() if var in v}
         skill = fc.get("skill", {}).get(var) or {}
         method = fc.get("method", {}).get(var) or {}
         cov = ""
         if skill.get("status") == "verified" and skill.get("coverage90") is not None:
-            cov = (f'<p class="note">The 90% range held {round(skill["coverage90"] * 100)}% of the time'
+            cov = (f'<p class="note method">The 90% range held {round(skill["coverage90"] * 100)}% of the time'
                    + (f', the 50% range {round(skill["coverage50"] * 100)}%' if skill.get("coverage50") is not None else "")
-                   + (f'. Method: {html.escape(method.get("label", ""))}, {round(method.get("train_days", 0))} days of history.' if method else ".")
+                   + (f'. {html.escape(method.get("label", ""))}, trained on {round(method.get("train_days", 0))} days.' if method else ".")
                    + "</p>")
+        claim = " claim" if skill.get("beats_raw") else ""
         sections.append(
-            f'<section><h2>{html.escape(label)}</h2>'
-            + ('<p class="note">Each hour shows the total for the 24 hours ending then.</p>' if window else "")
+            f'<section><div class="head"><h2>{html.escape(label)}</h2>'
+            + ('<p class="note">Each hour: the total for the 24 hours ending then</p>' if window else "")
+            + "</div>"
             + (f'<div class="tiles">{"".join(tiles)}</div>' if tiles else "")
-            + f'<div class="chart">{_svg(times, block, raws, conv, unit, d)}</div>'
-            + '<div class="legend"><span class="k med"></span>calibrated median <span class="k b50"></span>50% range '
-              '<span class="k b90"></span>90% range <span class="k raw"></span>raw models</div>'
-            + f'<p class="skill">{html.escape(skill_sentence(skill))}</p>{cov}</section>')
+            + f'<div class="chart">{_svg(times, block, raws, conv, unit, d, off)}</div>'
+            + '<div class="legend"><span><i class="med"></i>calibrated median</span>'
+              '<span><i class="b50"></i>50% range</span><span><i class="b90"></i>90% range</span>'
+              '<span><i class="raw"></i>raw models</span></div>'
+            + f'<p class="skill{claim}">{html.escape(skill_sentence(skill))}</p>{cov}</section>')
 
     issued = datetime.fromisoformat(fc["generated_at"].replace("Z", "+00:00"))
     obs = fc.get("obs_latest")
-    stale = ""
+    stale, obs_txt = "", "none"
     if obs:
-        age = (issued - datetime.fromisoformat(obs.replace("Z", "+00:00"))).total_seconds() / 3600
+        obs_t = datetime.fromisoformat(obs.replace("Z", "+00:00"))
+        age = (issued - obs_t).total_seconds() / 3600
+        obs_txt = f"{local(obs_t):%a %H:%M} {zone} ({max(0, round(age))} h before issue)"
         if age > 3:
-            stale = (f'<p class="warn">The newest station observation is {round(age)} h old; the first '
-                     f'hours lean on the models alone.</p>')
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(title)}: calibrated forecast</title><style>
-:root{{--ink:#17202a;--soft:#5b6673;--line:#d9dee4;--bg:#fbfbfa;--card:#fff;--brand:#1f6fb2;--warn:#b7791f}}
-@media (prefers-color-scheme:dark){{:root{{--ink:#e8ecf0;--soft:#a3adb8;--line:#2f3943;--bg:#12171c;--card:#1a2129;--brand:#5aa7e8;--warn:#e0a84a}}}}
-body{{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}}
-main{{max-width:820px;margin:0 auto;padding:24px 16px 48px}}
-h1{{margin:0 0 4px;font-size:26px}} h2{{margin:28px 0 8px;font-size:18px}}
-.lead,.note,.tn,.tl,.legend,footer{{color:var(--soft);font-size:13px}}
-.tiles{{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:10px 0}}
-.tile{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}}
-.tv{{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}}
-.chart svg{{width:100%;height:220px;display:block}}
-.grid{{stroke:var(--line);stroke-width:1}} .ax{{fill:var(--soft);font-size:11px}}
-.b90{{fill:var(--brand);opacity:.16}} .b50{{fill:var(--brand);opacity:.30}}
-.med{{fill:none;stroke:var(--brand);stroke-width:2.5}} .raw{{fill:none;stroke:var(--soft);stroke-width:1;stroke-dasharray:3 3}}
-.legend .k{{display:inline-block;width:14px;height:8px;margin:0 4px 0 10px;vertical-align:middle;border-radius:2px}}
-.legend .k.med{{background:var(--brand)}} .legend .k.b50{{background:var(--brand);opacity:.45}}
-.legend .k.b90{{background:var(--brand);opacity:.2}} .legend .k.raw{{border-top:1px dashed var(--soft);height:0}}
-.skill{{margin:10px 0 2px}} .warn{{border:1px solid var(--warn);border-radius:8px;padding:8px 12px}}
-</style></head><body><main>
-<h1>{html.escape(title)}</h1>
-<p class="lead">{html.escape(st["name"])}{elev_txt} · {html.escape(" + ".join(model_name(m) for m in fc.get("models_used", [])))}, calibrated to this station against its own history</p>
-{stale}{"".join(sections)}
-<footer><p>Issued {issued:%Y-%m-%d %H:%M} UTC. Times on the charts are UTC. Shaded ranges should hold the observation half the time (dark) and nine times in ten (light); each section reports how often they actually did in walk-forward testing. Tree60 Weather.</p></footer>
-</main></body></html>"""
+            stale = (f'<p class="warn">The newest station observation is {round(age)} h old, so the '
+                     f'first hours lean on the models alone until fresh data arrives.</p>')
+    elev_txt = (f"{round(elev * 3.28084):,} ft" if units == "imperial" else f"{round(elev):,} m") if elev else "—"
+    strip = (f'<div class="strip"><span>station <b>{html.escape(str(st.get("id", "")))}</b></span>'
+             f'<span>elevation <b>{elev_txt}</b></span>'
+             + (f'<span><b>{st["lat"]:.4f}, {st["lon"]:.4f}</b></span>' if st.get("lat") is not None else "")
+             + f'<span>models <b>{html.escape(" + ".join(model_name(m) for m in fc.get("models_used", [])))}</b></span>'
+             f'<span>issued <b>{local(issued):%a %d %b %H:%M} {zone}</b></span>'
+             f'<span>latest obs <b>{obs_txt}</b></span></div>')
+    body = (f'<main class="page"><p class="kicker">Calibrated station forecast</p>'
+            f'<h1>{html.escape(title)}</h1>{strip}{stale}{"".join(sections)}'
+            f'<footer><p>Times are {zone}, local standard time, all year. Each forecast is the '
+            f'models above corrected against this station\'s own history. The shaded ranges should '
+            f'hold the observation half the time (dark) and nine times in ten (light), and each '
+            f'section reports how often they did on forecasts made before the data was seen. '
+            f'Tree60 Weather.</p></footer></main>')
+    page_title = f"{html.escape(title)} forecast"
+    if fragment:
+        return f"<title>{page_title}</title>{FONTS}<style>{STYLE}</style>{body}"
+    return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            f"<title>{page_title}</title><style>{STYLE}</style></head><body>{body}</body></html>")
 
 
-def write_report(fc: dict, path: str | Path, *, units: str = "imperial") -> Path:
+def write_report(fc: dict, path: str | Path, *, units: str = "imperial", fragment: bool = False) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(render(fc, units=units), encoding="utf-8")
+    p.write_text(render(fc, units=units, fragment=fragment), encoding="utf-8")
     return p
