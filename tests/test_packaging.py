@@ -292,7 +292,14 @@ def test_every_job_touching_the_hub_installs_what_that_needs():
             installs = re.findall(r"pip install[^\n]*", run_text)
             # huggingface_hub ships with the train extra, so a bare `pip install -e .`
             # leaves the hub unreachable no matter how the call is guarded.
-            if not any("[train]" in i or "[dev]" in i for i in installs):
+            # Parse the extras list: `.[train,zarr]` installs train just as `.[train]` does.
+            extras = {
+                e.strip()
+                for i in installs
+                for group in re.findall(r"\[([^\]]*)\]", i)
+                for e in group.split(",")
+            }
+            if not extras & {"train", "dev"}:
                 offenders.append(f"{wf.name}:{job_name} installs {installs or ['nothing']}")
 
     assert not offenders, (

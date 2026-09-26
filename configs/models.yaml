@@ -91,6 +91,114 @@ models:
     prev_runs_from: 2024-01-01
     global: false
 
+  # ---------------------------------------------------------------- dynamical.org
+  # The zarr stores Tree60 serves from (see src/wxfuser/data/dynamical.py). `tree60_id`
+  # is the ModelId in TreesixtyFirebase web/src/forecast/models/registry.ts, so a model a
+  # Tree60 user picks maps to exactly one entry here.
+  #
+  # A station's model list must come from one source: Open-Meteo rows are keyed on
+  # approximate per-day leads, dynamical rows on issue-time leads, and the two never
+  # land on the same (valid_time, lead_h) row, so a mixed list would fit each model on
+  # its own rather than together.
+  #
+  # `latency_h` is how long after init a run is complete in the store. It decides which
+  # run an issue time may use, in training exactly as live, so an optimistic value would
+  # train on forecasts that did not exist yet at the moment being simulated.
+  #
+  # `fields` maps a canonical variable to the store's variables: `direct` (with an
+  # optional unit `scale`), `speed` from u/v components, or `rh_from_dewpoint`.
+  # Precipitation is stored as a mean rate over the preceding step in kg m-2 s-1, which
+  # is mm/s, so x3600 is the mean hourly amount across that step.
+
+  - id: hrrr
+    source: dynamical
+    tree60_id: hrrr
+    label: NOAA HRRR (dynamical.org, 3 km)
+    center: NOAA
+    resolution_km: 3
+    url: https://data.dynamical.org/noaa/hrrr/forecast-48-hour/latest.zarr
+    latency_h: 2
+    max_lead_h: 48
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    fields:
+      air_temp_c: {name: temperature_2m}
+      rh_pct: {name: relative_humidity_2m}
+      wind_speed_ms: {kind: speed, from: [wind_u_10m, wind_v_10m]}
+      wind_gust_ms: {name: wind_gust_surface}
+      precip_1h_mm: {name: precipitation_surface, scale: 3600}
+    archive_from: 2018-07-13
+    global: false
+
+  - id: gfs16
+    source: dynamical
+    tree60_id: gfs16
+    label: NOAA GFS (dynamical.org, 0.25°)
+    center: NOAA
+    resolution_km: 25
+    url: https://data.dynamical.org/noaa/gfs/forecast/latest.zarr
+    latency_h: 5
+    vars: [air_temp_c, rh_pct, wind_speed_ms, precip_1h_mm]  # no gust field in the store
+    fields:
+      air_temp_c: {name: temperature_2m}
+      rh_pct: {name: relative_humidity_2m}
+      wind_speed_ms: {kind: speed, from: [wind_u_10m, wind_v_10m]}
+      precip_1h_mm: {name: precipitation_surface, scale: 3600}
+    archive_from: 2021-05-01
+    global: true
+
+  - id: gefs
+    source: dynamical
+    tree60_id: gefs
+    label: NOAA GEFS ensemble mean (dynamical.org)
+    center: NOAA
+    resolution_km: 25
+    url: https://data.dynamical.org/noaa/gefs/forecast-35-day/latest.zarr
+    latency_h: 7
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    fields:
+      air_temp_c: {name: temperature_2m}
+      rh_pct: {name: relative_humidity_2m}
+      wind_speed_ms: {kind: speed, from: [wind_u_10m, wind_v_10m]}
+      wind_gust_ms: {name: wind_gust_surface}
+      precip_1h_mm: {name: precipitation_surface, scale: 3600}
+    archive_from: 2020-10-01
+    global: true
+
+  - id: ecmwf_ens
+    source: dynamical
+    tree60_id: ecmwf-ens
+    label: ECMWF IFS ensemble mean (dynamical.org)
+    center: ECMWF
+    resolution_km: 25
+    url: https://data.dynamical.org/ecmwf/ifs-ens/forecast-15-day-0-25-degree/latest.zarr
+    latency_h: 8
+    vars: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+    fields:
+      air_temp_c: {name: temperature_2m}
+      rh_pct: {kind: rh_from_dewpoint, from: [temperature_2m, dew_point_temperature_2m]}
+      wind_speed_ms: {kind: speed, from: [wind_u_10m, wind_v_10m]}
+      wind_gust_ms: {name: wind_gust_10m}
+      precip_1h_mm: {name: precipitation_surface, scale: 3600}
+    archive_from: 2024-04-01
+    global: true
+
+  - id: aifs_single
+    source: dynamical
+    tree60_id: aifs-single
+    label: ECMWF AIFS (dynamical.org)
+    center: ECMWF
+    resolution_km: 25
+    url: https://data.dynamical.org/ecmwf/aifs-single/forecast/latest.zarr
+    latency_h: 6
+    vars: [air_temp_c, rh_pct, wind_speed_ms, precip_1h_mm]
+    fields:
+      air_temp_c: {name: temperature_2m}
+      rh_pct: {kind: rh_from_dewpoint, from: [temperature_2m, dew_point_temperature_2m]}
+      wind_speed_ms: {kind: speed, from: [wind_u_10m, wind_v_10m]}
+      precip_1h_mm: {name: precipitation_surface, scale: 3600}
+    archive_from: 2024-04-01
+    global: true
+
 # Canonical variable -> Open-Meteo hourly variable name.
 variables:
   air_temp_c: temperature_2m
@@ -104,3 +212,14 @@ defaults:
   models: [gfs_seamless, ecmwf_ifs025, icon_seamless]
   models_conus: [gfs_seamless, ecmwf_ifs025, icon_seamless, ncep_hrrr_conus]
   variables: [air_temp_c, rh_pct, wind_speed_ms, wind_gust_ms, precip_1h_mm]
+
+# dynamical.org source settings.
+dynamical:
+  # Training issue times (UTC). Four a day matches the 6-hourly cycles of HRRR's 48 h
+  # runs, GFS and AIFS; each issue uses whatever run had arrived by then.
+  issue_hours_utc: [0, 6, 12, 18]
+  # Longest lead kept, matching the last lead bucket in tiers.yaml.
+  max_lead_h: 168
+  # Sent as ?email= so dynamical.org can reach a heavy user; WXFUSER_DYNAMICAL_EMAIL
+  # overrides it.
+  email: null

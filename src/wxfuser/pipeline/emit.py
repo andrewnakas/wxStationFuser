@@ -162,6 +162,11 @@ def skill_block(scorecard: dict) -> dict:
         "status": "verified",
         "crps": scorecard.get("crps"),
         "crps_raw_best": scorecard.get("crps_raw_best"),
+        # `crps` averages every evaluated row, while the raw baseline only covers the
+        # rows its model forecasts (GEFS is 3-hourly, HRRR stops at 48 h). This is the
+        # fused CRPS on exactly the baseline's rows, the only number comparable with
+        # `crps_raw_best` and the one `crpss_vs_raw` is computed from.
+        "crps_same_rows": scorecard.get("crps_fused_vs_best"),
         "raw_best_model": scorecard.get("raw_best_model"),
         "crpss_vs_raw": scorecard.get("crpss_vs_raw"),
         "crpss_vs_raw_ci90": ci,

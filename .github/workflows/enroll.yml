@@ -37,7 +37,7 @@ jobs:
           cache: pip
 
       - name: Install
-        run: pip install -e ".[train]"
+        run: pip install -e ".[train,zarr]"
 
       - name: Write issue body to a file
         env:

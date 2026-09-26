@@ -20,7 +20,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from wxfuser.data import bulk, openmeteo
+from wxfuser.data import bulk, sources
 from wxfuser.data import obs as obs_mod
 from wxfuser.data import pairs as pairs_mod
 from wxfuser.data.registry import Station
@@ -115,6 +115,7 @@ def gather_forecasts_bulk(
     *,
     bootstrap: bool,
     years: float,
+    lookback_days: int = 10,
 ) -> dict[str, pd.DataFrame]:
     """Model forecasts for every station, batched across locations.
 
@@ -135,18 +136,21 @@ def gather_forecasts_bulk(
         model_list = list(models)
         print(f"  forecasts for {len(group)} stations, models={model_list}", flush=True)
 
-        prev = openmeteo.fetch_previous_runs_batch(coords, model_list, variables)
-        if not prev.empty:
-            for sid, g in prev.groupby("station_id"):
-                out[str(sid)].append(g)
-
-        if bootstrap:
-            hist = openmeteo.fetch_historical_batch(
-                coords, model_list, variables, start, end
+        # A dynamical refresh re-reads only the trailing window; its archive answers any
+        # window directly, unlike Open-Meteo's fixed previous-runs horizon.
+        window_start = start if bootstrap else date.today() - timedelta(days=lookback_days)
+        window_end = end if bootstrap else date.today()
+        try:
+            got = sources.archive_batch(
+                coords, model_list, variables, window_start, window_end,
+                include_long_history=bootstrap,
             )
-            if not hist.empty:
-                for sid, g in hist.groupby("station_id"):
-                    out[str(sid)].append(g)
+        except sources.MixedSourceError as exc:
+            print(f"  WARN: skipping {len(group)} stations: {exc}", flush=True)
+            continue
+        if not got.empty:
+            for sid, g in got.groupby("station_id"):
+                out[str(sid)].append(g)
 
     return {
         sid: pd.concat(frames, ignore_index=True) for sid, frames in out.items() if frames
@@ -180,7 +184,7 @@ def run_stations(
     print(f"  observations for {len(observations)}/{len(stations)} stations", flush=True)
 
     forecasts = gather_forecasts_bulk(
-        stations, variables, bootstrap=bootstrap, years=years
+        stations, variables, bootstrap=bootstrap, years=years, lookback_days=lookback_days
     )
     print(f"  forecasts for {len(forecasts)}/{len(stations)} stations", flush=True)
 
@@ -213,7 +217,11 @@ def _live_forecasts(stations: list[Station], variables: list[str]) -> dict[str, 
     out: dict[str, pd.DataFrame] = {}
     for models, group in by_models.items():
         coords = [(s.id, s.lat, s.lon) for s in group]
-        long = openmeteo.fetch_forecast_batch(coords, list(models), variables)
+        try:
+            long = sources.live_batch(coords, list(models), variables)
+        except sources.MixedSourceError as exc:
+            print(f"  WARN: no live forecast for {len(group)} stations: {exc}", flush=True)
+            continue
         if long.empty:
             continue
         for sid, g in long.groupby("station_id"):

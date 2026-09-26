@@ -79,7 +79,7 @@ jobs:
           python-version: '3.11'
           cache: pip
       - name: Install
-        run: pip install -e ".[train]"
+        run: pip install -e ".[train,zarr]"
 
       # Hugging Face allows 1000 API requests per 5 minutes, and twenty shards restoring
       # the whole archive at once blew through it — every worker then failed on its first

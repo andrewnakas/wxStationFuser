@@ -65,7 +65,7 @@ jobs:
           cache: pip
 
       - name: Install
-        run: pip install -e ".[train]"
+        run: pip install -e ".[train,zarr]"
 
       - name: Restore state (Actions cache)
         uses: actions/cache@v4

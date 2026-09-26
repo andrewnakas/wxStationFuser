@@ -22,8 +22,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from wxfuser.data import dynamical, openmeteo, sources
 from wxfuser.data import obs as obs_mod
-from wxfuser.data import openmeteo
 from wxfuser.data import pairs as pairs_mod
 from wxfuser.data.registry import Station
 from wxfuser.models import select, tier0_bias, tier1_emos, tier2, tier3_gbm
@@ -148,6 +148,15 @@ def backfill_pairs(station: Station, years: float = 2.0, previous_runs_days: int
     obs_start = pd.to_datetime(observations["valid_time"]).min().date()
     eff_start = max(start, obs_start)
 
+    if sources.source_for(models) == "dynamical":
+        print(f"  fetching archived runs ({len(models)} models, dynamical.org)", flush=True)
+        forecasts = _dynamical_archive(station, models, variables, eff_start, end)
+        if forecasts.empty:
+            return pd.DataFrame()
+        built = pairs_mod.build_pairs(forecasts, observations, station.id, variables)
+        print(f"  paired rows: {len(built)}", flush=True)
+        return update_archive(station, built)
+
     frames = []
     print(f"  fetching archived forecasts ({len(models)} models)", flush=True)
     hist = openmeteo.fetch_historical(station.lat, station.lon, models, variables, eff_start, end)
@@ -182,6 +191,13 @@ def incremental_pairs(station: Station, lookback_days: int = 10) -> pd.DataFrame
         return pairs_mod.read_archive(pairs_path(station))
     merge_obs_history(station, observations)
 
+    if sources.source_for(models) == "dynamical":
+        forecasts = _dynamical_archive(station, models, variables, start, end)
+        if forecasts.empty:
+            return pairs_mod.read_archive(pairs_path(station))
+        built = pairs_mod.build_pairs(forecasts, observations, station.id, variables)
+        return update_archive(station, built)
+
     frames = []
     prev = openmeteo.fetch_previous_runs(
         station.lat, station.lon, models, variables, past_days=max(lookback_days, 7)
@@ -199,6 +215,14 @@ def incremental_pairs(station: Station, lookback_days: int = 10) -> pd.DataFrame
     forecasts = pd.concat(frames, ignore_index=True)
     built = pairs_mod.build_pairs(forecasts, observations, station.id, variables)
     return update_archive(station, built)
+
+
+def _dynamical_archive(
+    station: Station, models: list[str], variables: list[str], start: date, end: date
+) -> pd.DataFrame:
+    coords = [(station.id, station.lat, station.lon)]
+    out = dynamical.fetch_archive_batch(coords, models, variables, start, end)
+    return out.drop(columns="station_id") if "station_id" in out else out
 
 
 # --------------------------------------------------------------------------- training
@@ -312,7 +336,10 @@ def live_forecast_wide(station: Station, models: list[str], variables: list[str]
     Columns: valid_time, lead_h, fc_{model} (for the variable being predicted), plus
     fc_{var}__{model} for every variable so the published JSON can show raw model traces.
     """
-    long = openmeteo.fetch_forecast(station.lat, station.lon, models, variables, forecast_days=7)
+    if sources.source_for(models) == "dynamical":
+        long = dynamical.fetch_live_batch([(station.id, station.lat, station.lon)], models, variables)
+    else:
+        long = openmeteo.fetch_forecast(station.lat, station.lon, models, variables, forecast_days=7)
     if long.empty:
         return pd.DataFrame()
 

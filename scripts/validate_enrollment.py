@@ -122,6 +122,13 @@ def validate(fields: dict) -> tuple[Station | None, list[str]]:
     if unknown:
         errors.append(f"Unknown model(s): {', '.join(unknown)}.")
 
+    sources = {catalogue[m].get("source", "openmeteo") for m in models if m in catalogue}
+    if len(sources) > 1:
+        errors.append(
+            "Models must all come from one source (Open-Meteo or dynamical.org); "
+            f"these mix {', '.join(sorted(sources))}."
+        )
+
     known_vars = set(variable_map())
     variables = [v for v in (fields.get("variables") or []) if v]
     bad_vars = [v for v in variables if v not in known_vars]
