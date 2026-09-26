@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -272,20 +273,12 @@ def cmd_org_run(args) -> int:
     owns can end up on the public hub or GitHub Pages by running the public jobs, and
     nothing here writes to theirs.
     """
-    import json as _json
-
-    import numpy as np
-    import pandas as pd
-
-    from wxfuser.config import quantiles
     from wxfuser.data import org_obs
-    from wxfuser.spec import exceedance, load_org
+    from wxfuser.pipeline import org as org_run
+    from wxfuser.spec import load_org
 
     org, specs = load_org(args.specs)
-    root = Path(args.root)
-    core.STATE_DIR = root / "state"
-    core.SITE_DIR = root / "site"
-    org_obs.ORG_OBS_DIR = root / "observations"
+    root = org_run.use_root(args.root)
     uploaded = org_obs.ingest_uploads(root / "uploads", org)
     if uploaded:
         print(f"uploads: ingested {', '.join(uploaded)}", flush=True)
@@ -296,42 +289,90 @@ def cmd_org_run(args) -> int:
         specs = [s for s in specs if s.key() == args.spec]
     print(f"org {org}: {len(specs)} specs", flush=True)
 
-    levels = quantiles()
-    qkeys = [f"q{int(q * 100):02d}" for q in levels]
-    index = []
-    for spec in specs:
-        st = spec.to_station()
-        try:
-            entry = core.run_station(st, bootstrap=args.bootstrap, years=args.years,
-                                     evaluate=args.evaluate or None)
-        except Exception as exc:  # noqa: BLE001
-            print(f"[{spec.slug}] FAILED: {exc}", flush=True)
-            entry = {"status": "error"}
-        path = core.SITE_DIR / "stations" / st.slug / "forecast.json"
-        if entry.get("status") == "ok" and path.exists():
-            payload = _json.loads(path.read_text())
-            probs = {}
-            for var, ts in spec.thresholds.items():
-                block = payload["hourly"].get(var) or {}
-                if all(k in block for k in qkeys):
-                    vals = np.array([block[k] for k in qkeys], dtype=float).T
-                    probs[var] = exceedance(levels, vals, ts)
-            obs_file = core.obs_path(st)
-            latest = None
-            if obs_file.exists():
-                vt = pd.read_parquet(obs_file, columns=["valid_time"])["valid_time"]
-                latest = pd.to_datetime(vt).max().strftime("%Y-%m-%dT%H:%MZ") if len(vt) else None
-            emit.write_json(emit.spec_forecast_json(payload, spec.public_dict(), probs, latest),
-                            path)
-        index.append({**spec.public_dict(), "slug": st.slug, "station_id": st.id,
-                      "station_name": st.name, "lat": st.lat, "lon": st.lon,
-                      "status": entry.get("status"),
-                      "crpss_vs_raw": entry.get("crpss_vs_raw"),
-                      "beats_raw": entry.get("beats_raw")})
-    emit.write_json({"schema_version": emit.SCHEMA_VERSION_SPEC, "org": org, "specs": index},
-                    core.SITE_DIR / "index.json")
+    index = [org_run.run_spec(spec, bootstrap=args.bootstrap, years=args.years,
+                              evaluate=args.evaluate or None) for spec in specs]
+    org_run.write_index(org, index)
     ok = sum(1 for e in index if e["status"] == "ok")
     print(f"org {org}: {ok}/{len(index)} specs published")
+    return 0
+
+
+def cmd_calibrate(args) -> int:
+    """From a link to a station's data to a calibrated forecast and report."""
+    from datetime import date, timedelta
+
+    from wxfuser import quick
+    from wxfuser.data import obs as obs_mod
+    from wxfuser.data import org_obs
+    from wxfuser.pipeline import org as org_run
+    from wxfuser.report import write_report
+    from wxfuser.spec import FusionSpec
+
+    res = quick.resolve(args.link, name=args.name, lat=args.lat, lon=args.lon,
+                        elev_m=args.elev)
+    st = res.station
+    out = Path(args.out or f"calibrations/{quick.slugify(st.name)}")
+    org_run.use_root(out / "root")
+    print(f"{res.kind}: {st.name} ({st.id}) at {st.lat:.4f}, {st.lon:.4f}"
+          + (f", {st.elev_m:.0f} m" if st.elev_m else ""), flush=True)
+
+    years = args.years
+    if res.kind == "csv":
+        df = quick.load_csv(res.csv_url)
+        if args.col:
+            time_col, mapping_specs = args.time_col, args.col
+            if not time_col:
+                raise SystemExit("--col needs --time-col")
+        else:
+            time_col, mapping_specs, notes = quick.detect_columns(df)
+            time_col = args.time_col or time_col
+            print("detected columns (override with --time-col and --col):")
+            for n in notes:
+                print(f"  {n}")
+        mapping = org_obs.parse_mapping(mapping_specs)
+        tmp = out / "source.csv"
+        tmp.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(tmp, index=False)
+        if args.tz:
+            tz = args.tz
+        else:
+            tz, why = quick.choose_time_zone(str(tmp), st.id, mapping, time_col, st.lon)
+            print(f"  {why} (override with --tz)")
+        records = org_obs.read_csv(tmp, st.id, mapping, time_col=time_col, tz=tz)
+        org_obs.append_raw(records)
+        span = (records["time"].max() - records["time"].min()).days
+        print(f"{len(records)} records, {records['time'].min():%Y-%m-%d} .. "
+              f"{records['time'].max():%Y-%m-%d} UTC ({span} days)", flush=True)
+        if years is None:
+            years = max(0.1, min(2.0, span / 365.0))
+        columns = {c for c in records.columns if records[c].notna().any()}
+    else:
+        today = date.today()
+        probe = obs_mod.fetch_obs(st.id, today - timedelta(days=10), today,
+                                  iem_network=st.iem_network)
+        columns = {c for c in probe.columns if probe[c].notna().any()}
+        if years is None:
+            years = 1.0
+
+    variables = args.vars.split(",") if args.vars else quick.variables_for(columns)
+    if not variables:
+        raise SystemExit("no forecastable variables found in this station's data")
+    models = args.models.split(",") if args.models else quick.default_models(st.lat, st.lon)
+    thresholds = {v: t for v, t in quick.DEFAULT_THRESHOLDS.items() if v in variables}
+    spec = FusionSpec(org="adhoc", station=st, models=models, variables=variables,
+                      thresholds=thresholds, label=args.name or st.name)
+    spec.validate()
+    print(f"calibrating {', '.join(variables)} with {' + '.join(models)} "
+          f"over {years:.2f} years of history", flush=True)
+    entry = org_run.run_spec(spec, bootstrap=True, years=years)
+    org_run.write_index("adhoc", [entry])
+    if entry["status"] != "ok":
+        print(f"not published: {entry['status']}")
+        return 1
+    fc_path = org_run.forecast_path(spec)
+    (out / "forecast.json").write_text(fc_path.read_text())
+    report = write_report(json.loads(fc_path.read_text()), out / "report.html")
+    print(f"\nforecast: {out / 'forecast.json'}\nreport:   {report}")
     return 0
 
 
@@ -724,6 +765,27 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--evaluate", action="store_true")
     p.add_argument("--years", type=float, default=2.0)
     p.set_defaults(func=cmd_org_run)
+
+    p = sub.add_parser(
+        "calibrate",
+        help="from a link to a station's data (SNOTEL, IEM, MesoWest, or any CSV/Google "
+             "Sheet) to a calibrated forecast and report",
+    )
+    p.add_argument("link", help="station page URL, CSV URL, Google Sheets link, or local file")
+    p.add_argument("--name", help="station name for the report")
+    p.add_argument("--lat", type=float, help="latitude (required for CSV data)")
+    p.add_argument("--lon", type=float, help="longitude (required for CSV data)")
+    p.add_argument("--elev", type=float, help="elevation in metres")
+    p.add_argument("--models", help="comma-separated, e.g. hrrr,gefs (default: by region)")
+    p.add_argument("--vars", help="comma-separated variables (default: whatever the data has)")
+    p.add_argument("--years", type=float, help="history to train on (default: the CSV's span, "
+                                                 "or 1 year for network stations)")
+    p.add_argument("--time-col", help="override the detected timestamp column")
+    p.add_argument("--tz", help="override the detected time zone (UTC, -07:00, America/Denver)")
+    p.add_argument("--col", action="append", metavar="TARGET=COLUMN:UNIT",
+                   help="override column detection; repeat per column (as ingest-csv)")
+    p.add_argument("--out", help="output directory (default calibrations/<name>)")
+    p.set_defaults(func=cmd_calibrate)
 
     p = sub.add_parser("ingest-csv", help="add a logger CSV to an org station's observations")
     p.add_argument("file")

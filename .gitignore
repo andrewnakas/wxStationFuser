@@ -22,3 +22,6 @@ venv/
 
 # Local Claude Code session state
 /.claude/
+
+# wxfuser calibrate output: customer station data, never committed.
+/calibrations/

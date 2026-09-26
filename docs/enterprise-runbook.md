@@ -4,6 +4,38 @@ How a customer such as a ski patrol or an avalanche centre goes from "we have
 stations" to calibrated forecasts in Tree60. The data contract is
 [forecast-schema-v2.md](forecast-schema-v2.md).
 
+## Quick path: a link in, a calibrated forecast out
+
+When a customer sends a link to their station's data:
+
+```sh
+wxfuser calibrate "<link>"                                   # SNOTEL, IEM/ASOS, MesoWest
+wxfuser calibrate "<csv or Google Sheets link>" --lat 40.58 --lon -111.64 --name "Upper plot"
+```
+
+**What it recognises:**
+- A SNOTEL page or triplet (`766:UT:SNTL`, or `…/site?sitenum=766`).
+- An IEM site page (`…?station=SLC&network=UT_ASOS`).
+- A MesoWest or Synoptic station page. This needs `SYNOPTIC_API_TOKEN`.
+- Anything else, read as a CSV: a direct link, a Google Sheets share link, a Dropbox link or a local file.
+
+**CSV detection.** For a CSV it detects:
+- the timestamp, temperature, humidity, wind, gust, precipitation, snow depth and SWE columns
+- their units
+- whether precipitation is a running total
+- the time zone: whichever of UTC or local standard time puts the temperature peak in
+  the afternoon
+
+It prints every guess; `--time-col`, `--col` and `--tz` override them.
+
+**Defaults:**
+- **Models:** HRRR + GEFS in CONUS, GEFS + ECMWF ENS elsewhere. Override with `--models`.
+- **Variables:** whatever the data carries.
+- **History:** the CSV's own span, or 1 year for network stations. Override with `--years`.
+
+It writes `calibrations/<name>/forecast.json` (schema v2) and a self-contained
+`report.html`, ready to send. `calibrations/` is git-ignored: it holds customer data.
+
 ## One-time setup
 
 1. **Private runner repository.** Create `tree60-enterprise-runner` as a private repo.
