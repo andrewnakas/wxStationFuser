@@ -268,3 +268,21 @@ def test_snotel_offset_falls_back_to_pst_when_metadata_is_unreachable(monkeypatc
     monkeypatch.setattr(obs_mod, "_http", boom)
     monkeypatch.setattr(obs_mod, "_snotel_offsets", {})
     assert obs_mod.snotel_utc_offsets(["1:CO:SNTL"]) == {"1:CO:SNTL": -8.0}
+
+
+def test_rebuild_discards_history_and_demands_a_bootstrap(tmp_path, monkeypatch):
+    from wxfuser import cli
+    from wxfuser.data.registry import Station
+    from wxfuser.pipeline import core
+
+    monkeypatch.setattr(core, "STATE_DIR", tmp_path)
+    st = Station(id="766:UT:SNTL", name="Snowbird", lat=40.57, lon=-111.66)
+    for p in (core.pairs_path(st), core.obs_path(st)):
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(b"stale")
+    core.discard_history(st)
+    assert not core.pairs_path(st).exists() and not core.obs_path(st).exists()
+    core.discard_history(st)  # nothing left to delete is not an error
+
+    with pytest.raises(SystemExit, match="needs --bootstrap"):
+        cli.main(["refresh", "--rebuild"])

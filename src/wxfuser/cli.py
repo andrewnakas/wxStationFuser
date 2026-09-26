@@ -171,6 +171,9 @@ def cmd_refresh(args) -> int:
         print(f"capped at {args.limit} of {len(stations)} stations", flush=True)
         stations = stations[: args.limit]
 
+    if getattr(args, "rebuild", False) and not args.bootstrap:
+        raise SystemExit("--rebuild discards history, so it needs --bootstrap to replace it")
+
     if not stations:
         print("no stations to refresh")
         emit.write_json(emit.index_json([]), _index_path(args.shard, args.of))
@@ -184,6 +187,11 @@ def cmd_refresh(args) -> int:
     entries: list[dict] = []
     for i in range(0, len(stations), checkpoint):
         chunk = stations[i : i + checkpoint]
+        if getattr(args, "rebuild", False):
+            # Per chunk, not up front: an interrupted run then leaves the stations it
+            # never reached exactly as they were, rather than stripped of their history.
+            for st in chunk:
+                core.discard_history(st)
         entries.extend(
             bulk_run.run_stations(
                 chunk,
@@ -527,6 +535,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--evaluate", action="store_true",
                    help="re-run verification and re-choose the champion")
     p.add_argument("--years", type=float, default=2.0, help="years to backfill when bootstrapping")
+    p.add_argument(
+        "--rebuild", action="store_true",
+        help="with --bootstrap: discard each station's stored pairs and observations first, "
+             "for when stored history is known to be wrong rather than merely short",
+    )
     p.add_argument("--shard", type=int, help="0-based index of this worker")
     p.add_argument("--of", type=int, help="total number of workers")
     p.add_argument("--checkpoint-every", type=int,

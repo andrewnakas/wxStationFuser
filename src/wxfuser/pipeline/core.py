@@ -97,6 +97,19 @@ def gather_observations(station: Station, start: date, end: date) -> pd.DataFram
     return obs_mod.qc(combined)
 
 
+def discard_history(station: Station) -> None:
+    """Delete a station's paired archive and observation history.
+
+    For history that is wrong rather than short. Merging keeps the newest row per key,
+    so a re-download overwrites most bad rows, but not an hour whose corrected
+    observation is missing or fails QC. The old value there would survive indefinitely.
+    The fitted model state is kept: the next evaluation replaces it, and until then the
+    station keeps publishing.
+    """
+    for path in (pairs_path(station), obs_path(station)):
+        path.unlink(missing_ok=True)
+
+
 def merge_obs_history(station: Station, new_obs: pd.DataFrame) -> pd.DataFrame:
     """Keep a local observation history so climatology has something to stand on."""
     path = obs_path(station)

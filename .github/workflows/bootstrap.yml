@@ -31,6 +31,11 @@ on:
         description: 'Years of history to backfill'
         required: false
         default: '2'
+      rebuild:
+        description: 'Discard stored history first (for history known to be wrong)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -101,8 +106,9 @@ jobs:
       - name: Bootstrap shard
         env:
           SOURCES: ${{ inputs.sources }}
+          REBUILD: ${{ inputs.rebuild && '--rebuild' || '' }}
         run: |
-          wxfuser refresh --bootstrap \
+          wxfuser refresh --bootstrap $REBUILD \
             --years ${{ inputs.years || '2' }} \
             --checkpoint-every 15 \
             --shard ${{ matrix.shard }} --of ${{ needs.plan.outputs.shards }} \
