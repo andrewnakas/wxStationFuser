@@ -361,3 +361,42 @@ def test_gauge_reset_starts_a_new_segment():
     assert inc.iloc[1] == pytest.approx(2.5)
     assert np.isnan(inc.iloc[2])  # no increment across a reset
     assert inc.iloc[4] == pytest.approx(2.5)
+
+
+def test_snotel_requests_stay_under_awdbs_size_limit_and_stitch(monkeypatch):
+    """AWDB answers 400 past ~3,600 station-days, which silently failed every deep
+    SNOTEL backfill. Requests are split in time, and the pieces are stitched before
+    precipitation is differenced, so no increment is lost at a window edge."""
+    from datetime import date, timedelta
+    from urllib.parse import parse_qs, urlparse
+
+    from wxfuser.data import bulk as bulk_mod
+
+    seen = []
+
+    def fake(url, timeout=120):
+        q = parse_qs(urlparse(url).query)
+        stations = q["stationTriplets"][0].split(",")
+        b, e = (date.fromisoformat(q[k][0]) for k in ("beginDate", "endDate"))
+        days = (e - b).days + 1
+        seen.append(len(stations) * days)
+        assert len(stations) * days <= 3600, "AWDB would refuse this"
+        hours = pd.date_range(b, e + timedelta(days=1), freq="h", inclusive="left")
+        base = pd.Timestamp("2025-01-01")
+        return [{"stationTriplet": st, "data": [{
+            "stationElement": {"elementCode": "PREC"},
+            # 0.01 in per hour, cumulative from a fixed origin
+            "values": [{"date": h.strftime("%Y-%m-%d %H:%M"),
+                        "value": round(0.01 * (h - base) / pd.Timedelta(hours=1), 2)}
+                       for h in hours]}]} for st in stations]
+
+    monkeypatch.setattr(bulk_mod, "_http_json", fake)
+    monkeypatch.setattr(bulk_mod, "snotel_utc_offsets", lambda t: {x: 0.0 for x in t})
+    triplets = [f"{i}:UT:SNTL" for i in range(40)]
+    out = bulk_mod.snotel_observations(triplets, date(2025, 1, 1), date(2025, 12, 31))
+    assert len(seen) > 1
+    one = out[out["station_id"] == "0:UT:SNTL"].sort_values("valid_time")
+    assert len(one) == 365 * 24
+    # Only the very first hour lacks an increment; window edges do not.
+    assert one["precip_1h_mm"].isna().sum() == 1
+    assert one["precip_1h_mm"].dropna().round(3).eq(0.254).all()

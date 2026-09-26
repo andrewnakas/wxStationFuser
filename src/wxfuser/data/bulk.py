@@ -21,7 +21,7 @@ snow telemetry lacks, and SNOTEL gives mountains that airports mostly avoid.
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -40,6 +40,8 @@ from wxfuser.data.obs import (
 
 ASOS_BASE = "https://data.source.coop/dynamical/asos-parquet"
 AWDB = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1"
+# Station-days per AWDB data request; measured limit is about 3,600 (see snotel_observations).
+AWDB_STATION_DAYS = 3000
 
 FT_TO_M = 0.3048
 
@@ -255,27 +257,43 @@ def snotel_observations(
     frames: list[pd.DataFrame] = []
     for i in range(0, len(triplets), chunk):
         batch = triplets[i : i + chunk]
-        params = {
-            "stationTriplets": ",".join(batch),
-            "elements": "TOBS,PREC,SNWD,WTEQ",
-            "duration": "HOURLY",
-            "beginDate": start.isoformat(),
-            "endDate": end.isoformat(),
-        }
-        try:
-            payload = _http_json(f"{AWDB}/data?" + urlencode(params), timeout=180)
-        except Exception as exc:  # noqa: BLE001
-            print(f"  WARN: SNOTEL batch {i // chunk} failed ({exc})", flush=True)
-            continue
-        if not isinstance(payload, list):
-            continue
-        for station in payload:
+        # AWDB refuses (HTTP 400) a request much past ~3,600 station-days: 40 stations
+        # for 90 days works, and 180 days does not. Deep backfills therefore failed
+        # outright, which is why SNOTEL archives never grew past the refresh window.
+        # The span is split so every request stays under the limit.
+        span = max(1, AWDB_STATION_DAYS // len(batch))
+        merged: dict[str, dict[str, list]] = {}
+        cursor = start
+        while cursor <= end:
+            window_end = min(cursor + timedelta(days=span - 1), end)
+            params = {
+                "stationTriplets": ",".join(batch),
+                "elements": "TOBS,PREC,SNWD,WTEQ",
+                "duration": "HOURLY",
+                "beginDate": cursor.isoformat(),
+                "endDate": window_end.isoformat(),
+            }
+            try:
+                payload = _http_json(f"{AWDB}/data?" + urlencode(params), timeout=180)
+            except Exception as exc:  # noqa: BLE001
+                print(f"  WARN: SNOTEL batch {i // chunk} {cursor}..{window_end} failed ({exc})",
+                      flush=True)
+                payload = []
+            for station in payload if isinstance(payload, list) else []:
+                per = merged.setdefault(station.get("stationTriplet"), {})
+                for element in station.get("data", []):
+                    code = (element.get("stationElement") or {}).get("elementCode")
+                    per.setdefault(code, []).extend(element.get("values", []))
+            cursor = window_end + timedelta(days=1)
+        # Normalised once per station over the whole span, not per window: gauge
+        # increments need the cumulative series continuous across window edges.
+        for triplet, elements in merged.items():
+            station = {"stationTriplet": triplet,
+                       "data": [{"stationElement": {"elementCode": c}, "values": v}
+                                for c, v in elements.items()]}
             frame = _normalise_snotel(station, offsets)
             if not frame.empty:
                 frames.append(frame)
-        print(f"  SNOTEL: {min(i + chunk, len(triplets))}/{len(triplets)} stations, "
-              f"{sum(len(f) for f in frames)} rows", flush=True)
-
     if not frames:
         return pd.DataFrame(columns=OBS_COLUMNS)
     return pd.concat(frames, ignore_index=True)

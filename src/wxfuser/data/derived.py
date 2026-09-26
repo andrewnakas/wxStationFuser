@@ -9,9 +9,10 @@ these directly:
     fraction falling as snow and its density, both taken from temperature: a plain
     physical prior whose station-specific errors are what calibration then removes.
   * **Stations** give snow depth and snow water equivalent (SNOTEL's pillow and depth
-    sensor). The 24 h change in each is the observed amount. Depth is median-smoothed
-    first: sonic sensors jitter by a centimetre or two, which read raw would put phantom
-    new snow in every calm hour.
+    sensor). The 24 h change in each is the observed amount. Both are median-smoothed
+    first, and gains within one reporting step are treated as none: the sensors flicker
+    between adjacent readings, which read raw would put phantom new snow in every calm
+    hour, including all summer over bare ground.
 
 Every derived value is labelled at the *end* of its window, so ``hn24_cm`` at 14:00 is
 the new snow from 14:00 the previous day to 14:00, published for every hour. A window
@@ -138,6 +139,19 @@ def add_forecast_columns(frame: pd.DataFrame, variables: list[str]) -> pd.DataFr
     return out
 
 
+# One reporting step of each SNOTEL sensor: SWE in 0.1 in, depth in whole inches. A 24 h
+# gain no larger than one step is indistinguishable from the sensor flickering between
+# two adjacent readings, which it does all summer over bare ground. Measured at
+# Snowbird: with no snowpack, 4-21% of hours showed a SWE "gain" and 17-25% showed
+# new snow before this floor. A real one-step gain is lost with it; the instrument
+# cannot resolve it anyway.
+NOISE_FLOOR = {"swe_24h_mm": 2.6, "hn24_cm": 2.6}
+# The depth sensor also flickers by two steps (5.08 cm) over bare ground. A depth gain
+# up to this size counts as new snow only when something else saw precipitation in
+# the same 24 h: a SWE gain or measured precipitation. Larger gains stand alone.
+HN24_CORROBORATE_BELOW_CM = 5.2
+
+
 def smooth_depth(depth: pd.Series) -> pd.Series:
     """Snow depth with spikes removed and sensor jitter damped.
 
@@ -148,6 +162,21 @@ def smooth_depth(depth: pd.Series) -> pd.Series:
     med5 = depth.rolling(5, center=True, min_periods=3).median()
     clean = depth.where((depth - med5).abs() <= 15.0)
     return clean.rolling(3, center=True, min_periods=2).median()
+
+
+def _corroborate(gain: pd.Series, block: pd.DataFrame, hourly_index) -> pd.Series:
+    """Zero small depth gains that no other sensor supports (see HN24_CORROBORATE_BELOW_CM)."""
+    wet = pd.Series(False, index=hourly_index)
+    by_time = block.set_index("valid_time")
+    by_time = by_time[~by_time.index.duplicated(keep="last")].reindex(hourly_index)
+    if "swe_mm" in by_time and by_time["swe_mm"].notna().any():
+        swe = smooth_depth(by_time["swe_mm"].astype(float))
+        wet |= ((swe - swe.shift(WINDOW_H)) > NOISE_FLOOR["swe_24h_mm"]).fillna(False)
+    if "precip_1h_mm" in by_time and by_time["precip_1h_mm"].notna().any():
+        p24 = by_time["precip_1h_mm"].astype(float).rolling(WINDOW_H, min_periods=1).sum()
+        wet |= (p24 > 0.0).fillna(False)
+    small = (gain > 0) & (gain < HN24_CORROBORATE_BELOW_CM)
+    return gain.where(~(small & ~wet), 0.0)
 
 
 def add_obs_columns(obs: pd.DataFrame, variables: list[str]) -> pd.DataFrame:
@@ -174,8 +203,10 @@ def add_obs_columns(obs: pd.DataFrame, variables: list[str]) -> pd.DataFrame:
                 continue
             series = block.set_index("valid_time")[col].astype(float)
             series = series[~series.index.duplicated(keep="last")].reindex(hourly_index)
-            if var == "hn24_cm":
-                series = smooth_depth(series)
+            series = smooth_depth(series)  # spikes and jitter, for SWE as for depth
             gain = (series - series.shift(WINDOW_H)).clip(lower=0.0)
+            gain = gain.where(gain > NOISE_FLOOR[var], 0.0).where(gain.notna())
+            if var == "hn24_cm":
+                gain = _corroborate(gain, block, hourly_index)
             out.loc[block.index, var] = gain.reindex(block["valid_time"]).to_numpy()
     return out
