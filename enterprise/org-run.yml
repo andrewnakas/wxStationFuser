@@ -52,6 +52,8 @@ jobs:
 
   run:
     needs: plan
+    # No orgs yet (an empty orgs.txt) is a normal state, not an error.
+    if: needs.plan.outputs.orgs != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 340
     strategy:
