@@ -165,7 +165,17 @@ body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--bod
 .page{max-width:860px;margin:0 auto;padding-inline:20px;padding-block:28px 56px}
 .kicker{font:600 12px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
 h1{font:600 44px/1 var(--display);letter-spacing:.01em;margin:0;text-wrap:balance}
-h2{font:600 26px/1.1 var(--display);letter-spacing:.02em;margin:0;text-wrap:balance}
+h2,.var{font:600 26px/1.1 var(--display);letter-spacing:.02em;margin:0;text-wrap:balance}
+h1.station{margin:0}
+.stn{margin-top:56px;padding-top:28px;border-top:2px solid var(--ink)}
+.stn:first-of-type{margin-top:28px}
+h2.station{font:600 38px/1 var(--display);margin:0}
+h3.var{font-size:24px}
+.lead{max-width:62ch;color:var(--soft);margin:12px 0 0}
+.switch{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.switch a{font:500 14px/1 var(--body);padding:9px 14px;border:1px solid var(--rule);border-radius:999px;
+color:var(--ink);text-decoration:none;background:var(--panel)}
+.switch a:hover,.switch a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
 .strip{display:flex;flex-wrap:wrap;gap:6px 22px;margin:16px 0 0;padding:12px 0;border-block:1px solid var(--rule);
 font:13px/1.4 var(--mono);color:var(--soft)}
 .strip b{font-weight:500;color:var(--ink)}
@@ -203,15 +213,9 @@ FONTS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=
          '&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">')
 
 
-def render(fc: dict, *, units: str = "imperial", now: datetime | None = None,
-           fragment: bool = False) -> str:
-    """The report as a full document, or with ``fragment`` as page content only.
-
-    The full document is what gets emailed, so it makes no external requests: system
-    fonts stand in for the web fonts, which only the fragment (published as a page)
-    loads.
-    """
-    now = now or datetime.now(UTC)
+def _station(fc: dict, *, units: str, now: datetime, h_station: str = "h1",
+             h_var: str = "h2") -> tuple[str, str, str]:
+    """One station's forecast as HTML: (content, local zone name, title)."""
     times = _times(fc)
     st = fc["station"]
     off, zone = _zone(st.get("lon"))
@@ -249,7 +253,7 @@ def render(fc: dict, *, units: str = "imperial", now: datetime | None = None,
                    + "</p>")
         claim = " claim" if skill.get("beats_raw") else ""
         sections.append(
-            f'<section><div class="head"><h2>{html.escape(label)}</h2>'
+            f'<section><div class="head"><{h_var} class="var">{html.escape(label)}</{h_var}>'
             + ('<p class="note">Each hour: the total for the 24 hours ending then</p>' if window else "")
             + "</div>"
             + (f'<div class="tiles">{"".join(tiles)}</div>' if tiles else "")
@@ -276,19 +280,55 @@ def render(fc: dict, *, units: str = "imperial", now: datetime | None = None,
              + f'<span>models <b>{html.escape(" + ".join(model_name(m) for m in fc.get("models_used", [])))}</b></span>'
              f'<span>issued <b>{local(issued):%a %d %b %H:%M} {zone}</b></span>'
              f'<span>latest obs <b>{obs_txt}</b></span></div>')
-    body = (f'<main class="page"><p class="kicker">Calibrated station forecast</p>'
-            f'<h1>{html.escape(title)}</h1>{strip}{stale}{"".join(sections)}'
-            f'<footer><p>Times are {zone}, local standard time, all year. Each forecast is the '
-            f'models above corrected against this station\'s own history. The shaded ranges should '
+    content = (f'<{h_station} class="station">{html.escape(title)}</{h_station}>'
+               f'{strip}{stale}{"".join(sections)}')
+    return content, zone, title
+
+
+def _footer(zone: str) -> str:
+    return (f'<footer><p>Times are {zone}, local standard time, all year. Each forecast is the '
+            f'models above corrected against the station\'s own history. The shaded ranges should '
             f'hold the observation half the time (dark) and nine times in ten (light), and each '
             f'section reports how often they did on forecasts made before the data was seen. '
-            f'Tree60 Weather.</p></footer></main>')
-    page_title = f"{html.escape(title)} forecast"
+            f'Tree60 Weather.</p></footer>')
+
+
+def _page(title: str, body: str, fragment: bool) -> str:
     if fragment:
-        return f"<title>{page_title}</title>{FONTS}<style>{STYLE}</style>{body}"
+        return f"<title>{html.escape(title)}</title>{FONTS}<style>{STYLE}</style>{body}"
     return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
-            f"<title>{page_title}</title><style>{STYLE}</style></head><body>{body}</body></html>")
+            f"<title>{html.escape(title)}</title><style>{STYLE}</style></head><body>{body}</body></html>")
+
+
+def render(fc: dict, *, units: str = "imperial", now: datetime | None = None,
+           fragment: bool = False) -> str:
+    """The report as a full document, or with ``fragment`` as page content only.
+
+    The full document is what gets emailed, so it makes no external requests: system
+    fonts stand in for the web fonts, which only the fragment (published as a page)
+    loads.
+    """
+    content, zone, title = _station(fc, units=units, now=now or datetime.now(UTC))
+    body = (f'<main class="page"><p class="kicker">Calibrated station forecast</p>'
+            f'{content}{_footer(zone)}</main>')
+    return _page(f"{title} forecast", body, fragment)
+
+
+def render_many(fcs: list[dict], *, title: str, lead: str, units: str = "imperial",
+                now: datetime | None = None, fragment: bool = True) -> str:
+    """Several stations on one page, with a switcher: one link for a whole team."""
+    now = now or datetime.now(UTC)
+    blocks, nav, zone = [], [], "UTC"
+    for i, fc in enumerate(fcs):
+        content, zone, name = _station(fc, units=units, now=now, h_station="h2", h_var="h3")
+        anchor = f"st{i}"
+        nav.append(f'<a href="#{anchor}">{html.escape(name)}</a>')
+        blocks.append(f'<article id="{anchor}" class="stn">{content}</article>')
+    body = (f'<main class="page"><p class="kicker">Tree60 Enterprise · calibrated station forecasts</p>'
+            f'<h1>{html.escape(title)}</h1><p class="lead">{html.escape(lead)}</p>'
+            f'<nav class="switch">{"".join(nav)}</nav>{"".join(blocks)}{_footer(zone)}</main>')
+    return _page(title, body, fragment)
 
 
 def write_report(fc: dict, path: str | Path, *, units: str = "imperial", fragment: bool = False) -> Path:
