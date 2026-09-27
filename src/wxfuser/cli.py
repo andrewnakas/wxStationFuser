@@ -863,8 +863,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--limit", type=int, help="only this many stations (for a trial)")
     p.add_argument("--states", help="comma-separated state codes, e.g. MT or MT,ID,WY")
-    p.add_argument("--upload", action="store_true",
-                   help="publish the archive to the nakas/wxfuser-archive dataset afterwards")
+    p.add_argument("--no-upload", dest="upload", action="store_false",
+                   help="keep the archive local instead of publishing it to nakas/wxfuser-archive")
     p.set_defaults(func=cmd_snotel_archive)
 
     p = sub.add_parser("point-archive",
