@@ -1,0 +1,48 @@
+name: Network compare
+
+# Trains HRRR-only and fused model sets from one table and scores them on identical
+# held-out rows (unseen stations, unseen period), with winter and snow-event views and
+# threshold Brier scores. Publishes comparison.json to nakas/wxfuser-archive.
+
+on:
+  workflow_dispatch:
+    inputs:
+      variables:
+        description: 'Variables'
+        default: 'hn24_cm,swe_24h_mm,air_temp_c,precip_1h_mm'
+      test_from:
+        description: 'Score only from this date'
+        default: '2025-10-01'
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install
+        run: pip install -e ".[train,zarr]"
+      - name: Compare
+        run: |
+          wxfuser network-compare --fetch --archive archive/hub \
+            --sets hrrr=hrrr --sets fused=hrrr,gefs,ecmwf_ens \
+            --variables "${{ inputs.variables }}" --test-from "${{ inputs.test_from }}" \
+            --out archive/network/compare
+      - name: Publish
+        if: always()
+        run: |
+          python - <<'PY'
+          from huggingface_hub import HfApi
+          HfApi().upload_file(path_or_fileobj="archive/network/compare/comparison.json",
+                              path_in_repo="models/comparison.json", repo_id="nakas/wxfuser-archive",
+                              repo_type="dataset", commit_message="network comparison")
+          PY

@@ -446,6 +446,31 @@ def cmd_network_train(args) -> int:
     return 0
 
 
+def cmd_network_compare(args) -> int:
+    """Train model sets on one table and score them on identical held-out rows."""
+    from wxfuser import network
+
+    sets = {name: ms.split(",") for name, ms in (x.split("=", 1) for x in args.sets)}
+    every = sorted({m for ms in sets.values() for m in ms})
+    root = Path(args.archive)
+    if args.fetch:
+        root = network.fetch_archive(root, every)
+    report = {}
+    for variable in args.variables.split(","):
+        print(f"== {variable}", flush=True)
+        data = network.build_dataset(root, every, variable, issue_fraction=args.issue_fraction)
+        thresholds = tuple(float(t) for t in args.thresholds.split(",")) if (
+            args.thresholds and variable in ("hn24_cm", "swe_24h_mm", "precip_1h_mm")) else ()
+        if variable == "precip_1h_mm":
+            thresholds = (1.0,)
+        report[variable] = network.compare(data, variable, sets, test_from=args.test_from,
+                                           rounds=args.rounds, thresholds=thresholds)
+        print(json.dumps(report[variable], indent=1, default=str), flush=True)
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    (Path(args.out) / "comparison.json").write_text(json.dumps(report, indent=1, default=str))
+    return 0
+
+
 def cmd_ingest_csv(args) -> int:
     """Append a logger CSV to an org station's observation store."""
     from wxfuser.data import org_obs
@@ -895,6 +920,20 @@ def main(argv: list[str] | None = None) -> int:
                    help="train on a random share of issue times, to fit in memory")
     p.add_argument("--out", default="archive/network")
     p.set_defaults(func=cmd_network_train)
+
+    p = sub.add_parser("network-compare",
+                       help="score model sets on identical held-out rows, with winter and event views")
+    p.add_argument("--sets", action="append", required=True, metavar="NAME=M1,M2",
+                   help="e.g. --sets hrrr=hrrr --sets fused=hrrr,gefs,ecmwf_ens")
+    p.add_argument("--archive", default="archive/hub")
+    p.add_argument("--fetch", action="store_true")
+    p.add_argument("--variables", default="hn24_cm")
+    p.add_argument("--test-from", required=True)
+    p.add_argument("--thresholds", default="15,30", help="event thresholds for snow (cm / mm)")
+    p.add_argument("--issue-fraction", type=float, default=0.4)
+    p.add_argument("--rounds", type=int, default=300)
+    p.add_argument("--out", default="archive/network/compare")
+    p.set_defaults(func=cmd_network_compare)
 
     p = sub.add_parser("ingest-csv", help="add a logger CSV to an org station's observations")
     p.add_argument("file")

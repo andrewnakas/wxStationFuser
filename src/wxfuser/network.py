@@ -285,6 +285,93 @@ def leave_stations_out(data: pd.DataFrame, variable: str, models: list[str], *,
     return out
 
 
+def subset(data: pd.DataFrame, models: list[str]) -> pd.DataFrame:
+    """The table as if only ``models`` had been fused: fc_mean and fc_spread recomputed.
+
+    Lets two model sets be trained from one table and scored on identical rows, which
+    is the only fair way to ask whether adding models helps.
+    """
+    cols = [f"fc_{m}" for m in models]
+    out = data.copy()
+    with np.errstate(invalid="ignore"):
+        out["fc_mean"] = out[cols].mean(axis=1, skipna=True).astype("float32")
+        out["fc_spread"] = out[cols].std(axis=1, skipna=True, ddof=0).fillna(0).astype("float32")
+    return out
+
+
+WINTER_MONTHS = (11, 12, 1, 2, 3, 4)
+
+
+def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
+            test_from: str, folds: int = 5, rounds: int = 300, seed: int = 0,
+            thresholds: tuple[float, ...] = ()) -> dict:
+    """Train each model set on the same table and score all of them on identical rows.
+
+    Rows are unseen stations after ``test_from`` where every model in every set has a
+    forecast. Beside the overall CRPS, it reports winter (Nov-Apr) and, for amounts,
+    event rows (observed or forecast above zero), so snow-free hours cannot carry the
+    score, plus Brier scores at ``thresholds``.
+    """
+    all_models = sorted({m for ms in sets.values() for m in ms})
+    data = data.dropna(subset=[f"fc_{m}" for m in all_models]).reset_index(drop=True)
+    stations = np.array(sorted(data["station_id"].unique()))
+    rng = np.random.default_rng(seed)
+    rng.shuffle(stations)
+    fold_of = {st: i % folds for i, st in enumerate(stations)}
+    fold = data["station_id"].map(fold_of).to_numpy()
+    vt = pd.to_datetime(data["valid_time"])
+    cut = pd.Timestamp(test_from)
+    parts = []
+    for k in range(folds):
+        tr = (fold != k) & (vt < cut).to_numpy()
+        te = (fold == k) & (vt >= cut).to_numpy()
+        if not tr.any() or not te.any():
+            continue
+        test = data[te]
+        part = test[["station_id", "valid_time", "lead_h", "obs"]].copy()
+        for name, ms in sets.items():
+            model = fit(subset(data[tr], ms), variable, ms, rounds=rounds)
+            q = model.predict(subset(test, ms))
+            part[f"crps_{name}"] = metrics.crps_from_quantiles(test["obs"].to_numpy(float), q)
+            for t in thresholds:
+                levels = [float(kk[1:]) / 100 for kk in sorted(q)]
+                mat = np.column_stack([q[kk] for kk in sorted(q)])
+                part[f"p{t:g}_{name}"] = metrics.exceedance_probability(levels, mat, t)
+        for m in all_models:
+            part[f"crps_raw_{m}"] = np.abs(test[f"fc_{m}"].to_numpy(float) - test["obs"].to_numpy(float))
+            for t in thresholds:
+                part[f"p{t:g}_raw_{m}"] = (test[f"fc_{m}"].to_numpy(float) > t).astype(float)
+        part["raw_any"] = test[[f"fc_{m}" for m in all_models]].max(axis=1).to_numpy()
+        parts.append(part)
+        print(f"  fold {k + 1}/{folds}: {test['station_id'].nunique()} unseen stations, {len(test):,} rows",
+              flush=True)
+    res = pd.concat(parts, ignore_index=True)
+    months = pd.to_datetime(res["valid_time"]).dt.month
+    views = {"all": np.ones(len(res), bool), "winter": months.isin(WINTER_MONTHS).to_numpy()}
+    if variable in ("precip_1h_mm", "hn24_cm", "swe_24h_mm"):
+        views["winter_events"] = views["winter"] & ((res["obs"] > 0) | (res["raw_any"] > 0)).to_numpy()
+    names = list(sets) + [f"raw_{m}" for m in all_models]
+    out = {"variable": variable, "sets": sets, "scheme": f"unseen stations, from {cut.date()}",
+           "stations": int(res["station_id"].nunique())}
+    for view, mask in views.items():
+        r = res[mask]
+        block = {"rows": int(len(r))}
+        for n in names:
+            block[f"crps_{n}"] = float(r[f"crps_{n}"].mean()) if len(r) else None
+        best_raw = min((f"raw_{m}" for m in all_models), key=lambda n: block[f"crps_{n}"] or np.inf)
+        block["raw_best"] = best_raw
+        for n in sets:
+            if block[f"crps_{best_raw}"]:
+                block[f"crpss_{n}_vs_raw_best"] = 1 - block[f"crps_{n}"] / block[f"crps_{best_raw}"]
+        for t in thresholds:
+            y = (r["obs"] > t).astype(float)
+            block[f"events_over_{t:g}"] = int(y.sum())
+            for n in names:
+                block[f"brier_{t:g}_{n}"] = float(((r[f"p{t:g}_{n}"] - y) ** 2).mean()) if len(r) else None
+        out[view] = block
+    return out
+
+
 def fetch_archive(dest: str | Path, models: list[str], repo: str = "nakas/wxfuser-archive") -> Path:
     """Download the archive's SNOTEL files and the chosen models' point files."""
     from huggingface_hub import snapshot_download

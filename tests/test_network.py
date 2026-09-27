@@ -70,3 +70,14 @@ def test_models_round_trip(tmp_path):
     back = network.load(network.save(model, tmp_path / "m.json"))
     a, b = model.predict(data.head(50)), back.predict(data.head(50))
     assert np.allclose(a["q50"], b["q50"])
+
+
+def test_model_sets_are_compared_on_identical_rows_with_winter_views(tmp_path):
+    root = _archive(tmp_path, days=60)
+    data = network.build_dataset(root, ["gefs"], "air_temp_c", issue_hours=(9, 21))
+    data["fc_other"] = data["fc_gefs"] + 1.0  # a second "model" to fuse
+    res = network.compare(data, "air_temp_c", {"one": ["gefs"], "two": ["gefs", "other"]},
+                          test_from="2025-02-10", folds=2, rounds=30)
+    assert res["all"]["rows"] > 0
+    assert {"crps_one", "crps_two", "crps_raw_gefs", "crpss_one_vs_raw_best"} <= set(res["all"])
+    assert res["winter"]["rows"] == res["all"]["rows"]  # February is winter
