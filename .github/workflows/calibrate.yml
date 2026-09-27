@@ -1,0 +1,70 @@
+name: Calibrate stations
+
+# Runs `wxfuser calibrate` for public network stations (SNOTEL, IEM, MesoWest links or
+# triplets) on a CI runner, and publishes each station's forecast.json, report.html and
+# page.html to nakas/wxfuser-archive under demos/<name>/.
+#
+# Public stations only. This repository's Actions logs are public, so a customer's own
+# CSV belongs in the private enterprise runner, never here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      stations:
+        description: 'Space-separated SNOTEL triplets or station links'
+        default: '480:MT:SNTL 590:MT:SNTL'
+      models:
+        description: 'Models to fuse'
+        default: 'hrrr,gefs,ecmwf_ens'
+      years:
+        description: 'Years of history'
+        default: '2'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      stations: ${{ steps.p.outputs.stations }}
+    steps:
+      - id: p
+        env:
+          STATIONS: ${{ inputs.stations }}
+        run: python -c "import json,os; print('stations=' + json.dumps(os.environ['STATIONS'].split()))" >> "$GITHUB_OUTPUT"
+
+  calibrate:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        station: ${{ fromJson(needs.plan.outputs.stations) }}
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      WXFUSER_DYNAMICAL_EMAIL: ${{ secrets.WXFUSER_DYNAMICAL_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install
+        run: pip install -e ".[train,zarr]"
+      - name: Calibrate
+        run: |
+          wxfuser calibrate "${{ matrix.station }}" --models "${{ inputs.models }}" \
+            --years "${{ inputs.years }}" --out out
+      - name: Publish
+        run: |
+          python - <<'PY'
+          import json
+          from huggingface_hub import HfApi
+          name = json.load(open("out/forecast.json"))["station"]["id"].replace(":", "_")
+          HfApi().upload_folder(folder_path="out", path_in_repo=f"demos/{name}", repo_id="nakas/wxfuser-archive",
+                                repo_type="dataset", allow_patterns=["forecast.json", "report.html", "page.html"],
+                                commit_message=f"calibrated forecast: {name}")
+          print(f"published demos/{name}")
+          PY
