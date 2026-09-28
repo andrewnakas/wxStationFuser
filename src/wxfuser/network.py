@@ -102,7 +102,7 @@ def align_runs(runs: pd.DataFrame, model: str, issue_hours: list[int], variables
 def build_dataset(root: str | Path, models: list[str], variable: str, *,
                   issue_hours: tuple[int, ...] = (3, 15), states: list[str] | None = None,
                   station_batch: int = 10, issue_fraction: float = 1.0,
-                  seed: int = 0) -> pd.DataFrame:
+                  seed: int = 0, station_ids: list[str] | None = None) -> pd.DataFrame:
     """The pooled training table for one variable: one row per (station, issue, lead).
 
     Built a few stations at a time, keeping float32, so peak memory is one batch's runs
@@ -117,6 +117,8 @@ def build_dataset(root: str | Path, models: list[str], variable: str, *,
     stations = load_stations(root)
     if states:
         stations = stations[stations["state"].isin(states)]
+    if station_ids:
+        stations = stations[stations["station_id"].isin(station_ids)]
     ids = sorted(stations["station_id"])
     inputs = derived.fetch_variables([variable])
     cols = ["station_id", "init_time", "lead_h", "valid_time", *[f"fc_{v}" for v in inputs]]

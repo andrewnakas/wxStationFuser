@@ -1,0 +1,49 @@
+name: Forecast history
+
+# Replays stations' calibrated forecasts through their history (walk-forward, so every
+# forecast is one that could have been issued then) beside raw models and observations,
+# and publishes the compact result to nakas/wxfuser-archive for the explorer page.
+
+on:
+  workflow_dispatch:
+    inputs:
+      stations:
+        description: 'Comma-separated SNOTEL triplets'
+        default: '480:MT:SNTL,590:MT:SNTL'
+      since:
+        description: 'Replay from'
+        default: '2024-04-01'
+      name:
+        description: 'Output name'
+        default: 'montana-demo'
+
+permissions:
+  contents: read
+
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install
+        run: pip install -e ".[train,zarr]"
+      - name: Replay
+        run: |
+          wxfuser history --fetch --stations "${{ inputs.stations }}" --since "${{ inputs.since }}" \
+            --out "out/${{ inputs.name }}.json"
+      - name: Publish
+        run: |
+          python - <<'PY'
+          from huggingface_hub import HfApi
+          name = "${{ inputs.name }}"
+          HfApi().upload_file(path_or_fileobj=f"out/{name}.json", path_in_repo=f"demos/history/{name}.json",
+                              repo_id="nakas/wxfuser-archive", repo_type="dataset",
+                              commit_message=f"forecast history: {name}")
+          PY

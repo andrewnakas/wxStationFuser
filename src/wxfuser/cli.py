@@ -471,6 +471,46 @@ def cmd_network_compare(args) -> int:
     return 0
 
 
+def cmd_history(args) -> int:
+    """Replay stations' calibrated forecasts through history, for the explorer page."""
+    import pandas as pd
+
+    from wxfuser import history, network
+    from wxfuser.data.bulk import snotel_stations
+
+    models = args.models.split(",")
+    ids = args.stations.split(",")
+    root = Path(args.archive)
+    if args.fetch:
+        root = network.fetch_archive(root, models)
+    meta = snotel_stations().set_index("id")
+    out = {"models": models, "since": args.since, "stations": []}
+    for sid in ids:
+        entry = {"id": sid, "name": str(meta.loc[sid, "name"]) if sid in meta.index else sid,
+                 "elev_m": float(meta.loc[sid, "elev_m"]) if sid in meta.index else None,
+                 "lon": float(meta.loc[sid, "lon"]) if sid in meta.index else None,
+                 "variables": {}}
+        for variable in history.SAMPLING:
+            print(f"== {sid} {variable}", flush=True)
+            data = network.build_dataset(root, models, variable, station_ids=[sid])
+            data = data[pd.to_datetime(data["valid_time"]) >= pd.Timestamp(args.since)]
+            frame, champion = history.replay(data, variable, models)
+            if frame.empty:
+                continue
+            frame = history.sample(frame, variable)
+            block = {"champion": champion, "summary": history.summary(frame, models),
+                     "rows": history.columnar(frame, models)}
+            if variable in ("hn24_cm", "swe_24h_mm"):
+                block["events"] = history.events(frame, models)
+            print(f"  {champion}: {len(frame):,} rows, {block['summary']}", flush=True)
+            entry["variables"][variable] = block
+        out["stations"].append(entry)
+    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.out).write_text(json.dumps(out, separators=(",", ":")))
+    print(f"wrote {args.out} ({Path(args.out).stat().st_size / 1e6:.1f} MB)")
+    return 0
+
+
 def cmd_ingest_csv(args) -> int:
     """Append a logger CSV to an org station's observation store."""
     from wxfuser.data import org_obs
@@ -934,6 +974,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--rounds", type=int, default=300)
     p.add_argument("--out", default="archive/network/compare")
     p.set_defaults(func=cmd_network_compare)
+
+    p = sub.add_parser("history", help="replay calibrated forecasts through history (explorer data)")
+    p.add_argument("--stations", required=True, help="comma-separated SNOTEL triplets")
+    p.add_argument("--models", default="hrrr,gefs,ecmwf_ens")
+    p.add_argument("--since", default="2024-04-01")
+    p.add_argument("--archive", default="archive/hub")
+    p.add_argument("--fetch", action="store_true")
+    p.add_argument("--out", default="archive/history.json")
+    p.set_defaults(func=cmd_history)
 
     p = sub.add_parser("ingest-csv", help="add a logger CSV to an org station's observations")
     p.add_argument("file")
