@@ -81,6 +81,7 @@ function rowsFor(stIdx, variable) {
   for (let i = 0; i < n; i++) {
     const o = {issue: r.issue[i] * H, lead: r.lead[i], obs: r.obs[i], q05: r.q05[i], q25: r.q25[i], q50: r.q50[i], q75: r.q75[i], q95: r.q95[i], raw: {}};
     for (const m of D.models) o.raw[m] = r['raw_' + m][i];
+    if (r.pstorm) o.pstorm = r.pstorm[i];
     o.valid = o.issue + o.lead * H;
     out.push(o);
   }
@@ -113,6 +114,22 @@ function renderScores() {
   $('scores').innerHTML = cards;
 }
 
+function renderCalls() {
+  const s = D.stations[st.station], b = s.variables.hn24_cm;
+  const c = b && b.calls;
+  if (!c) { $('calls').innerHTML = ''; return; }
+  const rows = [['Calibrated', c.calibrated, true], ...D.models.map(m => [NAMES[m] || m, c[m], false])];
+  const thr = (VARS.hn24_cm.conv(c.storm_at)).toFixed(0);
+  $('calls').innerHTML = `<div class="tablewrap"><table class="miss"><thead><tr><th>Source</th>
+    <th>Storm days caught</th><th>False alarms</th><th>Calls that were right</th></tr></thead><tbody>${rows.map(([n, v, cal]) => {
+      const right = v.caught + v.false_alarms ? Math.round(100 * v.caught / (v.caught + v.false_alarms)) : null;
+      return `<tr><td>${cal ? '<b>' + n + '</b>' : n}</td><td>${v.caught} of ${c.storm_days}</td><td>${v.false_alarms}</td><td>${right == null ? '—' : right + '%'}</td></tr>`;
+    }).join('')}</tbody></table></div>
+    <p class="note">Day-ahead calls for ${thr}"+ of new snow over ${c.days} forecast days since ${b.since || ''}. A raw model calls a storm when it
+    says ${thr}"+; the calibrated forecast when its chance of ${thr}"+ reaches ${Math.round(100 * c.cut)}%. Snow here comes from the model
+    trained on the other Montana stations, with this one held out, and on earlier winters only.</p>`;
+}
+
 function renderEvents() {
   const s = D.stations[st.station], z = zone(s);
   const b = s.variables.hn24_cm;
@@ -120,11 +137,12 @@ function renderEvents() {
   const conv = VARS.hn24_cm.conv;
   $('events').innerHTML = b.events.map((e, i) => {
     const vals = [['Observed', e.obs, 'obs'], ['Calibrated', e.q50, 'cal'], ...D.models.map(m => [NAMES[m] || m, e.raw[m], m])];
+    const chance = e.pstorm == null ? '' : `<div><div class="k">Chance of 4"+</div><div class="n best">${Math.round(100 * e.pstorm)}%</div></div>`;
     const errs = vals.slice(1).map(v => v[1] == null ? Infinity : Math.abs(v[1] - e.obs));
     const best = errs.indexOf(Math.min(...errs)) + 1;
     return `<button class="event" data-i="${i}" aria-label="Replay ${label(e.valid * H, z)}">
       <div><div class="k">Ending ${label(e.valid * H, z, true)} ${z.name}</div><div class="d">${fmt(conv(e.obs), 1)} in observed</div></div>
-      ${vals.slice(1).map((v, j) => `<div><div class="k">${v[0]}</div><div class="n${j + 1 === best ? ' best' : ''}">${fmt(v[1] == null ? null : conv(v[1]), 1)} in</div></div>`).join('')}
+      ${chance}${vals.slice(1).map((v, j) => `<div><div class="k">${v[0]}</div><div class="n">${fmt(v[1] == null ? null : conv(v[1]), 1)} in</div></div>`).join('')}
     </button>`;
   }).join('');
   $('events').querySelectorAll('button').forEach(btn => btn.onclick = () => {
@@ -192,17 +210,18 @@ function drawChart(rows, meta, z) {
 function drawTable(rows, meta, z) {
   const c = v => v == null ? null : meta.conv(v);
   const shown = meta.snow ? rows : rows.filter((r, i) => i % 2 === 0);
-  const head = `<tr><th>Valid (${z.name})</th><th>Observed</th><th>Calibrated</th>${D.models.map(m => `<th>${NAMES[m] || m}</th>`).join('')}</tr>`;
+  const hasChance = meta.snow && shown.some(r => r.pstorm != null);
+  const head = `<tr><th>Valid (${z.name})</th><th>Observed</th>${hasChance ? '<th>Chance of 4"+</th>' : ''}<th>Calibrated</th>${D.models.map(m => `<th>${NAMES[m] || m}</th>`).join('')}</tr>`;
   let tot = {cal: 0}, n = 0; D.models.forEach(m => tot[m] = 0);
   const body = shown.map(r => {
     const obs = c(r.obs), vals = [['cal', c(r.q50)], ...D.models.map(m => [m, c(r.raw[m])])];
     const errs = vals.map(([, v]) => obs == null || v == null ? Infinity : Math.abs(v - obs));
     const best = errs.indexOf(Math.min(...errs));
     if (obs != null && vals.every(([, v]) => v != null)) { n++; vals.forEach(([k, v]) => tot[k] += Math.abs(v - obs)); }
-    return `<tr><td>${label(r.valid, z, true)}</td><td>${fmt(obs, meta.dec)}</td>${vals.map(([k, v], i) =>
+    return `<tr><td>${label(r.valid, z, true)}</td><td>${fmt(obs, meta.dec)}</td>${hasChance ? `<td>${r.pstorm == null ? '—' : Math.round(100 * r.pstorm) + '%'}</td>` : ''}${vals.map(([k, v], i) =>
       `<td class="${i === best && obs != null ? 'best' : ''}">${fmt(v, meta.dec)}${obs != null && v != null ? ` <span class="note">(${v - obs >= 0 ? '+' : ''}${(v - obs).toFixed(meta.dec)})</span>` : ''}</td>`).join('')}</tr>`;
   }).join('');
-  const foot = n ? `<tr><td><b>Average miss</b></td><td></td><td class="best"><b>${fmt(tot.cal / n, meta.dec)}</b></td>${D.models.map(m => `<td>${fmt(tot[m] / n, meta.dec)}</td>`).join('')}</tr>` : '';
+  const foot = n ? `<tr><td><b>Average miss</b></td><td></td>${hasChance ? '<td></td>' : ''}<td class="best"><b>${fmt(tot.cal / n, meta.dec)}</b></td>${D.models.map(m => `<td>${fmt(tot[m] / n, meta.dec)}</td>`).join('')}</tr>` : '';
   $('miss').innerHTML = `<div class="tablewrap"><table class="miss"><thead>${head}</thead><tbody>${body}${foot}</tbody></table></div>`;
 }
 
@@ -213,7 +232,7 @@ function shiftDay(d) {
 $('prev').onclick = () => shiftDay(-1);
 $('next').onclick = () => shiftDay(1);
 $('day').onchange = e => { if (e.target.value) { st.day = e.target.value; renderReplay(); } };
-function renderAll() { renderStations(); renderScores(); renderEvents(); renderReplay(); }
+function renderAll() { renderStations(); renderScores(); renderCalls(); renderEvents(); renderReplay(); }
 // Open on the biggest snow day, the reason the page exists, rather than on the last
 // date, which is summer for most of the year.
 (function openOnBiggestStorm() {
@@ -238,6 +257,7 @@ def render(history: dict, *, title: str, lead: str) -> str:
   <p class="lead">{html.escape(lead)}</p>
   <nav class="switch" id="stations" aria-label="Station"></nav>
   <section><div class="head"><h2>Over the whole replay</h2></div><div class="scores" id="scores"></div></section>
+  <section><div class="head"><h2>Storm calls</h2></div><div id="calls"></div></section>
   <section><div class="head"><h2>Biggest snow days</h2>
     <p class="note">The largest observed 24 h snowfalls, each with the forecast issued the morning before. Tap one to replay it.</p></div>
     <div class="events" id="events"></div></section>
