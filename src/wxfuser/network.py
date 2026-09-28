@@ -302,11 +302,13 @@ def subset(data: pd.DataFrame, models: list[str]) -> pd.DataFrame:
 
 
 WINTER_MONTHS = (11, 12, 1, 2, 3, 4)
+# A storm, for storm-day scoring: 10 cm (4 in) of new snow, 10 mm of SWE in 24 h.
+STORM_THRESHOLD = {"hn24_cm": 10.0, "swe_24h_mm": 10.0}
 
 
 def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
             test_from: str, folds: int = 5, rounds: int = 300, seed: int = 0,
-            thresholds: tuple[float, ...] = ()) -> dict:
+            thresholds: tuple[float, ...] = (), focus: list[str] | None = None) -> dict:
     """Train each model set on the same table and score all of them on identical rows.
 
     Rows are unseen stations after ``test_from`` where every model in every set has a
@@ -335,6 +337,8 @@ def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
             model = fit(subset(data[tr], ms), variable, ms, rounds=rounds)
             q = model.predict(subset(test, ms))
             part[f"crps_{name}"] = metrics.crps_from_quantiles(test["obs"].to_numpy(float), q)
+            part[f"q50_{name}"] = q["q50"]
+            part[f"q95_{name}"] = q["q95"]
             for t in thresholds:
                 levels = [float(kk[1:]) / 100 for kk in sorted(q)]
                 mat = np.column_stack([q[kk] for kk in sorted(q)])
@@ -352,6 +356,7 @@ def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
     views = {"all": np.ones(len(res), bool), "winter": months.isin(WINTER_MONTHS).to_numpy()}
     if variable in ("precip_1h_mm", "hn24_cm", "swe_24h_mm"):
         views["winter_events"] = views["winter"] & ((res["obs"] > 0) | (res["raw_any"] > 0)).to_numpy()
+    storm_at = STORM_THRESHOLD.get(variable)
     names = list(sets) + [f"raw_{m}" for m in all_models]
     out = {"variable": variable, "sets": sets, "scheme": f"unseen stations, from {cut.date()}",
            "stations": int(res["station_id"].nunique())}
@@ -371,6 +376,27 @@ def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
             for n in names:
                 block[f"brier_{t:g}_{n}"] = float(((r[f"p{t:g}_{n}"] - y) ** 2).mean()) if len(r) else None
         out[view] = block
+    if storm_at is not None:
+        # Storm days: the days forecasters care about, judged by the median's miss and bias
+        # and by whether the 95th percentile reached what fell. A model can win on average
+        # by predicting little every day, and this is where that shows.
+        r = res[views["winter"] & (res["obs"] >= storm_at).to_numpy()]
+        block = {"rows": int(len(r)), "threshold": storm_at}
+        for n in sets:
+            block[f"mae_{n}"] = float((r[f"q50_{n}"] - r["obs"]).abs().mean()) if len(r) else None
+            block[f"bias_{n}"] = float((r[f"q50_{n}"] - r["obs"]).mean()) if len(r) else None
+            block[f"q95_covers_{n}"] = float((r[f"q95_{n}"] >= r["obs"]).mean()) if len(r) else None
+        for m in all_models:
+            block[f"mae_raw_{m}"] = float((r[f"crps_raw_{m}"]).mean()) if len(r) else None
+        out["storms"] = block
+        if focus:
+            fr = r[r["station_id"].isin(focus)]
+            out["storms_focus"] = {
+                "stations": sorted(focus), "rows": int(len(fr)),
+                **{f"mae_{n}": float((fr[f"q50_{n}"] - fr["obs"]).abs().mean()) if len(fr) else None for n in sets},
+                **{f"bias_{n}": float((fr[f"q50_{n}"] - fr["obs"]).mean()) if len(fr) else None for n in sets},
+                **{f"mae_raw_{m}": float(fr[f"crps_raw_{m}"].mean()) if len(fr) else None for m in all_models},
+            }
     return out
 
 

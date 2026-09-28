@@ -13,6 +13,9 @@ on:
       test_from:
         description: 'Score only from this date'
         default: '2025-10-01'
+      focus:
+        description: 'Stations to report storm scores for separately'
+        default: '480:MT:SNTL,590:MT:SNTL'
 
 permissions:
   contents: read
@@ -36,6 +39,7 @@ jobs:
           wxfuser network-compare --fetch --archive archive/hub \
             --sets hrrr=hrrr --sets fused=hrrr,gefs,ecmwf_ens \
             --variables "${{ inputs.variables }}" --test-from "${{ inputs.test_from }}" \
+            --focus "${{ inputs.focus }}" \
             --out archive/network/compare
       - name: Publish
         if: always()

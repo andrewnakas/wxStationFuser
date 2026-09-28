@@ -464,7 +464,8 @@ def cmd_network_compare(args) -> int:
         if variable == "precip_1h_mm":
             thresholds = (1.0,)
         report[variable] = network.compare(data, variable, sets, test_from=args.test_from,
-                                           rounds=args.rounds, thresholds=thresholds)
+                                           rounds=args.rounds, thresholds=thresholds,
+                                           focus=args.focus.split(",") if args.focus else None)
         print(json.dumps(report[variable], indent=1, default=str), flush=True)
     Path(args.out).mkdir(parents=True, exist_ok=True)
     (Path(args.out) / "comparison.json").write_text(json.dumps(report, indent=1, default=str))
@@ -972,6 +973,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--thresholds", default="15,30", help="event thresholds for snow (cm / mm)")
     p.add_argument("--issue-fraction", type=float, default=0.4)
     p.add_argument("--rounds", type=int, default=300)
+    p.add_argument("--focus", help="also report storm scores for these stations alone")
     p.add_argument("--out", default="archive/network/compare")
     p.set_defaults(func=cmd_network_compare)
 
