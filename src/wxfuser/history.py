@@ -110,7 +110,10 @@ def summary(frame: pd.DataFrame, models: list[str]) -> dict:
     """MAE of the calibrated median and of each raw model on identical rows."""
     cols = ["obs", "q50", *[f"fc_{m}" for m in models]]
     same = frame.dropna(subset=cols)
-    out = {"rows": int(len(same)), "mae_calibrated": float((same["q50"] - same["obs"]).abs().mean())}
+    # No shared rows means nothing to compare, published as null: NaN is not JSON, and
+    # one NaN makes the whole page's data unreadable to the browser.
+    mae = (lambda c: float((same[c] - same["obs"]).abs().mean()) if len(same) else None)  # noqa: E731
+    out = {"rows": int(len(same)), "mae_calibrated": mae("q50")}
     for m in models:
-        out[f"mae_{m}"] = float((same[f"fc_{m}"] - same["obs"]).abs().mean())
+        out[f"mae_{m}"] = mae(f"fc_{m}")
     return out

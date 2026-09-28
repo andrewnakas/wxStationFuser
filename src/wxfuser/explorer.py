@@ -24,7 +24,7 @@ color:var(--ink);background:var(--panel);cursor:pointer}
 .score h3{font:600 20px/1 var(--display);margin:0}
 .bar{display:grid;grid-template-columns:92px 1fr 64px;align-items:center;gap:8px;font-size:12.5px}
 .bar .track{height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
-.bar .fill{height:100%;background:var(--soft)}
+.bar .fill{display:block;height:100%;background:var(--soft)}
 .bar.cal .fill{background:var(--accent)}
 .bar .v{font:500 12.5px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
 .events{display:grid;gap:8px;margin-top:10px}
@@ -98,13 +98,13 @@ function renderStations() {
 function renderScores() {
   const s = D.stations[st.station];
   const cards = Object.entries(VARS).map(([v, meta]) => {
-    const b = s.variables[v]; if (!b) return '';
+    const b = s.variables[v]; if (!b || !b.summary.rows) return '';
     const sm = b.summary, scale = meta.conv(1) - meta.conv(0);
     const items = [['Calibrated', sm.mae_calibrated, true], ...D.models.map(m => [NAMES[m] || m, sm['mae_' + m], false])];
     const max = Math.max(...items.map(x => x[1] || 0));
     const bars = items.map(([n, v2, cal]) => `<div class="bar${cal ? ' cal' : ''}"><span>${n}</span>
       <span class="track"><span class="fill" style="width:${max ? (100 * v2 / max).toFixed(1) : 0}%"></span></span>
-      <span class="v">${fmt(v2 * scale, meta.dec)} ${meta.unit}</span></div>`).join('');
+      <span class="v">${fmt(v2 == null ? null : v2 * scale, meta.snow ? meta.dec : 1)} ${meta.unit}</span></div>`).join('');
     const gain = sm.mae_calibrated && Math.min(...D.models.map(m => sm['mae_' + m])) ;
     const pct = gain ? Math.round(100 * (1 - sm.mae_calibrated / gain)) : null;
     return `<div class="score"><h3>${meta.label}</h3><div class="note">Average miss, ${sm.rows.toLocaleString()} forecasts
@@ -214,6 +214,15 @@ $('prev').onclick = () => shiftDay(-1);
 $('next').onclick = () => shiftDay(1);
 $('day').onchange = e => { if (e.target.value) { st.day = e.target.value; renderReplay(); } };
 function renderAll() { renderStations(); renderScores(); renderEvents(); renderReplay(); }
+// Open on the biggest snow day, the reason the page exists, rather than on the last
+// date, which is summer for most of the year.
+(function openOnBiggestStorm() {
+  const s = D.stations[st.station], e = s.variables.hn24_cm && s.variables.hn24_cm.events && s.variables.hn24_cm.events[0];
+  if (!e) return;
+  const z = zone(s), issueLocal = local(e.issue * H, z);
+  st.issueHourLocal = issueLocal.getUTCHours() < 12 ? 8 : 20;
+  st.day = issueLocal.toISOString().slice(0, 10);
+})();
 renderAll();
 """
 
