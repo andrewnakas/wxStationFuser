@@ -127,7 +127,17 @@ function renderCalls() {
     }).join('')}</tbody></table></div>
     <p class="note">Day-ahead calls for ${thr}"+ of new snow over ${c.days} forecast days since ${b.since || ''}. A raw model calls a storm when it
     says ${thr}"+; the calibrated forecast when its chance of ${thr}"+ reaches ${Math.round(100 * c.cut)}%. Snow here comes from the model
-    trained on the other Montana stations, with this one held out, and on earlier winters only.</p>`;
+    trained on the other Montana stations, with this one held out, and on earlier winters only.</p>${networkNote()}`;
+}
+
+function networkNote() {
+  const n = D.network_calls; if (!n || !n.fused || !n.fused.at_raw_catch) return '';
+  const raw = n.fused.at_raw_catch.raw, r = n['raw_' + raw], f = n.fused.at_raw_catch, f20 = n.fused['p>=20%'];
+  const fewer = Math.round(100 * (1 - f.false_alarms / r.false_alarms));
+  return `<p class="note"><b>Across ${n.storm_days} storm days at held-out Montana stations</b> the same winter:
+    ${NAMES[raw] || raw} caught ${r.caught} with ${r.false_alarms} false alarms. The calibrated forecast caught as many
+    with ${f.false_alarms} (${fewer}% fewer), or ${f20.caught} with ${f20.false_alarms} at a 20% chance. One station's winter
+    holds too few storms to separate the two; the network is where it shows.</p>`;
 }
 
 function renderEvents() {
@@ -246,8 +256,14 @@ renderAll();
 """
 
 
-def render(history: dict, *, title: str, lead: str) -> str:
-    """The replay page as publishable content (title, fonts, style, body, inline data)."""
+def render(history: dict, *, title: str, lead: str, network_calls: dict | None = None) -> str:
+    """The replay page as publishable content (title, fonts, style, body, inline data).
+
+    ``network_calls`` is network-compare's storm_calls for the whole held-out network,
+    shown beside each station's own counts: one winter at one station holds too few
+    storms to separate methods, and the network is where the comparison is decided.
+    """
+    history = {**history, "network_calls": network_calls}
     data = json.dumps(history, separators=(",", ":")).replace("</", "<\\/")
     script = SCRIPT.replace("%NAMES%", json.dumps(MODEL_NAMES))
     body = f"""
@@ -276,9 +292,10 @@ def render(history: dict, *, title: str, lead: str) -> str:
       <span><i class="b90"></i>90% range</span><span><i class="raw"></i>raw models</span><span>● observed</span></div>
     <div id="miss"></div>
   </section>
-  <footer><p>Every calibrated forecast here came from a walk-forward replay: the station's model was
-  refit every two weeks on what was known at the time and used to forecast the next weeks, so each is a
-  forecast that could really have been issued that day. Snow totals are the 24 hours ending 08:00 local
+  <footer><p>Every calibrated forecast here is one that could really have been issued that day.
+  Temperature comes from the station's own model, refit every two weeks on what was known at the time.
+  Snow comes from a model trained on the other Montana stations and on earlier winters only, so neither
+  this station nor this winter was in its training. Snow totals are the 24 hours ending 08:00 local
   standard time. Tree60 Weather.</p></footer>
 </main>
 <script type="application/json" id="hist">{data}</script>
