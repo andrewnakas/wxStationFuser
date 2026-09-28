@@ -130,3 +130,22 @@ def test_the_window_ending_24h_after_issue_is_complete():
     out = derived.add_forecast_columns(_issue_rows(), ["swe_24h_mm"]).set_index("lead_h")
     assert out.loc[24, "fc_swe_24h_mm"] == pytest.approx(24.0)
     assert np.isnan(out.loc[23, "fc_swe_24h_mm"])  # reaches back before issue
+
+
+def test_a_persistent_sensor_step_in_summer_is_not_a_storm():
+    """Lone Mountain, 25 June 2024: 0 -> 129 cm in an hour at 20 C, no precipitation."""
+    depth = np.r_[np.zeros(30), np.full(30, 129.5)]
+    ob = _obs(depth)
+    ob["air_temp_c"] = 20.0
+    ob["precip_1h_mm"] = 0.0
+    out = derived.add_obs_columns(ob, ["hn24_cm"])
+    assert not (out["hn24_cm"].fillna(0) > 0).any()
+
+
+def test_a_real_overnight_storm_still_counts():
+    depth = np.r_[np.full(10, 100.0), 100.0 + np.arange(1, 21) * 1.5, np.full(30, 130.0)]
+    ob = _obs(depth)
+    ob["air_temp_c"] = -6.0
+    ob["precip_1h_mm"] = 0.5
+    out = derived.add_obs_columns(ob, ["hn24_cm"])
+    assert out["hn24_cm"].max() == pytest.approx(30.0, abs=2.0)

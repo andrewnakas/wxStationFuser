@@ -156,6 +156,12 @@ NOISE_FLOOR = {"swe_24h_mm": 2.6, "hn24_cm": 2.6}
 # up to this size counts as new snow only when something else saw precipitation in
 # the same 24 h: a SWE gain or measured precipitation. Larger gains stand alone.
 HN24_CORROBORATE_BELOW_CM = 5.2
+# Faster than any snowfall rate (about 10 in/h): a larger one-hour depth rise is a
+# sensor step, and the 24 h windows containing it are unknown, not a storm.
+MAX_HOURLY_SNOW_CM = 25.0
+# A window that never went below this, with nothing else seeing precipitation, did not
+# accumulate snow.
+WARM_WINDOW_C = 5.0
 
 
 def smooth_depth(depth: pd.Series) -> pd.Series:
@@ -170,7 +176,8 @@ def smooth_depth(depth: pd.Series) -> pd.Series:
     return clean.rolling(3, center=True, min_periods=2).median()
 
 
-def _corroborate(gain: pd.Series, block: pd.DataFrame, hourly_index) -> pd.Series:
+def _corroborate(gain: pd.Series, block: pd.DataFrame, hourly_index,
+                 smoothed: pd.Series | None = None) -> pd.Series:
     """Zero small depth gains that no other sensor supports (see HN24_CORROBORATE_BELOW_CM)."""
     wet = pd.Series(False, index=hourly_index)
     by_time = block.set_index("valid_time")
@@ -182,7 +189,25 @@ def _corroborate(gain: pd.Series, block: pd.DataFrame, hourly_index) -> pd.Serie
         p24 = by_time["precip_1h_mm"].astype(float).rolling(WINDOW_H, min_periods=1).sum()
         wet |= (p24 > 0.0).fillna(False)
     small = (gain > 0) & (gain < HN24_CORROBORATE_BELOW_CM)
-    return gain.where(~(small & ~wet), 0.0)
+    gain = gain.where(~(small & ~wet), 0.0)
+
+    # Sensor steps. Lone Mountain's depth jumped 0 -> 129 cm in one hour on 25 June 2024,
+    # at 20 C with no precipitation and no SWE change, and stayed there: a persistent
+    # step survives median smoothing and read as a 51-inch storm. No snowfall rate
+    # reaches 25 cm in an hour, and snow does not accumulate across a warm window
+    # nothing else saw fall.
+    # Checked on the smoothed depth: a one-hour spike is already gone there, and what
+    # remains is a step that persists.
+    depth = smoothed
+    if depth is not None:
+        jump = depth.ffill().diff().rolling(WINDOW_H, min_periods=1).max()
+        stepped = (jump > MAX_HOURLY_SNOW_CM).fillna(False)
+        gain = gain.where(~stepped, np.nan)
+    if "air_temp_c" in by_time and by_time["air_temp_c"].notna().any():
+        warm = (by_time["air_temp_c"].astype(float).rolling(WINDOW_H, min_periods=1).min()
+                > WARM_WINDOW_C).fillna(False)
+        gain = gain.where(~(warm & ~wet & (gain > 0)), 0.0)
+    return gain
 
 
 def add_obs_columns(obs: pd.DataFrame, variables: list[str]) -> pd.DataFrame:
@@ -213,6 +238,6 @@ def add_obs_columns(obs: pd.DataFrame, variables: list[str]) -> pd.DataFrame:
             gain = (series - series.shift(WINDOW_H)).clip(lower=0.0)
             gain = gain.where(gain > NOISE_FLOOR[var], 0.0).where(gain.notna())
             if var == "hn24_cm":
-                gain = _corroborate(gain, block, hourly_index)
+                gain = _corroborate(gain, block, hourly_index, series)
             out.loc[block.index, var] = gain.reindex(block["valid_time"]).to_numpy()
     return out
