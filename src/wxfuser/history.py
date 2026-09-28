@@ -12,7 +12,9 @@ scorecard does, and its predictions are kept for the whole period.
 Output is compact columnar JSON for a page to load, sampled to what a phone can hold:
 
   * temperature: valid every 6 h, leads to 48 h
-  * 24 h new snow and SWE: the 07:00 MST morning totals (14 UTC), leads to 72 h
+  * 24 h new snow and SWE: the 08:00 MST morning totals (15 UTC), leads to 72 h.
+    15 UTC, not 14: GEFS and ECMWF ENS step every 3 hours, so a 14 UTC total exists
+    only for HRRR, and a replay at 14 UTC compared nothing.
 """
 from __future__ import annotations
 
@@ -25,8 +27,8 @@ from wxfuser.verify import metrics, rolling
 
 SAMPLING = {
     "air_temp_c": {"hours": (0, 6, 12, 18), "max_lead": 48},
-    "hn24_cm": {"hours": (14,), "max_lead": 72},
-    "swe_24h_mm": {"hours": (14,), "max_lead": 72},
+    "hn24_cm": {"hours": (15,), "max_lead": 72},
+    "swe_24h_mm": {"hours": (15,), "max_lead": 72},
 }
 QKEYS = ["q05", "q25", "q50", "q75", "q95"]
 
@@ -82,13 +84,13 @@ def columnar(frame: pd.DataFrame, models: list[str], decimals: int = 1) -> dict:
 def events(frame: pd.DataFrame, models: list[str], n: int = 15) -> list[dict]:
     """The largest observed 24 h snowfalls, each with its day-ahead forecasts.
 
-    For each event day the forecast issued the evening before (the lead closest to 23 h)
-    is used, which is the one a morning briefing would have had.
+    For each event day the forecast issued the morning before (the lead closest to 24 h)
+    is used: a day's notice, what a briefing would have had.
     """
     day1 = frame[(frame["lead_h"] >= 11) & (frame["lead_h"] <= 30)].copy()
     if day1.empty:
         return []
-    day1["pick"] = (day1["lead_h"] - 23).abs()
+    day1["pick"] = (day1["lead_h"] - 24).abs()
     day1 = day1.sort_values("pick").drop_duplicates("valid_time")
     top = day1.dropna(subset=["obs"]).nlargest(n, "obs")
     rows = []

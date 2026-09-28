@@ -22,7 +22,7 @@ def _oos(n_days=10):
 def test_sampling_keeps_morning_snow_totals_and_six_hourly_temperature():
     f = _oos()
     snow = history.sample(f, "hn24_cm")
-    assert set(pd.to_datetime(snow["valid_time"]).dt.hour) == {14}
+    assert set(pd.to_datetime(snow["valid_time"]).dt.hour) == {15}
     assert snow["lead_h"].max() <= 72
     temp = history.sample(f, "air_temp_c")
     assert set(pd.to_datetime(temp["valid_time"]).dt.hour) <= {0, 6, 12, 18}
