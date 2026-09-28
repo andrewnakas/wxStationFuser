@@ -306,6 +306,38 @@ WINTER_MONTHS = (11, 12, 1, 2, 3, 4)
 STORM_THRESHOLD = {"hn24_cm": 10.0, "swe_24h_mm": 10.0}
 
 
+def storm_calls(res: pd.DataFrame, sets: dict, all_models: list[str], storm_at: float) -> dict:
+    """Day-ahead storm calls: how many storm days each source flagged, at what false-alarm cost.
+
+    Day-ahead is the 08:00 local-standard total (15 UTC) from a forecast 18-30 h old, one
+    per day. A raw model "calls" a storm when it says at least the threshold; a calibrated
+    forecast when its chance of the threshold passes a cut. The cut is reported at a few
+    fixed levels and at the level that catches as many storms as the best raw model, which
+    turns the comparison into one number: false alarms at equal catch.
+    """
+    vt = pd.to_datetime(res["valid_time"])
+    d = res[(vt.dt.hour == 15) & res["lead_h"].between(18, 30) & vt.dt.month.isin(WINTER_MONTHS)]
+    d = d.assign(_pick=(d["lead_h"] - 24).abs()).sort_values("_pick").drop_duplicates(["station_id", "valid_time"])
+    y = d["obs"] >= storm_at
+    out = {"days": int(len(d)), "storm_days": int(y.sum())}
+
+    def count(flag):
+        return {"caught": int((flag & y).sum()), "false_alarms": int((flag & ~y).sum())}
+
+    for m in all_models:
+        out[f"raw_{m}"] = count(d[f"fc_raw_{m}"] >= storm_at)
+    best = max(all_models, key=lambda m: out[f"raw_{m}"]["caught"] - out[f"raw_{m}"]["false_alarms"])
+    target = out[f"raw_{best}"]["caught"]
+    for n in sets:
+        p = d[f"pstorm_{n}"]
+        out[n] = {f"p>={t:.0%}": count(p >= t) for t in (0.2, 0.3, 0.5)}
+        for t in np.arange(0.05, 0.95, 0.01):
+            if (((p >= t) & y).sum()) <= target:
+                out[n]["at_raw_catch"] = {"raw": best, "cut": round(float(t), 2), **count(p >= t)}
+                break
+    return out
+
+
 def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
             test_from: str, folds: int = 5, rounds: int = 300, seed: int = 0,
             thresholds: tuple[float, ...] = (), focus: list[str] | None = None) -> dict:
@@ -339,12 +371,18 @@ def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
             part[f"crps_{name}"] = metrics.crps_from_quantiles(test["obs"].to_numpy(float), q)
             part[f"q50_{name}"] = q["q50"]
             part[f"q95_{name}"] = q["q95"]
+            if variable in STORM_THRESHOLD:
+                keys = sorted(k for k in q if k.startswith("q"))
+                part[f"pstorm_{name}"] = metrics.exceedance_probability(
+                    [float(k[1:]) / 100 for k in keys], np.column_stack([q[k] for k in keys]),
+                    STORM_THRESHOLD[variable])
             for t in thresholds:
                 levels = [float(kk[1:]) / 100 for kk in sorted(q)]
                 mat = np.column_stack([q[kk] for kk in sorted(q)])
                 part[f"p{t:g}_{name}"] = metrics.exceedance_probability(levels, mat, t)
         for m in all_models:
             part[f"crps_raw_{m}"] = np.abs(test[f"fc_{m}"].to_numpy(float) - test["obs"].to_numpy(float))
+            part[f"fc_raw_{m}"] = test[f"fc_{m}"].to_numpy(float)
             for t in thresholds:
                 part[f"p{t:g}_raw_{m}"] = (test[f"fc_{m}"].to_numpy(float) > t).astype(float)
         part["raw_any"] = test[[f"fc_{m}" for m in all_models]].max(axis=1).to_numpy()
@@ -389,6 +427,10 @@ def compare(data: pd.DataFrame, variable: str, sets: dict[str, list[str]], *,
         for m in all_models:
             block[f"mae_raw_{m}"] = float((r[f"crps_raw_{m}"]).mean()) if len(r) else None
         out["storms"] = block
+        out["storm_calls"] = storm_calls(res, sets, all_models, storm_at)
+        if focus:
+            out["storm_calls_focus"] = storm_calls(res[res["station_id"].isin(focus)], sets,
+                                                   all_models, storm_at)
         if focus:
             fr = r[r["station_id"].isin(focus)]
             out["storms_focus"] = {

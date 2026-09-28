@@ -81,3 +81,16 @@ def test_model_sets_are_compared_on_identical_rows_with_winter_views(tmp_path):
     assert res["all"]["rows"] > 0
     assert {"crps_one", "crps_two", "crps_raw_gefs", "crpss_one_vs_raw_best"} <= set(res["all"])
     assert res["winter"]["rows"] == res["all"]["rows"]  # February is winter
+
+
+def test_storm_calls_count_catches_and_false_alarms_per_day():
+    days = pd.date_range("2026-01-01 15:00", periods=6, freq="D")
+    res = pd.DataFrame({"station_id": "s", "valid_time": days, "lead_h": 24,
+                        "obs": [12.0, 0.0, 15.0, 0.0, 11.0, 0.0],
+                        "fc_raw_ecmwf_ens": [11.0, 12.0, 2.0, 0.0, 10.0, 0.0],
+                        "pstorm_fused": [0.8, 0.1, 0.6, 0.05, 0.4, 0.3]})
+    out = network.storm_calls(res, {"fused": ["ecmwf_ens"]}, ["ecmwf_ens"], 10.0)
+    assert out["storm_days"] == 3
+    assert out["raw_ecmwf_ens"] == {"caught": 2, "false_alarms": 1}
+    assert out["fused"]["p>=30%"] == {"caught": 3, "false_alarms": 1}
+    assert out["fused"]["at_raw_catch"]["caught"] <= 2

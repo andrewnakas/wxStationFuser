@@ -492,6 +492,8 @@ def cmd_history(args) -> int:
                  "lon": float(meta.loc[sid, "lon"]) if sid in meta.index else None,
                  "variables": {}}
         for variable in history.SAMPLING:
+            if args.snow_network_from and variable in ("hn24_cm", "swe_24h_mm"):
+                continue  # replayed from the held-out network model below
             print(f"== {sid} {variable}", flush=True)
             data = network.build_dataset(root, models, variable, station_ids=[sid])
             data = data[pd.to_datetime(data["valid_time"]) >= pd.Timestamp(args.since)]
@@ -506,6 +508,14 @@ def cmd_history(args) -> int:
             print(f"  {champion}: {len(frame):,} rows, {block['summary']}", flush=True)
             entry["variables"][variable] = block
         out["stations"].append(entry)
+    if args.snow_network_from:
+        for variable in ("hn24_cm", "swe_24h_mm"):
+            print(f"== network snow replay {variable}", flush=True)
+            blocks = history.network_snow(root, ids, models, variable, test_from=args.snow_network_from)
+            for entry in out["stations"]:
+                if entry["id"] in blocks:
+                    entry["variables"][variable] = blocks[entry["id"]]
+                    print(f"  {entry['id']}: {blocks[entry['id']]['calls']}", flush=True)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, separators=(",", ":")))
     print(f"wrote {args.out} ({Path(args.out).stat().st_size / 1e6:.1f} MB)")
@@ -983,6 +993,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--since", default="2024-04-01")
     p.add_argument("--archive", default="archive/hub")
     p.add_argument("--fetch", action="store_true")
+    p.add_argument("--snow-network-from",
+                   help="replay snow from the network model with these stations held out, "
+                        "trained before and replayed from this date (e.g. 2025-10-01)")
     p.add_argument("--out", default="archive/history.json")
     p.set_defaults(func=cmd_history)
 

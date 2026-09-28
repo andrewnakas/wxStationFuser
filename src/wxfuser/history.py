@@ -117,3 +117,56 @@ def summary(frame: pd.DataFrame, models: list[str]) -> dict:
     for m in models:
         out[f"mae_{m}"] = mae(f"fc_{m}")
     return out
+
+
+def network_snow(root, stations: list[str], models: list[str], variable: str, *,
+                 test_from: str, storm_at: float = 10.0, cut: float = 0.24,
+                 issue_fraction: float = 0.35, rounds: int = 300) -> dict:
+    """Snow replay from the network model, with the replayed stations held out entirely.
+
+    One station's two winters are too few storms to calibrate amounts, so snow is
+    replayed from the model pooled across the network. That model is trained on every
+    other station and only on data before ``test_from``, then replayed on the held-out
+    stations from ``test_from`` on: unseen stations in an unseen season, as the network
+    scores are. Each block adds the chance of a storm (``storm_at``) and the day-ahead
+    storm calls, where calibrated means that chance reaching ``cut``.
+    """
+    from wxfuser import network
+
+    cutoff = pd.Timestamp(test_from)
+    pool = network.build_dataset(root, models, variable, issue_fraction=issue_fraction)
+    vt = pd.to_datetime(pool["valid_time"])
+    train = pool[(~pool["station_id"].isin(stations)) & (vt < cutoff)]
+    del pool
+    model = network.fit(train, variable, models, rounds=rounds)
+    del train
+    blocks = {}
+    for sid in stations:
+        d = network.build_dataset(root, models, variable, station_ids=[sid])
+        d = d[pd.to_datetime(d["valid_time"]) >= cutoff].reset_index(drop=True)
+        if d.empty:
+            continue
+        q = model.predict(d)
+        for k, v in q.items():
+            d[k] = v
+        mat = np.column_stack([d[k] for k in QKEYS])
+        d["pstorm"] = metrics.exceedance_probability([0.05, 0.25, 0.5, 0.75, 0.95], mat, storm_at)
+        d["issue_time"] = pd.to_datetime(d["valid_time"]) - pd.to_timedelta(d["lead_h"], unit="h")
+        f = sample(d, variable)
+        cols = columnar(f, models)
+        cols["pstorm"] = [round(float(x), 2) for x in f["pstorm"]]
+        ev = events(f, models)
+        chance = {(int(pd.Timestamp(r.valid_time).value // 3_600_000_000_000), int(r.lead_h)): float(r.pstorm)
+                  for r in f.itertuples()}
+        for e in ev:
+            e["pstorm"] = round(chance.get((e["valid"], e["lead"]), float("nan")), 2)
+        day1 = f[f["lead_h"].between(18, 30)]
+        day1 = day1.assign(_p=(day1["lead_h"] - 24).abs()).sort_values("_p").drop_duplicates("valid_time")
+        y = day1["obs"] >= storm_at
+        calls = {"storm_days": int(y.sum()), "days": int(len(day1)), "cut": cut, "storm_at": storm_at}
+        for name, flag in [("calibrated", day1["pstorm"] >= cut),
+                           *[(m, day1[f"fc_{m}"] >= storm_at) for m in models]]:
+            calls[name] = {"caught": int((flag & y).sum()), "false_alarms": int((flag & ~y).sum())}
+        blocks[sid] = {"champion": "network model, this station held out", "summary": summary(f, models),
+                       "rows": cols, "events": ev, "calls": calls, "since": test_from}
+    return blocks

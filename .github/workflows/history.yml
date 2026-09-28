@@ -16,6 +16,9 @@ on:
       name:
         description: 'Output name'
         default: 'montana-demo'
+      snow_network_from:
+        description: 'Replay snow from the held-out network model from this date (blank: per-station)'
+        default: '2025-10-01'
 
 permissions:
   contents: read
@@ -37,6 +40,7 @@ jobs:
       - name: Replay
         run: |
           wxfuser history --fetch --stations "${{ inputs.stations }}" --since "${{ inputs.since }}" \
+            ${{ inputs.snow_network_from && format('--snow-network-from {0}', inputs.snow_network_from) || '' }} \
             --out "out/${{ inputs.name }}.json"
       - name: Publish
         run: |
